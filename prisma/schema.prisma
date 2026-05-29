@@ -1,0 +1,256 @@
+// Prisma Schema for WC 2026 Prediction Game
+// Run: npx prisma generate && npx prisma migrate deploy
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int       @id @default(autoincrement())
+  emailEncrypted   String    @map("email_encrypted") // AES-256 encrypted email
+  emailHash        String    @unique @map("email_hash") // SHA-256 hash for lookups
+  alias            String    @unique @db.VarChar(50)
+  passwordHash     String    @map("password_hash") @db.VarChar(255)
+  isAdmin          Boolean   @default(false) @map("is_admin")
+  isActive         Boolean   @default(true) @map("is_active")
+  mustChangePassword Boolean @default(false) @map("must_change_password")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  matchPredictions       MatchPrediction[]
+  groupPredictions       GroupPrediction[]
+  knockoutPredictions    KnockoutPrediction[]
+  specialPrediction      SpecialPrediction?
+  userScore              UserScore?
+  adminOverridesGiven    AdminOverride[] @relation("OverrideAdmin")
+  adminOverridesReceived AdminOverride[] @relation("OverrideUser")
+
+  @@map("users")
+}
+
+model Team {
+  id        Int    @id // 1-48 (sequential group order)
+  name      String @db.VarChar(100) // English name
+  nameEs    String @db.VarChar(100) @map("name_es") // Spanish name
+  code      String @db.VarChar(3)  // 3-letter FIFA code e.g. MEX
+  groupId   String @db.VarChar(1) @map("group_id") // A-L
+  groupPos  Int    @map("group_pos") // 1-4
+  flagEmoji String @db.VarChar(20) @map("flag_emoji")
+
+  homeMatches      Match[] @relation("HomeTeam")
+  awayMatches      Match[] @relation("AwayTeam")
+  penaltyWinMatches Match[] @relation("PenaltyWinner")
+  groupPredPos1    GroupPrediction[] @relation("Pos1")
+  groupPredPos2    GroupPrediction[] @relation("Pos2")
+  groupPredPos3    GroupPrediction[] @relation("Pos3")
+  groupPredPos4    GroupPrediction[] @relation("Pos4")
+  knockoutPreds    KnockoutPrediction[]
+  specialChampion  SpecialPrediction[] @relation("Champion")
+  specialRunnerUp  SpecialPrediction[] @relation("RunnerUp")
+  specialThirdPlace SpecialPrediction[] @relation("ThirdPlace")
+  players          Player[]
+
+  @@map("teams")
+}
+
+model Match {
+  id            Int       @id @default(autoincrement())
+  matchNumber   Int       @unique @map("match_number") // 1-134
+  round         Round
+  groupId       String?   @db.VarChar(1) @map("group_id") // null for knockouts
+  matchDate     DateTime? @map("match_date")
+  homeTeamId    Int?      @map("home_team_id")
+  awayTeamId    Int?      @map("away_team_id")
+  // Slot labels for knockout rounds before teams are known
+  homeSlotLabel String?   @db.VarChar(20) @map("home_slot_label") // e.g. "1A", "W65"
+  awaySlotLabel String?   @db.VarChar(20) @map("away_slot_label")
+  // Actual results (filled after match is played)
+  homeScore     Int?      @map("home_score")
+  awayScore     Int?      @map("away_score")
+  homeScoreAet  Int?      @map("home_score_aet") // after extra time
+  awayScoreAet  Int?      @map("away_score_aet")
+  penaltyWinnerId Int?    @map("penalty_winner_id")
+  isBonusGame   Boolean   @default(false) @map("is_bonus_game")
+  isScored      Boolean   @default(false) @map("is_scored") // points calculated
+
+  homeTeam        Team? @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam        Team? @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  penaltyWinner   Team? @relation("PenaltyWinner", fields: [penaltyWinnerId], references: [id])
+  predictions     MatchPrediction[]
+  adminOverrides  AdminOverride[]
+
+  @@map("matches")
+}
+
+enum Round {
+  GROUP
+  R32
+  R16
+  QF
+  SF
+  THIRD
+  FINAL
+
+  @@map("round")
+}
+
+model MatchPrediction {
+  id        Int  @id @default(autoincrement())
+  userId    Int  @map("user_id")
+  matchId   Int  @map("match_id")
+  homeScore Int  @map("home_score")
+  awayScore Int  @map("away_score")
+  points    Int  @default(0)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id])
+
+  @@unique([userId, matchId])
+  @@map("match_predictions")
+}
+
+model GroupPrediction {
+  id         Int  @id @default(autoincrement())
+  userId     Int  @map("user_id")
+  groupId    String @db.VarChar(1) @map("group_id")
+  pos1TeamId Int  @map("pos1_team_id")
+  pos2TeamId Int  @map("pos2_team_id")
+  pos3TeamId Int  @map("pos3_team_id")
+  pos4TeamId Int  @map("pos4_team_id")
+  points     Int  @default(0)
+
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pos1    Team @relation("Pos1", fields: [pos1TeamId], references: [id])
+  pos2    Team @relation("Pos2", fields: [pos2TeamId], references: [id])
+  pos3    Team @relation("Pos3", fields: [pos3TeamId], references: [id])
+  pos4    Team @relation("Pos4", fields: [pos4TeamId], references: [id])
+
+  @@unique([userId, groupId])
+  @@map("group_predictions")
+}
+
+model KnockoutPrediction {
+  id       Int    @id @default(autoincrement())
+  userId   Int    @map("user_id")
+  round    Round
+  slot     Int    // slot number within the round (1-based)
+  teamId   Int    @map("team_id")
+  points   Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, round, slot])
+  @@map("knockout_predictions")
+}
+
+model SpecialPrediction {
+  id              Int     @id @default(autoincrement())
+  userId          Int     @unique @map("user_id")
+  championId      Int?    @map("champion_id")
+  runnerUpId      Int?    @map("runner_up_id")
+  thirdPlaceId    Int?    @map("third_place_id")
+  goldenBoot1     String? @db.VarChar(100) @map("golden_boot1")
+  goldenBoot2     String? @db.VarChar(100) @map("golden_boot2")
+  goldenBoot3     String? @db.VarChar(100) @map("golden_boot3")
+  goldenBall1     String? @db.VarChar(100) @map("golden_ball1")
+  goldenBall2     String? @db.VarChar(100) @map("golden_ball2")
+  goldenBall3     String? @db.VarChar(100) @map("golden_ball3")
+  pointsChampion  Int     @default(0) @map("points_champion")
+  pointsRunnerUp  Int     @default(0) @map("points_runner_up")
+  pointsThird     Int     @default(0) @map("points_third")
+  pointsBoot1     Int     @default(0) @map("points_boot1")
+  pointsBoot2     Int     @default(0) @map("points_boot2")
+  pointsBoot3     Int     @default(0) @map("points_boot3")
+  pointsBall1     Int     @default(0) @map("points_ball1")
+  pointsBall2     Int     @default(0) @map("points_ball2")
+  pointsBall3     Int     @default(0) @map("points_ball3")
+
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  champion   Team? @relation("Champion", fields: [championId], references: [id])
+  runnerUp   Team? @relation("RunnerUp", fields: [runnerUpId], references: [id])
+  thirdPlace Team? @relation("ThirdPlace", fields: [thirdPlaceId], references: [id])
+
+  @@map("special_predictions")
+}
+
+model UserScore {
+  id                    Int      @id @default(autoincrement())
+  userId                Int      @unique @map("user_id")
+  pointsGroupMatches    Int      @default(0) @map("points_group_matches")
+  pointsGroupStandings  Int      @default(0) @map("points_group_standings")
+  pointsR32             Int      @default(0) @map("points_r32")
+  pointsR32Advancement  Int      @default(0) @map("points_r32_advancement")
+  pointsR16             Int      @default(0) @map("points_r16")
+  pointsR16Advancement  Int      @default(0) @map("points_r16_advancement")
+  pointsQF              Int      @default(0) @map("points_qf")
+  pointsQFAdvancement   Int      @default(0) @map("points_qf_advancement")
+  pointsSF              Int      @default(0) @map("points_sf")
+  pointsSFAdvancement   Int      @default(0) @map("points_sf_advancement")
+  pointsThird           Int      @default(0) @map("points_third")
+  pointsFinal           Int      @default(0) @map("points_final")
+  pointsHonorBoard      Int      @default(0) @map("points_honor_board")
+  pointsTotal           Int      @default(0) @map("points_total")
+  lastUpdated           DateTime @default(now()) @map("last_updated")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_scores")
+}
+
+model AdminOverride {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  matchId        Int      @map("match_id")
+  overridePoints Int      @map("override_points")
+  reason         String?  @db.Text
+  appliedById    Int      @map("applied_by_id")
+  appliedAt      DateTime @default(now()) @map("applied_at")
+
+  user       User  @relation("OverrideUser", fields: [userId], references: [id])
+  appliedBy  User  @relation("OverrideAdmin", fields: [appliedById], references: [id])
+  match      Match @relation(fields: [matchId], references: [id])
+
+  @@unique([userId, matchId])
+  @@map("admin_overrides")
+}
+
+model Player {
+  id       Int      @id @default(autoincrement())
+  name     String   @db.VarChar(100)
+  aliases  String[] // alternative spellings/names
+  teamId   Int?     @map("team_id")
+  approved Boolean  @default(false)
+  addedAt  DateTime @default(now()) @map("added_at")
+
+  team Team? @relation(fields: [teamId], references: [id])
+
+  @@map("players")
+}
+
+model TournamentSettings {
+  id                   Int      @id @default(1)
+  predictionDeadline   DateTime @map("prediction_deadline") // June 10, 2026 23:59 UTC
+  tournamentStarted    Boolean  @default(false) @map("tournament_started")
+  // Actual results for honor board
+  actualChampionId     Int?     @map("actual_champion_id")
+  actualRunnerUpId     Int?     @map("actual_runner_up_id")
+  actualThirdPlaceId   Int?     @map("actual_third_place_id")
+  actualGoldenBoot1    String?  @db.VarChar(100) @map("actual_golden_boot1")
+  actualGoldenBoot2    String?  @db.VarChar(100) @map("actual_golden_boot2")
+  actualGoldenBoot3    String?  @db.VarChar(100) @map("actual_golden_boot3")
+  actualGoldenBall1    String?  @db.VarChar(100) @map("actual_golden_ball1")
+  actualGoldenBall2    String?  @db.VarChar(100) @map("actual_golden_ball2")
+  actualGoldenBall3    String?  @db.VarChar(100) @map("actual_golden_ball3")
+  boot2Awarded         Boolean  @default(false) @map("boot2_awarded")
+  boot3Awarded         Boolean  @default(false) @map("boot3_awarded")
+  ball2Awarded         Boolean  @default(false) @map("ball2_awarded")
+  ball3Awarded         Boolean  @default(false) @map("ball3_awarded")
+
+  @@map("tournament_settings")
+}

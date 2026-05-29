@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 — Match Results</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .result-score { font-weight: 800; font-size: 1.05rem; color: var(--darkblue); min-width: 54px; text-align: center; }
+    .result-score.live { color: var(--red); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+    .pred-row { background: #f8f9fc; border-radius: 6px; padding: .35rem .6rem; font-size: .8rem; display: flex; align-items: center; gap: .5rem; margin-top: .25rem; }
+    .result-row { padding: .65rem .4rem; border-bottom: 1px solid var(--border); }
+    .result-row:last-child { border-bottom: none; }
+    .group-section { margin-bottom: 1.2rem; }
+    .group-section .group-header {
+      background: var(--darkblue); color: white;
+      padding: .45rem 1rem; border-radius: 8px 8px 0 0;
+      font-weight: 700; font-size: .85rem;
+    }
+    .group-body { border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: .4rem .7rem; }
+    .filter-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .filter-btn { padding: .35rem .85rem; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: .82rem; cursor: pointer; color: var(--muted); font-weight: 600; }
+    .filter-btn.active { background: var(--darkblue); color: white; border-color: var(--darkblue); }
+    .live-badge { background: var(--red); color: white; font-size: .7rem; font-weight: 700; border-radius: 10px; padding: .1rem .45rem; animation: pulse 1.2s infinite; }
+    .my-pts { font-size: .78rem; font-weight: 700; border-radius: 10px; padding: .1rem .45rem; }
+    .pts-3 { background: #dcfce7; color: #166534; }
+    .pts-2 { background: #fef9c3; color: #854d0e; }
+    .pts-1 { background: #dbeafe; color: #1d4ed8; }
+    .pts-0 { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="01-scoreboard.html">
+    <span class="trophy">🏆</span>
+    <span>Porra Mundial 2026<span class="subtitle">World Cup Prediction Game</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="01-scoreboard.html">Scoreboard</a>
+    <a href="02-predictions.html">My Predictions</a>
+    <a href="03-results.html" class="active">Results</a>
+    <a href="#">Rules</a>
+  </div>
+  <div class="nav-user">
+    <span class="alias">⚽ MadridFan</span>
+    <button class="btn-logout">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">⚽ Match Results</div>
+
+  <!-- round filter -->
+  <div class="filter-row">
+    <button class="filter-btn active">All</button>
+    <button class="filter-btn">Groups</button>
+    <button class="filter-btn">R32</button>
+    <button class="filter-btn">R16 <span class="live-badge" style="margin-left:3px">LIVE</span></button>
+    <button class="filter-btn">QF</button>
+    <button class="filter-btn">SF</button>
+    <button class="filter-btn">Final</button>
+    <button class="filter-btn" style="margin-left:auto">My predictions only</button>
+  </div>
+
+  <!-- ── R16 LIVE section ── -->
+  <div class="group-section">
+    <div class="group-header" style="background: var(--red); display:flex; align-items:center; gap:.6rem;">
+      <span class="live-badge" style="animation:none; background:white; color:var(--red)">🔴 LIVE</span>
+      Round of 16 — In progress
+    </div>
+    <div class="group-body">
+      <div class="result-row">
+        <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+          <span class="match-num">#113</span>
+          <div class="team-name"><span class="team-flag">🇧🇷</span> Brazil</div>
+          <span class="result-score live">2 — 1</span>
+          <div class="team-name"><span class="team-flag">🇺🇸</span> USA</div>
+          <span style="font-size:.75rem; color:var(--red); font-weight:700">75'</span>
+          <div class="pred-row">
+            <span>Your prediction:</span>
+            <strong>2 – 0</strong>
+            <span class="my-pts pts-2">+2 pts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── R32 Completed ── -->
+  <div class="group-section">
+    <div class="group-header">Round of 32 — Completed</div>
+    <div class="group-body">
+
+      <div class="result-row">
+        <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+          <span class="match-num">#97</span>
+          <div class="team-name"><span class="team-flag">🇫🇷</span> France</div>
+          <span class="result-score">3 — 1</span>
+          <div class="team-name"><span class="team-flag">🇲🇦</span> Morocco</div>
+          <span style="font-size:.72rem; color:var(--muted); margin-left:.3rem">Jun 25</span>
+          <div class="pred-row">
+            Your prediction: <strong>2 – 0</strong>
+            <span class="my-pts pts-1">+1 pt (correct winner)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+          <span class="match-num">#98</span>
+          <div class="team-name"><span class="team-flag">🇩🇪</span> Germany</div>
+          <span class="result-score">1 — 1</span>
+          <div class="team-name" style="min-width:100px"><span class="team-flag">🇦🇷</span> Argentina</div>
+          <span style="font-size:.75rem; color:var(--muted)">AET 1–1 &nbsp;|&nbsp; 🇩🇪 Germany wins PKs</span>
+          <div class="pred-row">
+            Your prediction: <strong>2 – 1</strong>
+            <span class="my-pts pts-0">+0 pts</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-row">
+        <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+          <span class="match-num">#99</span>
+          <div class="team-name"><span class="team-flag">🇪🇸</span> Spain</div>
+          <span class="result-score">2 — 0</span>
+          <div class="team-name"><span class="team-flag">🇯🇵</span> Japan</div>
+          <span style="font-size:.72rem; color:var(--muted); margin-left:.3rem">Jun 25</span>
+          <div class="pred-row">
+            Your prediction: <strong>2 – 0</strong>
+            <span class="my-pts pts-3">+3 pts (exact score!)</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Group Stage summary ── -->
+  <div class="group-section">
+    <div class="group-header" style="cursor:pointer" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'':'none'">
+      Group Stage — Completed &nbsp;<small style="font-weight:400; opacity:.8">▼ click to expand 48 matches</small>
+    </div>
+    <div class="group-body" style="display:none">
+
+      <div class="group-section" style="margin-bottom:.5rem;">
+        <div style="font-weight:700; font-size:.82rem; color:var(--darkblue); padding:.3rem 0; border-bottom: 1px solid var(--border); margin-bottom:.2rem;">Group A</div>
+
+        <div class="result-row">
+          <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+            <span class="match-num">#1</span>
+            <div class="team-name"><span class="team-flag">🇲🇽</span> Mexico</div>
+            <span class="result-score">2 — 1</span>
+            <div class="team-name"><span class="team-flag">🇵🇱</span> Poland</div>
+            <div class="pred-row">Your prediction: <strong>2 – 1</strong> <span class="my-pts pts-3">+3 pts</span></div>
+          </div>
+        </div>
+
+        <div class="result-row">
+          <div style="display:flex; align-items:center; gap:.6rem; flex-wrap:wrap;">
+            <span class="match-num">#3</span>
+            <div class="team-name"><span class="team-flag">🇲🇽</span> Mexico</div>
+            <span class="result-score">1 — 0</span>
+            <div class="team-name"><span class="team-flag">🇰🇷</span> S. Korea</div>
+            <span class="bonus-tag" style="font-size:.68rem; background:var(--gold); color:var(--darkblue); border-radius:10px; padding:.1rem .4rem; font-weight:700;">BONUS ×3</span>
+            <div class="pred-row">Your prediction: <strong>3 – 0</strong> <span class="my-pts pts-1">+1 pt (winner)</span> → <strong>×3 = 3 pts</strong></div>
+          </div>
+        </div>
+
+        <p style="color:var(--muted); font-size:.8rem; padding:.4rem 0;">+ 3 more Group A matches…</p>
+      </div>
+
+      <p style="color:var(--muted); font-size:.8rem; text-align:center; padding:.6rem;">Groups B – L (10 more groups)…</p>
+    </div>
+  </div>
+
+  <!-- Points earned summary -->
+  <div class="card" style="background: linear-gradient(135deg,#f0f7ff,#e8f0fe); border-color:#c7d7f5;">
+    <div class="card-title">📊 Your Points So Far</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:.6rem; font-size:.82rem;">
+      <div style="text-align:center"><div style="font-size:1.4rem; font-weight:800; color:var(--darkblue)">35</div><div style="color:var(--muted)">Group matches</div></div>
+      <div style="text-align:center"><div style="font-size:1.4rem; font-weight:800; color:var(--darkblue)">12</div><div style="color:var(--muted)">Group standings</div></div>
+      <div style="text-align:center"><div style="font-size:1.4rem; font-weight:800; color:var(--darkblue)">20</div><div style="color:var(--muted)">R32</div></div>
+      <div style="text-align:center"><div style="font-size:1.4rem; font-weight:800; color:var(--green)">16</div><div style="color:var(--muted)">R16 (partial)</div></div>
+      <div style="text-align:center; opacity:.4"><div style="font-size:1.4rem; font-weight:800">—</div><div style="color:var(--muted)">QF+</div></div>
+      <div style="text-align:center"><div style="font-size:1.4rem; font-weight:800; color:var(--gold)">10</div><div style="color:var(--muted)">Bonus</div></div>
+      <div style="text-align:center; border-left:2px solid var(--border); padding-left:.6rem;"><div style="font-size:1.6rem; font-weight:800; color:var(--darkblue)">93</div><div style="color:var(--muted); font-weight:600">TOTAL</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

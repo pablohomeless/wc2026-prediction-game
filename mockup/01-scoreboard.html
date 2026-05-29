@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 — Scoreboard</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .total-pts { font-size: 1.1rem; font-weight: 800; color: var(--darkblue); }
+    .breakdown-cell { font-size: .78rem; color: var(--muted); }
+    .leader-row td { background: #fffbea !important; }
+    .leader-row td:first-child { border-left: 4px solid var(--gold); }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="01-scoreboard.html">
+    <span class="trophy">🏆</span>
+    <span>Porra Mundial 2026
+      <span class="subtitle">World Cup Prediction Game</span>
+    </span>
+  </a>
+  <div class="nav-links">
+    <a href="01-scoreboard.html" class="active">Scoreboard</a>
+    <a href="02-predictions.html">My Predictions</a>
+    <a href="03-results.html">Results</a>
+    <a href="#">Rules</a>
+  </div>
+  <div class="nav-user">
+    <span class="alias">⚽ MadridFan</span>
+    <button class="btn-logout">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">🏆 Scoreboard</div>
+
+  <!-- Summary Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val">18</div>
+      <div class="stat-lbl">Participants</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">48</div>
+      <div class="stat-lbl">Matches Played</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">86</div>
+      <div class="stat-lbl">Remaining</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--green)">R16</div>
+      <div class="stat-lbl">Current Phase</div>
+    </div>
+  </div>
+
+  <!-- Phase progress bar -->
+  <div class="card" style="padding:.8rem 1.2rem; margin-bottom:1.2rem;">
+    <div style="display:flex; justify-content:space-between; font-size:.8rem; color:var(--muted); margin-bottom:.4rem;">
+      <span>Tournament progress</span><span>48 / 134 matches</span>
+    </div>
+    <div style="background:var(--border); border-radius:8px; height:8px;">
+      <div style="background:linear-gradient(90deg,var(--darkblue),var(--midblue)); width:36%; height:8px; border-radius:8px;"></div>
+    </div>
+    <div style="display:flex; gap:1.2rem; margin-top:.6rem; font-size:.75rem; color:var(--muted);">
+      <span style="color:var(--green); font-weight:600;">✓ Groups</span>
+      <span style="color:var(--green); font-weight:600;">✓ R32</span>
+      <span style="color:var(--darkblue); font-weight:700;">▶ R16</span>
+      <span>QF</span><span>SF</span><span>3rd</span><span>Final</span>
+    </div>
+  </div>
+
+  <!-- Scoreboard table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Player</th>
+          <th style="text-align:center">Groups</th>
+          <th style="text-align:center">Stand.</th>
+          <th style="text-align:center">R32</th>
+          <th style="text-align:center">R16</th>
+          <th style="text-align:center">QF+</th>
+          <th style="text-align:center">🏅 Bonus</th>
+          <th style="text-align:center">TOTAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="leader-row">
+          <td class="rank-1">🥇</td>
+          <td><strong>ElPichichi</strong></td>
+          <td class="breakdown-cell" style="text-align:center">42</td>
+          <td class="breakdown-cell" style="text-align:center">18</td>
+          <td class="breakdown-cell" style="text-align:center">24</td>
+          <td class="breakdown-cell" style="text-align:center">20</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">15</td>
+          <td><span class="total-pts" style="color:var(--gold)">119</span></td>
+        </tr>
+        <tr>
+          <td class="rank-2">🥈</td>
+          <td><strong>GolazoBeto</strong></td>
+          <td class="breakdown-cell" style="text-align:center">38</td>
+          <td class="breakdown-cell" style="text-align:center">15</td>
+          <td class="breakdown-cell" style="text-align:center">22</td>
+          <td class="breakdown-cell" style="text-align:center">18</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td><span class="total-pts" style="color:var(--silver)">103</span></td>
+        </tr>
+        <tr>
+          <td class="rank-3">🥉</td>
+          <td><strong>MadridFan</strong> <span class="badge badge-gold" style="font-size:.65rem">YOU</span></td>
+          <td class="breakdown-cell" style="text-align:center">35</td>
+          <td class="breakdown-cell" style="text-align:center">12</td>
+          <td class="breakdown-cell" style="text-align:center">20</td>
+          <td class="breakdown-cell" style="text-align:center">16</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td><span class="total-pts" style="color:#cd7f32">93</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">4</td>
+          <td>BarçaForever</td>
+          <td class="breakdown-cell" style="text-align:center">33</td>
+          <td class="breakdown-cell" style="text-align:center">14</td>
+          <td class="breakdown-cell" style="text-align:center">18</td>
+          <td class="breakdown-cell" style="text-align:center">14</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td><span class="total-pts">89</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">5</td>
+          <td>LaPulgaMessi</td>
+          <td class="breakdown-cell" style="text-align:center">32</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td class="breakdown-cell" style="text-align:center">18</td>
+          <td class="breakdown-cell" style="text-align:center">12</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">5</td>
+          <td><span class="total-pts">77</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">6</td>
+          <td>TikiTaka2026</td>
+          <td class="breakdown-cell" style="text-align:center">28</td>
+          <td class="breakdown-cell" style="text-align:center">9</td>
+          <td class="breakdown-cell" style="text-align:center">14</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">5</td>
+          <td><span class="total-pts">66</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">7</td>
+          <td>SalsaFutbol</td>
+          <td class="breakdown-cell" style="text-align:center">25</td>
+          <td class="breakdown-cell" style="text-align:center">8</td>
+          <td class="breakdown-cell" style="text-align:center">12</td>
+          <td class="breakdown-cell" style="text-align:center">8</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">5</td>
+          <td><span class="total-pts">58</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">8</td>
+          <td>OffsideRule</td>
+          <td class="breakdown-cell" style="text-align:center">22</td>
+          <td class="breakdown-cell" style="text-align:center">7</td>
+          <td class="breakdown-cell" style="text-align:center">10</td>
+          <td class="breakdown-cell" style="text-align:center">6</td>
+          <td class="breakdown-cell" style="text-align:center">—</td>
+          <td class="breakdown-cell" style="text-align:center">0</td>
+          <td><span class="total-pts">45</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p style="font-size:.78rem; color:var(--muted); margin-top:.6rem; text-align:right;">
+    QF+ column will unlock when Quarterfinals are played. Last updated: May 29, 2026 14:22
+  </p>
+</div>
+</body>
+</html>

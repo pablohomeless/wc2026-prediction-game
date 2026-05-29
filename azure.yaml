@@ -1,0 +1,22 @@
+// azure.yaml — Azure Developer CLI configuration
+name: wc2026-prediction-game
+
+metadata:
+  template: wc2026-prediction-game@0.0.1
+
+services:
+  web:
+    project: .
+    language: ts
+    host: appservice
+    docker:
+      path: ./Dockerfile
+
+hooks:
+  predeploy:
+    shell: sh
+    run: |
+      echo "Running database migrations..."
+      npx prisma migrate deploy
+    continueOnError: false
+    interactive: false

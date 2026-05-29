@@ -1,0 +1,58 @@
+<body>
+<?
+include("dbinfo.inc.php");
+mysql_connect(localhost,$username,$password);
+@mysql_select_db($database) or die( "Unable to select database");
+$query="SELECT usuario, sum( puntos ) AS total FROM `partidos` WHERE usuario <> 'system' GROUP BY usuario ORDER BY total DESC";
+$result=mysql_query($query);
+
+$num=mysql_numrows($result); 
+
+mysql_close();
+
+echo "<b><center>Resumen de Estado</center></b><br><br>";
+
+?>
+<center>
+<table border="1" cellspacing="2" cellpadding="2" bgcolor='222222'>
+<tr bgcolor='ffffff'> 
+<th><font face="Arial, Helvetica, sans-serif" color=red>Posicion</font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red>Usuario</font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./primerafase.php">Ptos. Fase 1</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./primerosgrupo.php">Ptos. Primeros</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./cuartos.php">Ptos. Cuartos</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./semis.php">Ptos. Semis</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./final.php">Ptos. Final</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./campeon.php">Ptos. Campeon</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red><a href="./goleadores.php">Ptos. Goleadores</a></font></th>
+<th><font face="Arial, Helvetica, sans-serif" color=red>Ptos. Totales</font></th>
+</tr>
+
+<?
+$i=0;
+while ($i < $num) {
+$usuario=mysql_result($result,$i,"usuario");
+$puntospartidos=mysql_result($result,$i,"total");
+?>
+
+<tr bgcolor='ffffff'> 
+<td><font face="Arial, Helvetica, sans-serif"><? echo $i+1; ?></font></td>
+<td><font face="Arial, Helvetica, sans-serif"><? echo "$usuario"; ?></font></td>
+<td><font face="Arial, Helvetica, sans-serif"><? echo "$puntospartidos"; ?></font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif">&nbsp;</font></td>
+<td><font face="Arial, Helvetica, sans-serif"><? echo "$puntospartidos"; ?></font></td>
+</tr>
+<?
+++$i;
+} 
+echo "</table>";
+
+
+?>
+</center>
+</body>

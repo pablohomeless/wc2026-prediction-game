@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 — Admin</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .admin-bar { background: #fff3cd; border-bottom: 2px solid var(--gold); padding: .45rem 1rem; font-size: .82rem; font-weight: 600; color: #7c5c00; display: flex; align-items: center; gap: .5rem; }
+    .user-row { display: flex; align-items: center; gap: .6rem; padding: .55rem 0; border-bottom: 1px solid var(--border); font-size: .87rem; }
+    .user-row:last-child { border-bottom: none; }
+    .user-alias { font-weight: 700; min-width: 120px; }
+    .user-email { color: var(--muted); font-size: .8rem; flex: 1; }
+    .override-row { background: #fff8e1; border-radius: 6px; padding: .4rem .7rem; font-size: .8rem; margin-top: .2rem; display: flex; align-items: center; gap: .6rem; }
+    .override-input { width: 52px; text-align: center; padding: .3rem; border: 1.5px solid var(--gold); border-radius: 5px; font-size: .9rem; }
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width:600px){ .settings-grid{grid-template-columns:1fr;} }
+    .match-admin-row { display: flex; align-items: center; gap: .6rem; padding: .55rem 0; border-bottom: 1px solid var(--border); font-size: .87rem; flex-wrap: wrap; }
+    .completed-score { font-weight: 800; color: var(--green); font-size: 1rem; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 3px; }
+    .dot-done { background: var(--green); }
+    .dot-pending { background: var(--silver); }
+    .dot-live { background: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="01-scoreboard.html">
+    <span class="trophy">🏆</span>
+    <span>Porra Mundial 2026<span class="subtitle">World Cup Prediction Game</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="01-scoreboard.html">Scoreboard</a>
+    <a href="02-predictions.html">My Predictions</a>
+    <a href="03-results.html">Results</a>
+    <a href="#">Rules</a>
+  </div>
+  <div class="nav-user">
+    <span class="badge badge-admin">ADMIN</span>
+    <span class="alias" style="color:var(--gold-light); font-weight:600; font-size:.85rem">pablosanchez</span>
+    <button class="btn-logout">Log out</button>
+  </div>
+</nav>
+
+<div class="admin-bar">⚙️ Admin Dashboard — Changes take effect immediately</div>
+
+<div class="page">
+  <div class="page-title">⚙️ Admin Dashboard</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('matches')">📋 Match Results</button>
+    <button class="tab" onclick="showTab('users')">👥 Users</button>
+    <button class="tab" onclick="showTab('settings')">🎛️ Settings</button>
+  </div>
+
+  <!-- ══ MATCH RESULTS TAB ══ -->
+  <div id="tab-matches">
+
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <button class="btn btn-gold">🔄 Recalculate All Scores</button>
+      <span style="font-size:.82rem; color:var(--muted)">Last recalc: May 29, 2026 14:22</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Round of 16 — Current</div>
+
+      <div class="match-admin-row">
+        <span class="status-dot dot-live"></span>
+        <span class="match-num">#113</span>
+        <div class="team-name"><span class="team-flag">🇧🇷</span> Brazil</div>
+        <div class="score-box">
+          <input class="score-input" type="number" min="0" value="2" style="border-color:var(--red)" />
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" value="1" style="border-color:var(--red)" />
+        </div>
+        <div class="team-name"><span class="team-flag">🇺🇸</span> USA</div>
+        <span style="font-size:.75rem; color:var(--red); font-weight:700; margin-left:.2rem">LIVE 75'</span>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto">Save</button>
+      </div>
+
+      <div class="match-admin-row">
+        <span class="status-dot dot-pending"></span>
+        <span class="match-num">#114</span>
+        <div class="team-name"><span class="team-flag">🇪🇸</span> Spain</div>
+        <div class="score-box">
+          <input class="score-input" type="number" min="0" value="" placeholder="—" />
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" value="" placeholder="—" />
+        </div>
+        <div class="team-name"><span class="team-flag">🇵🇹</span> Portugal</div>
+        <span style="font-size:.75rem; color:var(--muted); margin-left:.4rem;">Not started (Jun 29)</span>
+        <button class="btn btn-primary btn-sm" style="margin-left:auto">Save</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+      <div class="card-title">Round of 32 — Completed</div>
+
+      <div class="match-admin-row">
+        <span class="status-dot dot-done"></span>
+        <span class="match-num">#97</span>
+        <div class="team-name"><span class="team-flag">🇫🇷</span> France</div>
+        <span class="completed-score">3 — 1</span>
+        <div class="team-name"><span class="team-flag">🇲🇦</span> Morocco</div>
+        <span style="font-size:.72rem; color:var(--muted); margin-left:.5rem;">Jun 25</span>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto;">✏️ Edit</button>
+      </div>
+
+      <div class="match-admin-row">
+        <span class="status-dot dot-done"></span>
+        <span class="match-num">#98</span>
+        <div class="team-name"><span class="team-flag">🇩🇪</span> Germany</div>
+        <span class="completed-score">1 — 1</span>
+        <div class="team-name"><span class="team-flag">🇦🇷</span> Argentina</div>
+        <span style="font-size:.72rem; color:var(--muted); margin-left:.3rem;">AET · 🇩🇪 PKs</span>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto;">✏️ Edit</button>
+      </div>
+
+      <div class="match-admin-row">
+        <span class="status-dot dot-done"></span>
+        <span class="match-num">#99</span>
+        <div class="team-name"><span class="team-flag">🇪🇸</span> Spain</div>
+        <span class="completed-score">2 — 0</span>
+        <div class="team-name"><span class="team-flag">🇯🇵</span> Japan</div>
+        <span style="font-size:.72rem; color:var(--muted); margin-left:.3rem;">Jun 25</span>
+        <button class="btn btn-outline btn-sm" style="margin-left:auto;">✏️ Edit</button>
+      </div>
+
+      <p style="font-size:.8rem; color:var(--muted); margin-top:.5rem;">+ 13 more R32 matches…</p>
+    </div>
+
+  </div>
+
+  <!-- ══ USERS TAB ══ -->
+  <div id="tab-users" style="display:none">
+
+    <div style="display:flex; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
+      <input type="text" placeholder="Search by alias or email…" style="padding:.5rem .85rem; border:1.5px solid var(--border); border-radius:7px; font-size:.87rem; width:240px;" />
+      <span style="font-size:.85rem; color:var(--muted)">18 participants registered</span>
+    </div>
+
+    <div class="card" style="padding:.6rem 1rem;">
+
+      <div class="user-row">
+        <span class="user-alias">ElPichichi</span>
+        <span class="user-email">carlos@example.com</span>
+        <span style="font-size:.8rem; font-weight:700; color:var(--green)">119 pts</span>
+        <span class="badge badge-admin" style="font-size:.68rem;">Active</span>
+        <div style="margin-left:auto; display:flex; gap:.5rem;">
+          <button class="btn btn-outline btn-sm">✏️ Alias</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red); border-color:var(--red)">Deactivate</button>
+        </div>
+      </div>
+
+      <div class="user-row" style="flex-wrap:wrap;">
+        <span class="user-alias">MadridFan</span>
+        <span class="user-email">pablosanchez@microsoft.com</span>
+        <span style="font-size:.8rem; font-weight:700; color:var(--green)">93 pts</span>
+        <span class="badge badge-admin" style="font-size:.68rem; background:var(--midblue)">Admin</span>
+        <!-- Point override UI -->
+        <div class="override-row" style="width:100%; margin-top:.4rem;">
+          <span>⚡ Override points for match:</span>
+          <select style="font-size:.8rem; padding:.3rem; border:1px solid var(--border); border-radius:5px;">
+            <option>— Select match —</option>
+            <option>#97 France 3-1 Morocco</option>
+            <option>#98 Germany 1-1 Argentina (AET)</option>
+          </select>
+          <span>Give</span>
+          <input class="override-input" type="number" min="0" value="3" />
+          <span>pts</span>
+          <button class="btn btn-gold btn-sm">Apply</button>
+          <span style="color:var(--muted); font-size:.75rem;">Reason: manual correction</span>
+        </div>
+      </div>
+
+      <div class="user-row">
+        <span class="user-alias">GolazoBeto</span>
+        <span class="user-email">beto@example.com</span>
+        <span style="font-size:.8rem; font-weight:700; color:var(--green)">103 pts</span>
+        <span class="badge badge-admin" style="font-size:.68rem;">Active</span>
+        <div style="margin-left:auto; display:flex; gap:.5rem;">
+          <button class="btn btn-outline btn-sm">✏️ Alias</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--red); border-color:var(--red)">Deactivate</button>
+        </div>
+      </div>
+
+      <div class="user-row">
+        <span class="user-alias">BarçaForever</span>
+        <span class="user-email">xavier@example.com</span>
+        <span style="font-size:.8rem; font-weight:700; color:var(--green)">89 pts</span>
+        <span class="badge" style="font-size:.68rem; background:#fee2e2; color:#991b1b;">Inactive</span>
+        <div style="margin-left:auto; display:flex; gap:.5rem;">
+          <button class="btn btn-outline btn-sm">✏️ Alias</button>
+          <button class="btn btn-green btn-sm">Activate</button>
+        </div>
+      </div>
+
+      <p style="color:var(--muted); font-size:.8rem; margin-top:.5rem;">+ 14 more users…</p>
+    </div>
+
+  </div>
+
+  <!-- ══ SETTINGS TAB ══ -->
+  <div id="tab-settings" style="display:none">
+
+    <div class="settings-grid">
+      <div class="card">
+        <div class="card-title">🥾 Golden Boot Winners</div>
+        <div class="form-group">
+          <label>1st place (announced?)</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;">
+              <input type="checkbox" /> Awarded
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>2nd place</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;"><input type="checkbox" /> Awarded</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>3rd place</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;"><input type="checkbox" /> Awarded</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚽ Golden Ball Winners</div>
+        <div class="form-group">
+          <label>1st place</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;"><input type="checkbox" /> Awarded</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>2nd place</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;"><input type="checkbox" /> Awarded</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>3rd place</label>
+          <div style="display:flex; align-items:center; gap:.6rem;">
+            <input type="text" value="" placeholder="Player name" style="flex:1; padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem;" />
+            <label style="display:flex; align-items:center; gap:.3rem; font-size:.82rem; text-transform:none; letter-spacing:0; color:var(--text); margin:0;"><input type="checkbox" /> Awarded</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⏰ Deadline & Game Status</div>
+      <div class="settings-grid">
+        <div class="form-group">
+          <label>Entry Deadline</label>
+          <input type="datetime-local" value="2026-06-10T23:59" style="padding:.5rem; border:1.5px solid var(--border); border-radius:6px; font-size:.87rem; width:100%;" />
+        </div>
+        <div class="form-group">
+          <label>Game Status</label>
+          <select style="width:100%; padding:.55rem; border:1.5px solid var(--border); border-radius:7px; font-size:.87rem;">
+            <option selected>🟢 Open — accepting predictions</option>
+            <option>🔴 Closed — deadline passed</option>
+            <option>🏁 Finished</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-gold" style="margin-top:.4rem;">💾 Save Settings</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function showTab(id) {
+    ['matches','users','settings'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t===id ? '' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach((b,i) => {
+      b.classList.toggle('active', ['matches','users','settings'][i] === id);
+    });
+  }
+</script>
+</body>
+</html>

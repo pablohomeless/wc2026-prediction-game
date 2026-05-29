@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 — My Predictions</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    .group-header {
+      background: var(--darkblue); color: white;
+      padding: .5rem 1rem; border-radius: 8px 8px 0 0;
+      font-weight: 700; font-size: .9rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .group-block { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 1rem; }
+    .group-matches { padding: .5rem .8rem; }
+    .match-row { padding: .55rem .2rem; }
+    .team-name { font-size: .88rem; }
+    .bonus-tag { font-size: .7rem; background: var(--gold); color: var(--darkblue); border-radius: 10px; padding: .1rem .4rem; font-weight: 700; }
+    .section-tabs { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .section-tab { padding: .45rem .9rem; border-radius: 20px; border: 1.5px solid var(--border); background: white; font-size: .82rem; font-weight: 600; cursor: pointer; color: var(--muted); }
+    .section-tab.active { background: var(--darkblue); color: white; border-color: var(--darkblue); }
+    .knockout-section { margin-bottom: 1.2rem; }
+    .ko-round-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: .5rem; }
+    .special-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width: 600px) { .special-grid { grid-template-columns: 1fr; } }
+    .save-bar { position: sticky; bottom: 0; background: white; border-top: 1px solid var(--border); padding: 1rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; box-shadow: 0 -2px 12px rgba(0,0,0,.08); }
+    .unsaved-badge { background: var(--red); color: white; border-radius: 20px; padding: .2rem .7rem; font-size: .8rem; font-weight: 700; }
+    select.team-select { padding: .45rem .7rem; border: 1.5px solid var(--border); border-radius: 6px; font-size: .87rem; }
+    .player-list input { width: 100%; padding: .45rem .75rem; border: 1.5px solid var(--border); border-radius: 6px; font-size: .87rem; margin-bottom: .4rem; }
+  </style>
+</head>
+<body>
+<nav>
+  <a class="nav-brand" href="01-scoreboard.html">
+    <span class="trophy">🏆</span>
+    <span>Porra Mundial 2026<span class="subtitle">World Cup Prediction Game</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="01-scoreboard.html">Scoreboard</a>
+    <a href="02-predictions.html" class="active">My Predictions</a>
+    <a href="03-results.html">Results</a>
+    <a href="#">Rules</a>
+  </div>
+  <div class="nav-user">
+    <span class="alias">⚽ MadridFan</span>
+    <button class="btn-logout">Log out</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-title">📝 My Predictions</div>
+
+  <div class="deadline-banner">
+    ⏰ Entry deadline: <strong>June 10, 2026 at 23:59 UTC</strong> — changes allowed until then
+  </div>
+
+  <!-- Phase tabs -->
+  <div class="section-tabs">
+    <button class="section-tab active" onclick="show('groups')">Group Stage</button>
+    <button class="section-tab" onclick="show('knockout')">Knockout Rounds</button>
+    <button class="section-tab" onclick="show('special')">🏅 Special Predictions</button>
+  </div>
+
+  <!-- ───── GROUP STAGE ───── -->
+  <div id="tab-groups">
+
+    <div class="group-block">
+      <div class="group-header">
+        <span>Group A &nbsp;<small style="font-weight:400;opacity:.8">Mexico · South Africa · South Korea · Poland · Uruguay</small></span>
+        <span class="bonus-tag">Includes BONUS game ×3</span>
+      </div>
+      <div class="group-matches">
+
+        <div class="match-row">
+          <span class="match-num">#1</span>
+          <div class="team-name"><span class="team-flag">🇲🇽</span> Mexico</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="2" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="1" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇵🇱</span> Poland</div>
+          <span class="match-date">Jun 11</span>
+        </div>
+
+        <div class="match-row">
+          <span class="match-num">#2</span>
+          <div class="team-name"><span class="team-flag">🇺🇾</span> Uruguay</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="1" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="1" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇿🇦</span> S. Africa</div>
+          <span class="match-date">Jun 11</span>
+        </div>
+
+        <div class="match-row" style="background:#fffbea; border-radius:6px; padding:.55rem .4rem;">
+          <span class="match-num">#3</span>
+          <div class="team-name"><span class="team-flag">🇲🇽</span> Mexico</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="3" style="border-color:var(--gold)" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="0" style="border-color:var(--gold)" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇰🇷</span> South Korea</div>
+          <span class="bonus-tag" style="margin-left:.3rem">BONUS ×3</span>
+          <span class="match-date">Jun 15</span>
+        </div>
+
+        <div class="match-row">
+          <span class="match-num">#4</span>
+          <div class="team-name"><span class="team-flag">🇵🇱</span> Poland</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="0" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="2" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇺🇾</span> Uruguay</div>
+          <span class="match-date">Jun 15</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="group-block">
+      <div class="group-header">
+        <span>Group B &nbsp;<small style="font-weight:400;opacity:.8">Spain · Germany · Japan · Morocco · Senegal</small></span>
+      </div>
+      <div class="group-matches">
+        <div class="match-row">
+          <span class="match-num">#11</span>
+          <div class="team-name"><span class="team-flag">🇪🇸</span> Spain</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="2" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="0" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇯🇵</span> Japan</div>
+          <span class="match-date">Jun 12</span>
+        </div>
+        <div class="match-row">
+          <span class="match-num">#12</span>
+          <div class="team-name"><span class="team-flag">🇩🇪</span> Germany</div>
+          <div class="score-box">
+            <input class="score-input" type="number" min="0" value="3" />
+            <span class="score-sep">–</span>
+            <input class="score-input" type="number" min="0" value="1" />
+          </div>
+          <div class="team-name"><span class="team-flag">🇲🇦</span> Morocco</div>
+          <span class="match-date">Jun 12</span>
+        </div>
+        <div style="padding:.4rem 0; color:var(--muted); font-size:.8rem; font-style:italic;">
+          + 3 more matches in this group…
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding:.8rem; color:var(--muted); font-size:.88rem; background:white; border:1px dashed var(--border); border-radius:8px;">
+      Groups C – L (10 more groups, 110 total matches)…
+    </div>
+  </div>
+
+  <!-- ───── KNOCKOUT ROUNDS ───── -->
+  <div id="tab-knockout" style="display:none;">
+
+    <div class="card">
+      <div class="ko-round-label">Round of 32 — Group winners & runners-up advance</div>
+      <div class="match-row">
+        <span class="match-num">#97</span>
+        <div class="team-name"><span class="team-flag">🇧🇷</span> Brazil</div>
+        <div class="score-box">
+          <input class="score-input" type="number" min="0" value="2" />
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" value="0" />
+        </div>
+        <div class="team-name"><span class="team-flag">🇺🇸</span> USA</div>
+        <span class="match-date">Jun 28</span>
+      </div>
+      <div class="match-row">
+        <span class="match-num">#98</span>
+        <div class="team-name"><span class="team-flag">🇫🇷</span> France</div>
+        <div class="score-box">
+          <input class="score-input" type="number" min="0" value="1" />
+          <span class="score-sep">–</span>
+          <input class="score-input" type="number" min="0" value="1" />
+        </div>
+        <div class="team-name" style="min-width:90px"><span class="team-flag">🇵🇹</span> Portugal</div>
+        <span style="font-size:.75rem; color:var(--muted); margin-left:.5rem">AET / PKs?</span>
+        <select style="margin-left:.5rem; font-size:.8rem; border:1.5px solid var(--border); border-radius:5px; padding:.3rem .5rem;">
+          <option>— Penalty winner —</option>
+          <option selected>🇫🇷 France</option>
+          <option>🇵🇹 Portugal</option>
+        </select>
+        <span class="match-date">Jun 28</span>
+      </div>
+      <p style="color:var(--muted); font-size:.8rem; margin-top:.5rem;">+ 14 more R32 matches…</p>
+    </div>
+
+  </div>
+
+  <!-- ───── SPECIAL PREDICTIONS ───── -->
+  <div id="tab-special" style="display:none;">
+    <div class="card">
+      <div class="card-title">🏆 Tournament Winner</div>
+      <div class="form-group">
+        <label>Champion</label>
+        <select class="team-select">
+          <option>🇧🇷 Brazil</option>
+          <option selected>🇫🇷 France</option>
+          <option>🇩🇪 Germany</option>
+          <option>🇦🇷 Argentina</option>
+          <option>🇪🇸 Spain</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Runner-up</label>
+        <select class="team-select">
+          <option selected>🇩🇪 Germany</option>
+          <option>🇧🇷 Brazil</option>
+          <option>🇦🇷 Argentina</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="special-grid">
+      <div class="card">
+        <div class="card-title">🥾 Golden Boot (top scorer)</div>
+        <div class="form-group">
+          <label>1st place</label>
+          <input type="text" value="Kylian Mbappé" />
+        </div>
+        <div class="form-group">
+          <label>2nd place</label>
+          <input type="text" value="Vinicius Jr" />
+        </div>
+        <div class="form-group">
+          <label>3rd place</label>
+          <input type="text" value="Harry Kane" />
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚽ Golden Ball (best player)</div>
+        <div class="form-group">
+          <label>1st place</label>
+          <input type="text" value="Pedri" />
+        </div>
+        <div class="form-group">
+          <label>2nd place</label>
+          <input type="text" value="Jude Bellingham" />
+        </div>
+        <div class="form-group">
+          <label>3rd place</label>
+          <input type="text" value="Kylian Mbappé" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Group Standings Predictions <span style="font-size:.8rem; font-weight:400; color:var(--muted)">(1st & 2nd in each group)</span></div>
+      <p style="color:var(--muted); font-size:.85rem;">Fill in your predicted 1st and 2nd place for each of the 12 groups…</p>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-top:.8rem;">
+        <div style="border:1px solid var(--border); border-radius:7px; padding:.6rem;">
+          <div style="font-weight:700; font-size:.8rem; color:var(--darkblue); margin-bottom:.4rem;">Group A</div>
+          <select style="width:100%; font-size:.8rem; padding:.3rem; border:1px solid var(--border); border-radius:5px; margin-bottom:.3rem;"><option>🥇 Mexico</option><option>Uruguay</option></select>
+          <select style="width:100%; font-size:.8rem; padding:.3rem; border:1px solid var(--border); border-radius:5px;"><option>🥈 Uruguay</option><option>Poland</option></select>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:7px; padding:.6rem;">
+          <div style="font-weight:700; font-size:.8rem; color:var(--darkblue); margin-bottom:.4rem;">Group B</div>
+          <select style="width:100%; font-size:.8rem; padding:.3rem; border:1px solid var(--border); border-radius:5px; margin-bottom:.3rem;"><option>🥇 Spain</option></select>
+          <select style="width:100%; font-size:.8rem; padding:.3rem; border:1px solid var(--border); border-radius:5px;"><option>🥈 Germany</option></select>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:7px; padding:.6rem; opacity:.5;">
+          <div style="font-weight:700; font-size:.8rem; color:var(--darkblue); margin-bottom:.4rem;">Groups C–L…</div>
+          <div style="color:var(--muted); font-size:.78rem;">9 more groups</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- Sticky save bar -->
+<div class="save-bar">
+  <div style="display:flex; align-items:center; gap:.8rem;">
+    <span class="unsaved-badge">● Unsaved changes</span>
+    <span style="font-size:.8rem; color:var(--muted)">Last saved: 14:05</span>
+  </div>
+  <div style="display:flex; gap:.8rem;">
+    <button class="btn btn-outline">Discard</button>
+    <button class="btn btn-gold">💾 Save Predictions</button>
+  </div>
+</div>
+
+<script>
+  function show(tab) {
+    ['groups','knockout','special'].forEach(t => {
+      document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+    });
+    document.querySelectorAll('.section-tab').forEach((b,i) => {
+      b.classList.toggle('active', ['groups','knockout','special'][i] === tab);
+    });
+  }
+</script>
+</body>
+</html>

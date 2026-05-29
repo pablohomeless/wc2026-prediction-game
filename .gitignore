@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.next/
+out/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build
+dist/
+build/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Prisma migrations (keep schema but not local migration history)
+prisma/migrations/
+
+# Azure deployment artifacts
+.azure/

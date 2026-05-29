@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 — Login / Register</title>
+  <link rel="stylesheet" href="_shared.css" />
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+    .auth-wrap {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+      background: linear-gradient(145deg, #1a2e5a 0%, #2d4a8a 60%, #1a2e5a 100%);
+    }
+    .auth-box {
+      background: white; border-radius: 16px; padding: 2.2rem 2rem;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    .auth-logo { text-align: center; margin-bottom: 1.5rem; }
+    .auth-logo .big-trophy { font-size: 2.8rem; }
+    .auth-logo h1 { font-size: 1.3rem; font-weight: 800; color: var(--darkblue); margin-top: .3rem; }
+    .auth-logo p { font-size: .82rem; color: var(--muted); }
+    .auth-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.4rem; }
+    .auth-tab { flex: 1; padding: .65rem; text-align: center; font-weight: 700; font-size: .9rem; cursor: pointer; border: none; background: none; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .auth-tab.active { color: var(--darkblue); border-bottom-color: var(--gold); }
+    .form-group label { text-transform: none; letter-spacing: 0; font-size: .88rem; color: var(--text); font-weight: 600; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+    .error-box { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; border-radius: 7px; padding: .6rem .85rem; font-size: .85rem; margin-bottom: .8rem; }
+    .info-box  { background: #dbeafe; border: 1px solid #93c5fd; color: #1d4ed8; border-radius: 7px; padding: .6rem .85rem; font-size: .85rem; margin-bottom: .8rem; }
+    .step-indicator { display: flex; gap: .4rem; margin-bottom: 1.2rem; }
+    .step { flex: 1; height: 4px; border-radius: 4px; background: var(--border); }
+    .step.done { background: var(--green); }
+    .step.current { background: var(--gold); }
+  </style>
+</head>
+<body>
+
+<div class="auth-wrap">
+  <div class="auth-box">
+
+    <div class="auth-logo">
+      <div class="big-trophy">🏆</div>
+      <h1>Porra Mundial 2026</h1>
+      <p>World Cup Prediction Game</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="show('login')">Sign In</button>
+      <button class="auth-tab" onclick="show('register')">Register</button>
+    </div>
+
+    <!-- ── LOGIN FORM ── -->
+    <div id="pane-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" value="madridfan@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" value="••••••••" />
+      </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding:.75rem; font-size:.95rem; margin-top:.3rem;">Sign In</button>
+
+      <hr class="divider" />
+
+      <!-- Example: wrong password error -->
+      <div class="error-box" style="display:none" id="login-error">
+        ❌ Invalid email or password. Please try again.
+      </div>
+
+      <p style="font-size:.82rem; color:var(--muted); text-align:center; margin-top:.5rem;">
+        Don't have an account? <a href="#" onclick="show('register'); return false;" style="color:var(--midblue); font-weight:600;">Register here</a>
+      </p>
+    </div>
+
+    <!-- ── REGISTER FLOW ── -->
+    <div id="pane-register" style="display:none">
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step done" id="s1"></div>
+        <div class="step current" id="s2"></div>
+        <div class="step" id="s3"></div>
+      </div>
+      <p style="font-size:.78rem; color:var(--muted); margin-bottom:.9rem; text-align:center;">Step 2 of 3 — Choose your alias</p>
+
+      <!-- Step 1: just email (shown as already done) -->
+      <!-- Step 2: choose alias (shown active) -->
+      <div class="info-box">
+        ✉️ A welcome email was sent to <strong>newplayer@example.com</strong> with your temporary password.
+      </div>
+
+      <div class="form-group">
+        <label>Choose your display name (alias)</label>
+        <input type="text" placeholder="e.g. ElPichichi, TikiTaka…" value="" />
+        <p style="font-size:.78rem; color:var(--muted); margin-top:.25rem;">This is what other players see. No spaces. 3–20 chars.</p>
+      </div>
+      <div class="form-group">
+        <label>Temporary password (from email)</label>
+        <input type="password" placeholder="Paste temp password" />
+      </div>
+      <div class="form-group">
+        <label>New password</label>
+        <input type="password" placeholder="Min 8 characters" />
+      </div>
+
+      <button class="btn btn-gold" style="width:100%; justify-content:center; padding:.75rem; font-size:.95rem;">Complete Registration →</button>
+
+      <hr class="divider" />
+      <p style="font-size:.82rem; color:var(--muted); text-align:center;">
+        Already registered? <a href="#" onclick="show('login'); return false;" style="color:var(--midblue); font-weight:600;">Sign in</a>
+      </p>
+    </div>
+
+    <!-- ── Register step 1 (email only) mockup link ── -->
+    <p style="font-size:.72rem; color:var(--muted); margin-top:1rem; text-align:center; border-top: 1px solid var(--border); padding-top:.8rem;">
+      <em>Mockup note: click Register tab to see alias-setup step &nbsp;|&nbsp;
+      <a href="01-scoreboard.html" style="color:var(--midblue)">← Back to Scoreboard</a></em>
+    </p>
+
+  </div>
+</div>
+
+<script>
+  function show(pane) {
+    document.getElementById('pane-login').style.display = pane==='login' ? '' : 'none';
+    document.getElementById('pane-register').style.display = pane==='register' ? '' : 'none';
+    document.querySelectorAll('.auth-tab').forEach((b,i) => b.classList.toggle('active', i===(pane==='login'?0:1)));
+  }
+</script>
+</body>
+</html>

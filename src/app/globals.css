@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-gold: #FFD700;
+  --color-darkblue: #002868;
+  --color-red: #BF0A30;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 min-h-screen;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply bg-wc-darkblue text-white px-4 py-2 rounded-md font-semibold
+           hover:bg-blue-900 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-wc-darkblue border border-wc-darkblue px-4 py-2 rounded-md font-semibold
+           hover:bg-gray-100 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-wc-red text-white px-4 py-2 rounded-md font-semibold
+           hover:bg-red-800 active:scale-95 transition-all duration-150;
+  }
+
+  .btn-gold {
+    @apply bg-wc-gold text-wc-darkblue px-4 py-2 rounded-md font-bold
+           hover:bg-yellow-400 active:scale-95 transition-all duration-150;
+  }
+
+  /* Score input fields */
+  .score-input {
+    @apply w-14 text-center text-xl font-bold border-2 border-gray-300 rounded-md
+           focus:border-wc-darkblue focus:outline-none p-2
+           disabled:bg-gray-100 disabled:text-gray-400;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-xl shadow-md p-6 border border-gray-100;
+  }
+
+  .card-gold {
+    @apply bg-white rounded-xl shadow-md p-6 border-2 border-wc-gold;
+  }
+
+  /* Match card */
+  .match-card {
+    @apply bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-shadow;
+  }
+
+  /* Tab nav */
+  .tab-active {
+    @apply bg-wc-darkblue text-white rounded-md px-3 py-1.5 text-sm font-semibold;
+  }
+
+  .tab-inactive {
+    @apply bg-gray-100 text-gray-600 rounded-md px-3 py-1.5 text-sm font-semibold
+           hover:bg-gray-200 transition-colors cursor-pointer;
+  }
+
+  /* Form controls */
+  .form-input {
+    @apply w-full border border-gray-300 rounded-md px-3 py-2
+           focus:border-wc-darkblue focus:ring-1 focus:ring-wc-darkblue focus:outline-none
+           transition-colors;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+
+  .form-error {
+    @apply text-sm text-red-600 mt-1;
+  }
+
+  /* Scoreboard rank */
+  .rank-gold   { @apply bg-yellow-50 border-l-4 border-wc-gold; }
+  .rank-silver { @apply bg-gray-50 border-l-4 border-wc-silver; }
+  .rank-bronze { @apply bg-orange-50 border-l-4 border-wc-bronze; }
+
+  /* Alert boxes */
+  .alert-info    { @apply bg-blue-50 border border-blue-200 text-blue-800 rounded-md px-4 py-3; }
+  .alert-success { @apply bg-green-50 border border-green-200 text-green-800 rounded-md px-4 py-3; }
+  .alert-warning { @apply bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md px-4 py-3; }
+  .alert-error   { @apply bg-red-50 border border-red-200 text-red-800 rounded-md px-4 py-3; }
+}
+
+/* Header gradient */
+.wc-header-gradient {
+  background: linear-gradient(135deg, #002868 0%, #BF0A30 60%, #002868 100%);
+}
+
+/* Prediction form: group tabs scrollable */
+.group-tabs {
+  @apply flex gap-1 overflow-x-auto pb-1;
+  scrollbar-width: thin;
+}
+
+/* Pulsing "live" indicator */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.live-badge {
+  animation: live-pulse 1.5s ease-in-out infinite;
+  @apply bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full;
+}
