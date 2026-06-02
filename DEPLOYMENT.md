@@ -2,6 +2,234 @@
 
 ## Overview
 
+This Next.js app uses:
+- **Azure App Service** (Linux, B2) hosting a **Docker container** pulled from ACR
+- **Azure Container Registry (ACR)** to store the built Docker image
+- **Azure Database for PostgreSQL Flexible Server** (v16) for data storage
+- **Prisma ORM** for database migrations and queries
+- **Azure Developer CLI (azd)** for infrastructure provisioning
+
+### Deployed resources
+
+| Resource | Name |
+|---|---|
+| Resource group | `rg-porra2026` |
+| App Service | `porra2026-web-4i7tl4lt7sf4o` |
+| Container Registry | `porra2026cr4i7tl4lt7sf4o` |
+| PostgreSQL server | `porra2026-db-4i7tl4lt7sf4o.postgres.database.azure.com` |
+| App URL | https://porra2026-web-4i7tl4lt7sf4o.azurewebsites.net |
+
+---
+
+## Prerequisites
+
+| Tool | Install |
+|---|---|
+| Node.js 20+ | https://nodejs.org |
+| Azure CLI | https://aka.ms/installazurecliwindows |
+| Azure Developer CLI | `winget install Microsoft.Azd` |
+| Git | https://git-scm.com |
+
+---
+
+## 1. Local Development Setup
+
+```powershell
+# Install dependencies
+npm install
+
+# Create .env file (copy from example or create manually — see values below)
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma migrate deploy
+
+# Seed initial data (teams, matches, admin user)
+npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/seed.ts
+
+# Start development server
+npm run dev
+```
+
+Open http://localhost:3000
+
+### Required .env values
+
+```env
+DATABASE_URL=postgresql://porraadmin:PASSWORD@porra2026-db-4i7tl4lt7sf4o.postgres.database.azure.com:5432/porra2026?sslmode=require
+
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=any-random-32-char-string-here!!
+
+EMAIL_ENCRYPTION_KEY=exactly-32-characters-here12345
+
+# SMTP (optional — dev shows temp password in API response if omitted)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASS=your-app-password
+SMTP_FROM=WC 2026 Porra <your@gmail.com>
+
+APP_URL=http://localhost:3000
+ADMIN_EMAIL=pablosanchez@microsoft.com
+```
+
+### Allow your local IP on the PostgreSQL firewall
+
+```powershell
+$myIp = (Invoke-RestMethod http://ipinfo.io/json).ip
+az postgres flexible-server firewall-rule create `
+  --resource-group rg-porra2026 `
+  --name porra2026-db-4i7tl4lt7sf4o `
+  --rule-name "LocalDev" `
+  --start-ip-address $myIp `
+  --end-ip-address $myIp
+```
+
+---
+
+## 2. Re-deploying the Application (Docker via ACR)
+
+> **Important**: `azd deploy` does NOT build Docker images for this project — it defaults to Oryx source deployment. Always use the steps below to deploy.
+
+### Step 1 — Build and push the Docker image to ACR
+
+The build must be done from a **clean temp folder** (no `node_modules` or `.next`) because `az acr build` on Windows ignores `.dockerignore` and would otherwise upload 600MB of Windows-compiled binaries that break Linux execute permissions inside the container.
+
+```powershell
+# Copy source files to a clean temp folder
+$src = "C:\VSCode\src\wc2026-prediction-game"
+$tmp = "$env:TEMP\porra_build"
+Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+New-Item $tmp -ItemType Directory | Out-Null
+Get-ChildItem $src | Where-Object {
+    $_.Name -notin @('node_modules', '.next', '.git', '.azure', 'OldPorras', 'alt-apache-php-mysql', 'mockup', 'NewSpecs')
+} | ForEach-Object { Copy-Item $_.FullName $tmp -Recurse }
+Copy-Item Dockerfile "$tmp\Dockerfile" -Force
+
+# Build and push to ACR (cloud-side build — no local Docker needed)
+az acr build --registry porra2026cr4i7tl4lt7sf4o --image porra2026:latest --file "$tmp\Dockerfile" $tmp
+```
+
+### Step 2 — Restart App Service to pull the new image
+
+```powershell
+az webapp restart --resource-group rg-porra2026 --name porra2026-web-4i7tl4lt7sf4o
+```
+
+### Step 3 — Verify
+
+```powershell
+# Wait ~60s for container to start, then check
+Start-Sleep -Seconds 60
+Invoke-WebRequest -Uri "https://porra2026-web-4i7tl4lt7sf4o.azurewebsites.net" -UseBasicParsing | Select-Object StatusCode
+```
+
+---
+
+## 3. First-Time Infrastructure Provisioning (azd)
+
+Only needed when setting up from scratch. If resources already exist, skip to section 2.
+
+### 3a. Login
+
+```powershell
+az login
+azd auth login
+```
+
+### 3b. Provision all Azure resources
+
+```powershell
+azd provision
+```
+
+This creates App Service, ACR, and PostgreSQL via `infra/main.bicep`. You will be prompted for:
+- `dbAdminPassword` — PostgreSQL admin password
+- `nextAuthSecret` — random 32+ char string
+- `emailEncryptionKey` — exactly 32 characters
+- `smtpHost`, `smtpUser`, `smtpPassword` — email settings
+
+### 3c. Run database migrations and seed
+
+```powershell
+# Set DATABASE_URL to Azure connection string
+$env:DATABASE_URL = "postgresql://porraadmin:PASSWORD@porra2026-db-4i7tl4lt7sf4o.postgres.database.azure.com:5432/porra2026?sslmode=require"
+
+npx prisma migrate deploy
+npx ts-node --compiler-options '{"module":"CommonJS"}' scripts/seed.ts
+```
+
+Admin credentials after seed: `pablosanchez@microsoft.com` / `PORRAMUNDIAL2026!`
+
+---
+
+## 4. Post-Deployment Checklist
+
+- [ ] Visit the app URL — scoreboard loads
+- [ ] Visit `/rules` — rules page works
+- [ ] Register a test user — welcome email received (or check API response for temp password)
+- [ ] Login with test user — predictions form accessible
+- [ ] Login as admin (`pablosanchez@microsoft.com` / `PORRAMUNDIAL2026!`)
+- [ ] Admin dashboard loads at `/admin`
+- [ ] Enter a test match result → Recalculate scores → Scoreboard updates
+
+---
+
+## 5. Troubleshooting
+
+### View live container logs
+
+```powershell
+az webapp log tail --resource-group rg-porra2026 --name porra2026-web-4i7tl4lt7sf4o
+```
+
+### App returns 503 / container not starting
+
+Check logs for errors. Common causes:
+- Missing environment variable (especially `DATABASE_URL` or `NEXTAUTH_SECRET`)
+- PostgreSQL firewall blocking App Service — ensure "Allow Azure services" rule is on
+- Image not yet pulled after restart — wait 2 min and retry
+
+### Force App Service to re-pull image
+
+```powershell
+az webapp config appsettings set --resource-group rg-porra2026 --name porra2026-web-4i7tl4lt7sf4o --settings REDEPLOY_TRIGGER=$(Get-Date -Format 'yyyyMMddHHmmss')
+az webapp restart --resource-group rg-porra2026 --name porra2026-web-4i7tl4lt7sf4o
+```
+
+---
+
+## 6. Email Configuration Options
+
+### Gmail (recommended for small scale)
+1. Enable 2FA on Gmail
+2. Create App Password: Google Account → Security → App passwords
+3. Use `smtp.gmail.com:587` with your Gmail address and app password
+
+### SendGrid
+```env
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASS=SG.your-sendgrid-api-key
+```
+
+---
+
+## 7. Cost Estimate (Azure)
+
+| Resource | SKU | Est. Monthly Cost |
+|---|---|---|
+| App Service Plan | B2 Linux | ~$30 |
+| Container Registry | Basic | ~$5 |
+| PostgreSQL Flexible | B1ms | ~$15 |
+| **Total** | | **~$50/month** |
+
+
+## Overview
+
 This Next.js 14 app uses:
 - **Azure App Service** (Linux, Node 20) to host the Next.js app
 - **Azure Database for PostgreSQL Flexible Server** (v16) for data storage

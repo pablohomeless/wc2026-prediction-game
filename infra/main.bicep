@@ -33,11 +33,30 @@ param smtpUser string = ''
 @description('SMTP password')
 param smtpPassword string = ''
 
+@description('Azure Developer Environment Name (used for tagging)')
+param environmentName string = ''
+
 var uniqueSuffix = uniqueString(resourceGroup().id)
 var dbServerName = '${appName}-db-${uniqueSuffix}'
 var appServicePlanName = '${appName}-plan'
 var webAppName = '${appName}-web-${uniqueSuffix}'
+var acrName = '${replace(appName, '-', '')}cr${uniqueSuffix}'
 var dbName = 'porra2026'
+
+// ---- Azure Container Registry ----
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: acrName
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: true
+  }
+  tags: {
+    'azd-env-name': environmentName
+  }
+}
 
 // ---- App Service Plan (B2 minimum for Next.js) ----
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {
@@ -107,11 +126,14 @@ resource webApp 'Microsoft.Web/sites@2023-01-01' = {
   name: webAppName
   location: location
   kind: 'app,linux'
+  tags: {
+    'azd-service-name': 'web'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      linuxFxVersion: 'NODE|20-lts'
+      linuxFxVersion: 'DOCKER|${containerRegistry.properties.loginServer}/${appName}:latest'
       alwaysOn: true
       http20Enabled: true
       ftpsState: 'Disabled'
@@ -165,8 +187,20 @@ resource webApp 'Microsoft.Web/sites@2023-01-01' = {
           value: 'production'
         }
         {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '1'
+          name: 'WEBSITES_PORT'
+          value: '3000'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_URL'
+          value: 'https://${containerRegistry.properties.loginServer}'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+          value: containerRegistry.listCredentials().username
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+          value: containerRegistry.listCredentials().passwords[0].value
         }
       ]
     }
@@ -178,3 +212,4 @@ output webAppUrl string = 'https://${webApp.properties.defaultHostName}'
 output webAppName string = webAppName
 output dbServerFqdn string = postgresServer.properties.fullyQualifiedDomainName
 output dbName string = dbName
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.properties.loginServer
