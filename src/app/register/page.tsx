@@ -11,6 +11,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +30,7 @@ export default function RegisterPage() {
       if (!res.ok) {
         setError(data.error ?? "Registration failed. Please try again.");
       } else {
+        setTemporaryPassword(data.temporaryPassword ?? "");
         setSuccess(true);
       }
     } catch {
@@ -37,15 +40,45 @@ export default function RegisterPage() {
     }
   };
 
+  const copyPassword = () => {
+    navigator.clipboard.writeText(temporaryPassword).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   if (success) {
     return (
       <div className="max-w-md mx-auto">
         <div className="card text-center space-y-4">
           <div className="text-5xl">✅</div>
-          <h2 className="text-2xl font-bold text-wc-darkblue">Registration Successful!</h2>
+          <h2 className="text-2xl font-bold text-wc-darkblue">Account Created!</h2>
           <p className="text-gray-600">
-            Check your email for your temporary password. You can now log in and enter your predictions.
+            Your account <strong>{alias}</strong> is ready. Use the temporary password below to log in.
           </p>
+
+          <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4 space-y-2">
+            <p className="text-sm font-semibold text-yellow-800">⚠️ Note this password — it will not be shown again!</p>
+            <div className="flex items-center gap-2 justify-center">
+              <code className="text-2xl font-mono font-bold tracking-widest text-wc-darkblue bg-white px-4 py-2 rounded-lg border border-yellow-300 select-all">
+                {temporaryPassword}
+              </code>
+              <button
+                onClick={copyPassword}
+                className="text-xs btn-secondary !py-1 !px-2"
+                title="Copy to clipboard"
+              >
+                {copied ? "✓ Copied" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div className="text-sm text-gray-500 bg-gray-50 rounded-lg p-3 text-left space-y-1">
+            <p>1️⃣ Copy or write down your password above</p>
+            <p>2️⃣ Log in with your email and this password</p>
+            <p>3️⃣ You will be asked to set a new password after logging in</p>
+          </div>
+
           <button onClick={() => router.push("/login")} className="btn-primary w-full">
             Go to Login
           </button>
@@ -77,7 +110,7 @@ export default function RegisterPage() {
               required
               disabled={loading}
             />
-            <p className="text-xs text-gray-500 mt-1">Your temporary password will be sent here</p>
+            <p className="text-xs text-gray-500 mt-1">Used only to identify your account — no emails will be sent</p>
           </div>
 
           <div>
@@ -108,7 +141,7 @@ export default function RegisterPage() {
         </form>
 
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-2 text-sm text-gray-500">
-          <p>✅ A temporary password will be emailed to you</p>
+          <p>🔑 A temporary password will be shown on screen after registering</p>
           <p>🔒 Predictions close on June 10, 2026</p>
           <p>📋 <Link href="/rules" className="text-wc-darkblue hover:underline">Read the rules</Link> before entering predictions</p>
         </div>

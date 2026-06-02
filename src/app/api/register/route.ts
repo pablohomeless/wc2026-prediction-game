@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { encryptEmail, hashEmail, generateRandomPassword } from "@/lib/encryption";
-import { sendWelcomeEmail } from "@/lib/email";
 import { PREDICTION_DEADLINE } from "@/lib/wc2026-data";
 
 const schema = z.object({
@@ -63,7 +62,7 @@ export async function POST(req: NextRequest) {
   const isAdminEmail = normalizedEmail === (process.env.ADMIN_EMAIL ?? "").toLowerCase().trim();
 
   try {
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         emailEncrypted,
         emailHash,
@@ -75,26 +74,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Send welcome email
-    try {
-      await sendWelcomeEmail(normalizedEmail, alias, temporaryPassword);
-    } catch (emailErr) {
-      console.error("Failed to send welcome email:", emailErr);
-      // Don't fail registration if email fails — return password in response for dev
-      if (process.env.NODE_ENV === "development") {
-        return NextResponse.json({
-          success: true,
-          message: "Account created. Email sending failed (dev mode).",
-          temporaryPassword, // Only in development!
-          userId: user.id,
-        });
-      }
-    }
-
     return NextResponse.json({
       success: true,
-      message:
-        "Registration successful! Please check your email for your temporary password.",
+      temporaryPassword,
+      message: "Registration successful! Note your temporary password — you will be asked to change it after logging in.",
     });
   } catch (err) {
     console.error("Registration error:", err);

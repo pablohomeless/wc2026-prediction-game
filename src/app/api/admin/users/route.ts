@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { decryptEmail } from "@/lib/encryption";
 import { generateRandomPassword } from "@/lib/encryption";
-import { sendPasswordResetEmail } from "@/lib/email";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -93,14 +92,7 @@ export async function PATCH(req: NextRequest) {
         data: { passwordHash, mustChangePassword: true },
       });
 
-      try {
-        const email = decryptEmail(user.emailEncrypted);
-        await sendPasswordResetEmail(email, user.alias, newPassword);
-      } catch (err) {
-        console.error("Failed to send password reset email:", err);
-      }
-
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, newPassword });
     }
 
     case "toggleActive": {

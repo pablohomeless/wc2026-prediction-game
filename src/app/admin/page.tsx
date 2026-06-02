@@ -32,6 +32,7 @@ export default function AdminPage() {
   const [calculating, setCalculating] = useState(false);
   const [calcMsg, setCalcMsg] = useState("");
   const [saving, setSaving] = useState<Record<number, boolean>>({});
+  const [resetPasswordInfo, setResetPasswordInfo] = useState<{ alias: string; password: string } | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -108,6 +109,10 @@ export default function AdminPage() {
       const d = await res.json();
       alert(d.error ?? "Action failed");
     } else {
+      const d = await res.json();
+      if (action === "resetPassword" && d.newPassword) {
+        setResetPasswordInfo({ alias: users.find((u) => u.id === userId)?.alias ?? "", password: d.newPassword });
+      }
       // Refresh users
       const fresh = await fetch("/api/admin/users").then((r) => r.json());
       setUsers(fresh);
@@ -124,6 +129,37 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-6">
+      {/* Password reset modal */}
+      {resetPasswordInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4 text-center">
+            <div className="text-4xl">🔑</div>
+            <h3 className="text-lg font-bold text-wc-darkblue">Password Reset</h3>
+            <p className="text-gray-600 text-sm">
+              New temporary password for <strong>{resetPasswordInfo.alias}</strong>:
+            </p>
+            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-3">
+              <p className="text-xs text-yellow-800 font-semibold mb-1">⚠️ Copy this now — it won&apos;t be shown again</p>
+              <code className="text-xl font-mono font-bold tracking-widest text-wc-darkblue">
+                {resetPasswordInfo.password}
+              </code>
+            </div>
+            <p className="text-xs text-gray-500">The user will be prompted to change it on next login.</p>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(resetPasswordInfo.password);
+                setResetPasswordInfo(null);
+              }}
+              className="btn-primary w-full"
+            >
+              Copy &amp; Close
+            </button>
+            <button onClick={() => setResetPasswordInfo(null)} className="text-sm text-gray-400 hover:text-gray-600 w-full">
+              Close without copying
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-wc-darkblue">🛡️ Admin Dashboard</h1>
         <div className="flex gap-2">

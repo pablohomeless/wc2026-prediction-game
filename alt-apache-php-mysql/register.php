@@ -23,14 +23,13 @@ if (!empty($settings['prediction_deadline'])) {
 }
 
 $errors = [];
+$registered_password = null; // shown on success screen
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
 
-    $email    = trim(strtolower($_POST['email'] ?? ''));
-    $alias    = trim($_POST['alias'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm  = $_POST['confirm_password'] ?? '';
+    $email = trim(strtolower($_POST['email'] ?? ''));
+    $alias = trim($_POST['alias'] ?? '');
 
     // Validate
     if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -40,12 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors['alias'] = 'Display name is required.';
     } elseif (mb_strlen($alias) < 2 || mb_strlen($alias) > 30) {
         $errors['alias'] = 'Display name must be 2–30 characters.';
-    }
-    if (strlen($password) < 8) {
-        $errors['password'] = 'Password must be at least 8 characters.';
-    }
-    if ($password !== $confirm) {
-        $errors['confirm_password'] = 'Passwords do not match.';
     }
 
     if (empty($errors)) {
@@ -64,10 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $hash = password_hash($password, PASSWORD_BCRYPT);
+        // Auto-generate a secure temporary password
+        $chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+        $tmp_pw = '';
+        for ($i = 0; $i < 8; $i++) {
+            $tmp_pw .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+
+        $hash = password_hash($tmp_pw, PASSWORD_BCRYPT);
         $db->prepare(
             "INSERT INTO users (email, alias, password_hash, is_admin, is_active, must_change_password)
-             VALUES (?, ?, ?, 0, 1, 0)"
+             VALUES (?, ?, ?, 0, 1, 1)"
         )->execute([$email, $alias, $hash]);
 
         $user_id = (int)$db->lastInsertId();
@@ -77,14 +77,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "INSERT INTO user_scores (user_id) VALUES (?)"
         )->execute([$user_id]);
 
-        // Log them in
-        $user = $db->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
-        $user->execute([$user_id]);
-        auth_login($user->fetch());
-
-        flash_set('success', 'Welcome, ' . htmlspecialchars($alias) . '! Enter your predictions before the deadline.');
-        header('Location: predictions.php');
-        exit;
+        // Show success screen with the generated password (do NOT auto-login here)
+        $registered_alias    = htmlspecialchars($alias);
+        $registered_password = $tmp_pw; // displayed on screen below
     }
 }
 ?>
@@ -105,6 +100,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p>Create your account to play</p>
         </div>
 
+<?php if ($registered_password !== null): ?>
+        <!-- SUCCESS: show the generated password -->
+        <div style="text-align:center;padding:1rem 0">
+            <div style="font-size:2.5rem">✅</div>
+            <h2 style="color:#1e3a5f;margin:.5rem 0">Account Created!</h2>
+            <p style="color:#555;margin-bottom:1.5rem">
+                Welcome, <strong><?= $registered_alias ?></strong>! Use the password below to log in.
+            </p>
+
+            <div style="background:#fefce8;border:2px solid #facc15;border-radius:.75rem;padding:1rem;margin-bottom:1.25rem">
+                <p style="font-size:.8rem;font-weight:600;color:#92400e;margin:0 0 .5rem">
+                    ⚠️ Note this password — it will not be shown again!
+                </p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap">
+                    <code id="tmp-pw" style="font-size:1.5rem;font-family:monospace;font-weight:700;letter-spacing:.15em;color:#1e3a5f;background:#fff;border:1px solid #fde047;border-radius:.5rem;padding:.35rem .75rem">
+                        <?= htmlspecialchars($registered_password) ?>
+                    </code>
+                    <button onclick="copyPw()" style="font-size:.8rem;padding:.3rem .7rem;border:1px solid #cbd5e1;border-radius:.375rem;background:#fff;cursor:pointer" id="copy-btn">
+                        Copy
+                    </button>
+                </div>
+            </div>
+
+            <ol style="text-align:left;font-size:.9rem;color:#555;line-height:1.8;margin-bottom:1.5rem;padding-left:1.25rem">
+                <li>Write down or copy your password above</li>
+                <li>Go to login and use your email + this password</li>
+                <li>You will be asked to set a new password after logging in</li>
+            </ol>
+
+            <a href="login.php" class="btn btn-gold" style="width:100%;justify-content:center;display:flex">Go to Login →</a>
+        </div>
+
+        <script>
+        function copyPw() {
+            var pw = document.getElementById('tmp-pw').innerText.trim();
+            navigator.clipboard.writeText(pw).then(function() {
+                document.getElementById('copy-btn').innerText = '✓ Copied';
+                setTimeout(function(){ document.getElementById('copy-btn').innerText = 'Copy'; }, 2000);
+            });
+        }
+        </script>
+
+<?php else: ?>
         <form method="POST" action="register.php" novalidate>
             <?= csrf_field() ?>
 
@@ -117,6 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php if (isset($errors['email'])): ?>
                 <div class="form-error"><?= htmlspecialchars($errors['email']) ?></div>
                 <?php endif; ?>
+                <div class="form-hint">Used to identify your account — no emails will be sent</div>
             </div>
 
             <div class="form-group">
@@ -130,25 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="password">Password</label>
-                <input id="password" name="password" type="password"
-                       class="form-control <?= isset($errors['password'])?'is-invalid':'' ?>"
-                       autocomplete="new-password" required>
-                <?php if (isset($errors['password'])): ?>
-                <div class="form-error"><?= htmlspecialchars($errors['password']) ?></div>
-                <?php endif; ?>
-                <div class="form-hint">Minimum 8 characters.</div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="confirm_password">Confirm Password</label>
-                <input id="confirm_password" name="confirm_password" type="password"
-                       class="form-control <?= isset($errors['confirm_password'])?'is-invalid':'' ?>"
-                       autocomplete="new-password" required>
-                <?php if (isset($errors['confirm_password'])): ?>
-                <div class="form-error"><?= htmlspecialchars($errors['confirm_password']) ?></div>
-                <?php endif; ?>
+            <div class="form-hint" style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:.5rem;padding:.6rem .8rem;margin-bottom:1rem;font-size:.85rem;color:#0369a1">
+                🔑 A temporary password will be generated and shown on screen after registering.
             </div>
 
             <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">
@@ -162,6 +184,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="text-align:center;margin-top:.5rem">
             <a href="index.php" style="font-size:.85rem;color:#94a3b8">← Back to scoreboard</a>
         </p>
+<?php endif; ?>
+
     </div>
 </div>
 </body>
