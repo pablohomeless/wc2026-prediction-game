@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Porra Mundial 2026 ⚽</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="active">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="results.html">Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path id="hamburgerIcon" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html" class="active">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="results.html">Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <!-- Hero -->
+      <div class="hero wc-header-gradient">
+        <div class="hero-icon">⚽</div>
+        <h1>Porra Mundial 2026</h1>
+        <p>FIFA World Cup USA / Mexico / Canada</p>
+        <div class="hero-deadline" id="deadlineBox">
+          <strong>Prediction Deadline:</strong> June 10, 2026 at 23:59 UTC
+        </div>
+      </div>
+
+      <!-- Phase notice (hidden unless needed) -->
+      <div id="phaseNotice"></div>
+
+      <!-- Scoreboard -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin-bottom:0;border:none;padding:0">
+            🏆 Leaderboard
+          </div>
+          <span class="badge" id="participantCount"></span>
+        </div>
+        <div id="scoreboardWrap" style="margin-top:1rem"></div>
+      </div>
+
+      <!-- Quick links -->
+      <div class="quick-grid">
+        <a href="predictions.html" class="quick-card">
+          <div class="icon">🎯</div>
+          <h3>All Predictions</h3>
+          <p>See every player's picks side by side</p>
+        </a>
+        <a href="results.html" class="quick-card">
+          <div class="icon">📊</div>
+          <h3>Match Results</h3>
+          <p>Live scores and how picks scored</p>
+        </a>
+        <a href="rules.html" class="quick-card">
+          <div class="icon">📋</div>
+          <h3>Rules &amp; Scoring</h3>
+          <p>How points are calculated</p>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  // ── Hamburger ──
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  // ── Render scoreboard ──
+  (function () {
+    const phase = SETTINGS.phase;
+    const participants = getComputedParticipants();
+
+    // Deadline box
+    const now = new Date();
+    const deadline = new Date(SETTINGS.predictionDeadline);
+    if (now > deadline) {
+      document.getElementById('deadlineBox').style.display = 'none';
+    }
+
+    // Phase notice
+    const phaseNotice = document.getElementById('phaseNotice');
+    if (phase === 'pre') {
+      phaseNotice.innerHTML = `
+        <div class="alert alert-info">
+          🔒 Tournament hasn't started yet — predictions are locked in. 
+          Check back on <strong>June 11, 2026</strong> when the group stage kicks off!
+        </div>`;
+    } else if (phase === 'group') {
+      phaseNotice.innerHTML = `
+        <div class="alert alert-warning">
+          ⚽ <strong>Group stage in progress.</strong> Scores update as groups are completed.
+        </div>`;
+    } else if (phase === 'knockout') {
+      phaseNotice.innerHTML = `
+        <div class="alert alert-warning">
+          🏟️ <strong>Knockout stage underway.</strong> Scoreboard is live!
+        </div>`;
+    } else if (phase === 'finished') {
+      phaseNotice.innerHTML = `
+        <div class="alert alert-success">
+          🏆 <strong>Tournament over!</strong> Final standings are locked.
+        </div>`;
+    }
+
+    // Participant count
+    document.getElementById('participantCount').textContent =
+      participants.length + ' participant' + (participants.length !== 1 ? 's' : '');
+
+    const wrap = document.getElementById('scoreboardWrap');
+
+    if (phase === 'pre') {
+      // Before start: show no scoreboard, invite to view predictions
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🎯</div>
+          <p style="font-weight:600;color:#374151">Scoreboard will appear once the tournament begins</p>
+          <p style="margin-top:.5rem;font-size:.85rem">
+            <a href="predictions.html" style="color:var(--darkblue);font-weight:600;text-decoration:underline">
+              View all predictions →
+            </a>
+          </p>
+        </div>`;
+      return;
+    }
+
+    if (participants.length === 0) {
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🎯</div>
+          <p>No participants yet</p>
+        </div>`;
+      return;
+    }
+
+    const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+    const rowClass = r => r === 1 ? 'row-gold' : r === 2 ? 'row-silver' : r === 3 ? 'row-bronze' : '';
+
+    let rows = '';
+    participants.forEach((p, idx) => {
+      const rank = idx + 1;
+      const pts = p.points;
+      rows += `
+        <tr class="${rowClass(rank)}">
+          <td class="td-rank">${medal(rank)}</td>
+          <td class="td-alias">${escHtml(p.alias)}</td>
+          <td class="td-center">${pts.groupWinners}</td>
+          <td class="td-center">${pts.semiFinals}</td>
+          <td class="td-center">${pts.finalists}</td>
+          <td class="td-center">${pts.thirdPlaceParticipants}</td>
+          <td class="td-center">${pts.champion}</td>
+          <td class="td-center">${pts.thirdPlace}</td>
+          <td class="td-center">${pts.topScorer}</td>
+          <td class="td-total">${pts.total}</td>
+        </tr>`;
+    });
+
+    wrap.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th style="text-align:left">Player</th>
+              <th>Group<br>Winners</th>
+              <th>Semi-<br>finals</th>
+              <th>Finalists</th>
+              <th>3rd/4th<br>Teams</th>
+              <th>Champion</th>
+              <th>3rd Place</th>
+              <th>Top Scorer</th>
+              <th>TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  })();
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

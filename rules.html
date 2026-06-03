@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rules – Porra Mundial 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="results.html">Results</a></li>
+      <li><a href="rules.html" class="active">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="results.html">Results</a>
+    <a href="rules.html" class="active">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container" style="max-width:860px">
+    <div class="space-y">
+
+      <!-- Hero -->
+      <div class="hero wc-header-gradient">
+        <h1>📋 Rules &amp; Scoring</h1>
+        <p>How the Porra Mundial 2026 works</p>
+      </div>
+
+      <!-- Group Winners -->
+      <div class="card">
+        <div class="card-title">🏅 Group Winners</div>
+        <p style="color:var(--gray-700);margin-bottom:1rem">
+          Predict the <strong>winner</strong> of each of the 12 groups (A–L).
+          You earn <strong>1 point</strong> for each correctly predicted group winner.
+        </p>
+        <div class="alert alert-info" style="font-size:.875rem">
+          Maximum: 1 pt × 12 groups = <strong>12 points</strong>
+        </div>
+      </div>
+
+      <!-- Semi-finalists -->
+      <div class="card">
+        <div class="card-title">🏟️ Semi-finalists</div>
+        <p style="color:var(--gray-700);margin-bottom:1rem">
+          Pick <strong>4 teams</strong> that you believe will reach the semi-finals.
+          You earn <strong>2 points</strong> for each team that actually makes it that far.
+        </p>
+        <div class="alert alert-info" style="font-size:.875rem">
+          Maximum: 2 pt × 4 teams = <strong>8 points</strong>
+        </div>
+      </div>
+
+      <!-- Finalists -->
+      <div class="card">
+        <div class="card-title">🥈 Finalists</div>
+        <p style="color:var(--gray-700);margin-bottom:1rem">
+          Pick the <strong>2 teams</strong> that will play in the Final.
+          You earn <strong>4 points</strong> for each correct finalist.
+        </p>
+        <div class="alert alert-info" style="font-size:.875rem">
+          Maximum: 4 pt × 2 teams = <strong>8 points</strong>
+        </div>
+      </div>
+
+      <!-- 3rd/4th Place Participants -->
+      <div class="card">
+        <div class="card-title">🥉 3rd/4th Place Participants</div>
+        <p style="color:var(--gray-700);margin-bottom:1rem">
+          Pick the <strong>2 teams</strong> that will play in the 3rd/4th place match.
+          You earn <strong>3 points</strong> for each team you correctly identify.
+        </p>
+        <div class="alert alert-info" style="font-size:.875rem">
+          Maximum: 3 pt × 2 teams = <strong>6 points</strong>
+        </div>
+      </div>
+
+      <!-- Honor Board -->
+      <div class="card">
+        <div class="card-title">🌟 Special Picks</div>
+        <p style="color:var(--gray-700);margin-bottom:1rem">
+          Predict the tournament's key individual awards and final standings:
+        </p>
+        <table class="rules-table">
+          <thead>
+            <tr>
+              <th>Prediction</th>
+              <th style="text-align:center">Points if correct</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>🏆 Champion (winner of the Final)</td><td style="text-align:center;font-weight:700">10 pts</td></tr>
+            <tr><td>🥉 Winner of the 3rd / 4th place match</td><td style="text-align:center;font-weight:700">2 pts</td></tr>
+            <tr><td>👟 Top Scorer (Golden Boot)</td><td style="text-align:center;font-weight:700">5 pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Summary -->
+      <div class="card-dark">
+        <div style="text-align:center">
+          <p style="color:var(--gold);font-weight:800;font-size:1.1rem;margin-bottom:1rem">Maximum Possible Score</p>
+          <div class="max-score-grid">
+            <div class="max-score-item"><div class="num">12</div><div class="lbl">Group Winners</div></div>
+            <div class="max-score-item"><div class="num">8</div><div class="lbl">Semi-finalists</div></div>
+            <div class="max-score-item"><div class="num">8</div><div class="lbl">Finalists</div></div>
+            <div class="max-score-item"><div class="num">6</div><div class="lbl">3rd/4th Teams</div></div>
+            <div class="max-score-item"><div class="num">10</div><div class="lbl">Champion</div></div>
+            <div class="max-score-item"><div class="num">2</div><div class="lbl">3rd Place</div></div>
+            <div class="max-score-item"><div class="num">5</div><div class="lbl">Top Scorer</div></div>
+            <div class="max-score-item" style="background:rgba(255,255,255,.1);border-radius:8px;padding:.5rem">
+              <div class="num" style="font-size:2.5rem">51</div>
+              <div class="lbl" style="color:var(--gold)">TOTAL MAX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- General rules -->
+      <div class="card">
+        <div class="card-title">📅 General Rules</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:.65rem;color:var(--gray-700);font-size:.9rem">
+          <li style="display:flex;gap:.75rem">
+            <span>🔒</span>
+            <span>All predictions must be submitted before <strong>June 10, 2026 at 23:59 UTC</strong></span>
+          </li>
+          <li style="display:flex;gap:.75rem">
+            <span>👁️</span>
+            <span>After the deadline, all predictions are visible to all participants</span>
+          </li>
+          <li style="display:flex;gap:.75rem">
+            <span>🎯</span>
+            <span>Top Scorer comparison is case-insensitive (e.g. "mbappe" matches "Mbappé")</span>
+          </li>
+          <li style="display:flex;gap:.75rem">
+            <span>🎲</span>
+            <span>Ties in the final ranking are broken by: Champion pick → Group Winners → alphabetical order</span>
+          </li>
+          <li style="display:flex;gap:.75rem">
+            <span>⚖️</span>
+            <span>The administrator may manually adjust scores in exceptional circumstances</span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+</script>
+</body>
+</html>

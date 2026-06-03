@@ -1,0 +1,32 @@
+# Dependencies — must NEVER be copied, npm ci runs inside container
+node_modules/
+.next/
+
+# Dev/test files
+*.md
+.env
+.env.*
+.env.local
+.vscode/
+.azure/
+
+# Old code / non-production
+OldPorras/
+alt-apache-php-mysql/
+mockup/
+NewSpecs/
+scripts/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# Azure/infra (not needed in image)
+infra/
+azure.yaml
+Dockerfile
+.dockerignore

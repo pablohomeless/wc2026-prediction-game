@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results – Porra Mundial 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="results.html" class="active">Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="results.html" class="active">Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <!-- Page header -->
+      <div class="section-header">
+        <h1>📊 Tournament Results</h1>
+      </div>
+
+      <!-- Results are built here -->
+      <div id="resultsRoot"></div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function teamDisp(code) {
+    if (!code) return '—';
+    const t = TEAMS[code];
+    return flagHtml(code) + ' ' + (t ? escHtml(t.name) : escHtml(code));
+  }
+
+  // ── RESULTS_DATA: the actual match/phase results to display ──────────────────
+  // This object is read from ACTUAL_RESULTS in data.js and from RESULTS_DETAIL
+  // which you can optionally define in data.js for richer match-by-match view.
+
+  (function () {
+    const ar = ACTUAL_RESULTS;
+    const root = document.getElementById('resultsRoot');
+    let html = '';
+
+    // ── Group Winners Summary ──
+    const gwDone = GROUPS.filter(g => ar.groupWinners && ar.groupWinners[g]).length;
+    if (gwDone > 0) {
+      html += `
+        <div class="card">
+          <div class="card-title">🏅 Group Winners (${gwDone}/12 decided)</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.5rem">`;
+      GROUPS.forEach(g => {
+        const code = ar.groupWinners && ar.groupWinners[g];
+        html += `
+          <div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:.5rem .75rem;font-size:.85rem">
+            <span style="font-weight:700;color:var(--darkblue)">Group ${g}</span><br>
+            <span style="font-weight:600">${code ? teamDisp(code) : '<span style="color:var(--gray-400)">TBD</span>'}</span>
+          </div>`;
+      });
+      html += `</div></div>`;
+    } else {
+      html += `
+        <div class="alert alert-info">
+          ⏳ Group stage hasn't started yet. Check back on June 11, 2026!
+        </div>`;
+    }
+
+    // ── Semi-finals ──
+    if (ar.semiFinals) {
+      html += `
+        <div class="card">
+          <div class="card-title">🏟️ Semi-finalists</div>
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem">`;
+      ar.semiFinals.forEach(code => {
+        html += `<span style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.4rem .9rem;font-size:.9rem;font-weight:600">${teamDisp(code)}</span>`;
+      });
+      html += `</div></div>`;
+    }
+
+    // ── The Final ──
+    if (ar.finalists || ar.champion) {
+      html += '<div class="card"><div class="card-title">🏆 The Final</div>';
+      if (ar.finalists && ar.finalists.length >= 2) {
+        html += '<div class="matchup-card">' +
+          '<div class="matchup-label">FINAL</div>' +
+          '<div class="matchup-teams">' +
+          '<div class="matchup-team">' + teamDisp(ar.finalists[0]) + '</div>' +
+          '<div class="matchup-vs">VS</div>' +
+          '<div class="matchup-team">' + teamDisp(ar.finalists[1]) + '</div>' +
+          '</div>';
+        if (ar.champion) {
+          html += '<div class="matchup-winner">🏆 Champion: ' + teamDisp(ar.champion) + '</div>';
+        }
+        html += '</div>';
+      } else if (ar.champion) {
+        html += '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--gray-50);border-radius:8px">' +
+          '<span style="font-size:1.3rem">🏆</span><div><div style="font-size:.7rem;color:var(--gray-500);text-transform:uppercase;font-weight:700">Champion</div>' +
+          '<div style="font-weight:700;font-size:.95rem">' + teamDisp(ar.champion) + '</div></div></div>';
+      }
+      html += '</div>';
+    }
+
+    // ── 3rd/4th Place ──
+    if (ar.thirdPlaceParticipants || ar.thirdPlace) {
+      html += '<div class="card"><div class="card-title">🥉 3rd/4th Place</div>';
+      if (ar.thirdPlaceParticipants && ar.thirdPlaceParticipants.length >= 2) {
+        html += '<div class="matchup-card">' +
+          '<div class="matchup-label">3RD / 4TH PLACE</div>' +
+          '<div class="matchup-teams">' +
+          '<div class="matchup-team">' + teamDisp(ar.thirdPlaceParticipants[0]) + '</div>' +
+          '<div class="matchup-vs">VS</div>' +
+          '<div class="matchup-team">' + teamDisp(ar.thirdPlaceParticipants[1]) + '</div>' +
+          '</div>';
+        if (ar.thirdPlace) {
+          html += '<div class="matchup-winner">🥉 Winner: ' + teamDisp(ar.thirdPlace) + '</div>';
+        }
+        html += '</div>';
+      } else if (ar.thirdPlace) {
+        html += '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .75rem;background:var(--gray-50);border-radius:8px">' +
+          '<span style="font-size:1.3rem">🥉</span><div><div style="font-size:.7rem;color:var(--gray-500);text-transform:uppercase;font-weight:700">3rd Place Winner</div>' +
+          '<div style="font-weight:700;font-size:.95rem">' + teamDisp(ar.thirdPlace) + '</div></div></div>';
+      }
+      html += '</div>';
+    }
+
+    // ── Top Scorer ──
+    if (ar.topScorer) {
+      html += '<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .75rem;background:var(--gray-50);border-radius:8px;font-size:.9rem">' +
+        '<span>👟 <strong>Top Scorer (Golden Boot)</strong></span>' +
+        '<span style="font-weight:700">' + escHtml(ar.topScorer) + '</span>' +
+        '<span style="color:var(--gray-400);font-size:.75rem">5 pts</span>' +
+        '</div></div>';
+    }
+
+    // ── If nothing at all ──
+    if (gwDone === 0 && !ar.semiFinals && !ar.champion && !ar.thirdPlaceParticipants) {
+      html = '<div class="empty-state">' +
+        '<div class="icon">⏳</div>' +
+        '<p style="font-weight:600;color:var(--gray-700)">Tournament hasn\'t started yet</p>' +
+        '<p style="margin-top:.4rem;font-size:.85rem">Check back on <strong>June 11, 2026</strong>!</p>' +
+        '</div>';
+    }
+
+    root.innerHTML = html;
+  })();
+</script>
+</body>
+</html>
