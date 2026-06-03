@@ -31,6 +31,8 @@ const PARTICIPANTS = [
       semiFinals: ["BRA", "FRA", "ESP", "ARG"],
       // 2 finalists (team codes)
       finalists: ["BRA", "ARG"],
+      // 2 teams in the 3rd/4th place game
+      thirdPlaceParticipants: ["FRA", "ESP"],
       // Winner of the Final
       champion: "ARG",
       // Winner of 3rd/4th place match
@@ -39,12 +41,13 @@ const PARTICIPANTS = [
       topScorer: "Mbappe",
     },
     points: {
-      groupWinners: 0,     // 1pt per correct group winner
-      semiFinals: 0,       // 2pt per correct semi-finalist
-      finalists: 0,        // 2pt per correct finalist
-      champion: 0,         // 10pt if correct
-      thirdPlace: 0,       // 2pt if correct
-      topScorer: 0,        // 5pt if correct
+      groupWinners: 0,           // 1pt per correct group winner
+      semiFinals: 0,             // 2pt per correct semi-finalist
+      finalists: 0,              // 4pt per correct finalist
+      thirdPlaceParticipants: 0, // 3pt per correct 3rd/4th team
+      champion: 0,               // 10pt if correct
+      thirdPlace: 0,             // 2pt if correct
+      topScorer: 0,              // 5pt if correct
       total: 0,
     },
   },
@@ -55,11 +58,12 @@ const PARTICIPANTS = [
   //     groupWinners: { A: "MEX", B: "CAN", C: "BRA", D: "USA", E: "GER", F: "NED", G: "ESP", H: "URU", I: "FRA", J: "ARG", K: "POR", L: "ENG" },
   //     semiFinals: ["BRA", "ENG", "ESP", "ARG"],
   //     finalists: ["ENG", "ARG"],
+  //     thirdPlaceParticipants: ["BRA", "ESP"],
   //     champion: "ENG",
   //     thirdPlace: "BRA",
   //     topScorer: "Bellingham",
   //   },
-  //   points: { groupWinners: 0, semiFinals: 0, finalists: 0, champion: 0, thirdPlace: 0, topScorer: 0, total: 0 },
+  //   points: { groupWinners: 0, semiFinals: 0, finalists: 0, thirdPlaceParticipants: 0, champion: 0, thirdPlace: 0, topScorer: 0, total: 0 },
   // },
 ];
 
@@ -76,11 +80,13 @@ const ACTUAL_RESULTS = {
   // Actual 4 semi-finalists (team codes), null until known
   semiFinals: null, // e.g. ["BRA", "FRA", "ESP", "ENG"]
   // Actual 2 finalists
-  finalists: null,  // e.g. ["ARG", "FRA"]
+  finalists: null,              // e.g. ["ARG", "FRA"]
+  // Actual 2 teams in 3rd/4th place game
+  thirdPlaceParticipants: null, // e.g. ["ESP", "ENG"]
   // Champion
-  champion: null,   // e.g. "ARG"
+  champion: null,               // e.g. "ARG"
   // 3rd place winner
-  thirdPlace: null, // e.g. "FRA"
+  thirdPlace: null,             // e.g. "FRA"
   // Top scorer name (must match prediction string, case-insensitive)
   topScorer: null,  // e.g. "Mbappe"
 };
@@ -153,6 +159,30 @@ const TEAMS = {
 
 const GROUPS = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
+// ─── FLAG ICON MAPPING (FIFA 3-letter → ISO 3166-1 alpha-2 for flag-icons CSS) ─
+const FLAG_ICONS = {
+  MEX: "mx", RSA: "za", KOR: "kr", CZE: "cz",
+  CAN: "ca", BIH: "ba", QAT: "qa", SUI: "ch",
+  BRA: "br", MAR: "ma", HAI: "ht", SCO: "gb-sct",
+  USA: "us", PAR: "py", AUS: "au", TUR: "tr",
+  GER: "de", CUW: "cw", CIV: "ci", ECU: "ec",
+  NED: "nl", JPN: "jp", SWE: "se", TUN: "tn",
+  BEL: "be", EGY: "eg", IRN: "ir", NZL: "nz",
+  ESP: "es", CPV: "cv", KSA: "sa", URU: "uy",
+  FRA: "fr", SEN: "sn", IRQ: "iq", NOR: "no",
+  ARG: "ar", ALG: "dz", AUT: "at", JOR: "jo",
+  POR: "pt", COD: "cd", UZB: "uz", COL: "co",
+  ENG: "gb-eng", CRO: "hr", GHA: "gh", PAN: "pa",
+};
+
+// Returns an <img> flag tag for a FIFA 3-letter code
+function flagHtml(code) {
+  const iso = FLAG_ICONS[code];
+  if (!iso) return '';
+  const t = TEAMS[code];
+  return `<span class="fi fi-${iso}" title="${t ? t.name : code}"></span>`;
+}
+
 // ─── SCORING LOGIC (do not edit) ─────────────────────────────────────────────
 
 function teamDisplay(code) {
@@ -162,7 +192,7 @@ function teamDisplay(code) {
 }
 
 function calcPoints(p, actual) {
-  const pts = { groupWinners: 0, semiFinals: 0, finalists: 0, champion: 0, thirdPlace: 0, topScorer: 0, total: 0 };
+  const pts = { groupWinners: 0, semiFinals: 0, finalists: 0, thirdPlaceParticipants: 0, champion: 0, thirdPlace: 0, topScorer: 0, total: 0 };
 
   // Group winners: 1pt each
   if (actual.groupWinners) {
@@ -180,17 +210,24 @@ function calcPoints(p, actual) {
     }
   }
 
-  // Finalists: 2pt each correct
+  // Finalists: 4pt each correct
   if (actual.finalists && p.predictions.finalists) {
     for (const team of p.predictions.finalists) {
-      if (actual.finalists.includes(team)) pts.finalists += 2;
+      if (actual.finalists.includes(team)) pts.finalists += 4;
+    }
+  }
+
+  // 3rd/4th participants: 3pt each correct
+  if (actual.thirdPlaceParticipants && p.predictions.thirdPlaceParticipants) {
+    for (const team of p.predictions.thirdPlaceParticipants) {
+      if (actual.thirdPlaceParticipants.includes(team)) pts.thirdPlaceParticipants += 3;
     }
   }
 
   // Champion: 10pt
   if (actual.champion && p.predictions.champion === actual.champion) pts.champion = 10;
 
-  // 3rd place: 2pt
+  // 3rd place winner: 2pt
   if (actual.thirdPlace && p.predictions.thirdPlace === actual.thirdPlace) pts.thirdPlace = 2;
 
   // Top scorer: 5pt (case-insensitive)
@@ -200,7 +237,7 @@ function calcPoints(p, actual) {
     }
   }
 
-  pts.total = pts.groupWinners + pts.semiFinals + pts.finalists + pts.champion + pts.thirdPlace + pts.topScorer;
+  pts.total = pts.groupWinners + pts.semiFinals + pts.finalists + pts.thirdPlaceParticipants + pts.champion + pts.thirdPlace + pts.topScorer;
   return pts;
 }
 

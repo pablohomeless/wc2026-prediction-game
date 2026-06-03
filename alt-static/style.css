@@ -522,6 +522,59 @@ tbody td { padding: .65rem .75rem; }
 .score-total .n  { font-size: 1.4rem; font-weight: 800; }
 .score-total .l  { font-size: .7rem; opacity: .8; }
 
+/* ─── Flag icons ──────────────────────────────────────────────────────────────── */
+.fi { font-size: 1.15em; vertical-align: -0.1em; border-radius: 2px; }
+
+/* ─── Matchup bracket card ────────────────────────────────────────────────────── */
+.matchup-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  max-width: 480px;
+  margin: .25rem 0;
+}
+
+.matchup-label {
+  font-size: .7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--gray-500);
+  margin-bottom: .85rem;
+}
+
+.matchup-teams {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: .85rem;
+}
+
+.matchup-team {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  flex: 1;
+  min-width: 100px;
+}
+
+.matchup-vs {
+  font-size: .85rem;
+  font-weight: 800;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.matchup-winner {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--darkblue);
+  padding-top: .75rem;
+  border-top: 1px solid var(--gray-200);
+}
+
 /* ─── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .nav-links { display: none; }
