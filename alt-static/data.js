@@ -19,7 +19,7 @@
 
 const PARTICIPANTS = [
   {
-    alias: "Pablo",
+    alias: "Fake Example",
     predictions: {
       // Group winners: one team code per group A-L
       groupWinners: {
