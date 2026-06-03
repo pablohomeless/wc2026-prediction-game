@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predictions – Porra Mundial 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html" class="active">Predictions</a></li>
+      <li><a href="results.html">Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html" class="active">Predictions</a>
+    <a href="results.html">Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <!-- Page header -->
+      <div class="section-header">
+        <h1>🎯 All Predictions</h1>
+        <span class="badge" id="participantCount"></span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="tabs">
+        <button class="tab-btn active" onclick="showTab('group-winners', this)">Group Winners</button>
+        <button class="tab-btn" onclick="showTab('semifinals', this)">Semi-finals</button>
+        <button class="tab-btn" onclick="showTab('finalists', this)">Final &amp; 3rd</button>
+        <button class="tab-btn" onclick="showTab('special', this)">Special Picks</button>
+        <button class="tab-btn" onclick="showTab('all-cards', this)">All (cards)</button>
+      </div>
+
+      <!-- ── Tab: Group Winners ── -->
+      <div class="tab-panel active" id="tab-group-winners">
+        <div class="card">
+          <div class="card-title">🏅 Group Winners Predictions</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Each player predicted one winner per group (A–L). 
+            <span id="gwLegend"></span>
+          </p>
+          <div class="table-wrap">
+            <table id="gwTable">
+              <thead id="gwHead"></thead>
+              <tbody id="gwBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Semi-finals ── -->
+      <div class="tab-panel" id="tab-semifinals">
+        <div class="card">
+          <div class="card-title">🏟️ Semi-finalists Predictions</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Each player picked 4 teams to reach the semi-finals. 2 pts per correct pick.
+          </p>
+          <div class="table-wrap">
+            <table id="sfTable">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Player</th>
+                  <th>Team 1</th><th>Team 2</th><th>Team 3</th><th>Team 4</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody id="sfBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Finalists ── -->
+      <div class="tab-panel" id="tab-finalists">
+        <div class="card">
+          <div class="card-title">🏆 Final &amp; 3rd Place Predictions</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Finalists (2 pts each), Champion (10 pts), 3rd Place (2 pts).
+          </p>
+          <div class="table-wrap">
+            <table id="finTable">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Player</th>
+                  <th>Finalist 1</th><th>Finalist 2</th>
+                  <th>🏆 Champion</th>
+                  <th>🥉 3rd Place</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody id="finBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Special Picks ── -->
+      <div class="tab-panel" id="tab-special">
+        <div class="card">
+          <div class="card-title">⭐ Special Picks</div>
+          <div class="table-wrap">
+            <table id="spTable">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Player</th>
+                  <th>🏆 Champion</th>
+                  <th>🥉 3rd Place</th>
+                  <th>👟 Top Scorer</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody id="spBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: All Cards ── -->
+      <div class="tab-panel" id="tab-all-cards">
+        <div class="player-grid" id="allCards"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── Footer ── -->
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function teamDisp(code) {
+    if (!code) return '—';
+    const t = TEAMS[code];
+    return t ? t.flag + ' ' + escHtml(t.name) : escHtml(code);
+  }
+
+  function teamCode(code) {
+    if (!code) return '—';
+    const t = TEAMS[code];
+    return t ? t.flag + ' ' + escHtml(code) : escHtml(code);
+  }
+
+  function resultClass(predicted, actual) {
+    if (!actual) return 'pending';
+    return predicted === actual ? 'correct' : 'wrong';
+  }
+
+  function resultClassArr(predicted, actualArr) {
+    if (!actualArr) return 'pending';
+    return actualArr.includes(predicted) ? 'correct' : 'wrong';
+  }
+
+  (function () {
+    const participants = getComputedParticipants();
+    document.getElementById('participantCount').textContent =
+      participants.length + ' participant' + (participants.length !== 1 ? 's' : '');
+
+    const ar = ACTUAL_RESULTS;
+
+    // ── Group Winners table ──
+    const gwHead = document.getElementById('gwHead');
+    const gwBody = document.getElementById('gwBody');
+
+    // Header: Player | A B C D E F G H I J K L
+    let headHtml = '<tr><th style="text-align:left">Player</th>';
+    GROUPS.forEach(g => { headHtml += `<th>${g}</th>`; });
+    headHtml += '</tr>';
+    gwHead.innerHTML = headHtml;
+
+    // Legend
+    const gwLegend = document.getElementById('gwLegend');
+    const gwDone = GROUPS.filter(g => ar.groupWinners && ar.groupWinners[g]).length;
+    if (gwDone > 0) {
+      gwLegend.textContent = `${gwDone}/12 groups decided. Green = correct, Red = wrong.`;
+    }
+
+    participants.forEach(p => {
+      let row = `<tr><td class="td-alias">${escHtml(p.alias)}</td>`;
+      GROUPS.forEach(g => {
+        const pred = p.predictions.groupWinners[g] || '?';
+        const actual = ar.groupWinners && ar.groupWinners[g];
+        let cls = '';
+        if (actual) cls = pred === actual ? 'correct' : 'wrong';
+        const t = TEAMS[pred];
+        const display = t ? `<span title="${t.name}">${t.flag} ${pred}</span>` : escHtml(pred);
+        row += `<td class="td-center ${cls}" style="font-size:.8rem;font-weight:600">${display}</td>`;
+      });
+      row += '</tr>';
+      gwBody.innerHTML += row;
+    });
+
+    // ── Semi-finals table ──
+    const sfBody = document.getElementById('sfBody');
+    participants.forEach(p => {
+      const sf = p.predictions.semiFinals || [];
+      let row = `<tr><td class="td-alias">${escHtml(p.alias)}</td>`;
+      for (let i = 0; i < 4; i++) {
+        const code = sf[i] || '?';
+        const cls = resultClassArr(code, ar.semiFinals);
+        row += `<td class="td-center ${cls}" style="font-size:.82rem;font-weight:600">${teamCode(code)}</td>`;
+      }
+      row += `<td class="td-total">${p.points.semiFinals}</td></tr>`;
+      sfBody.innerHTML += row;
+    });
+
+    // ── Finalists table ──
+    const finBody = document.getElementById('finBody');
+    participants.forEach(p => {
+      const fin = p.predictions.finalists || [];
+      const champ = p.predictions.champion;
+      const third = p.predictions.thirdPlace;
+      let row = `<tr><td class="td-alias">${escHtml(p.alias)}</td>`;
+      for (let i = 0; i < 2; i++) {
+        const code = fin[i] || '?';
+        const cls = resultClassArr(code, ar.finalists);
+        row += `<td class="td-center ${cls}" style="font-size:.82rem;font-weight:600">${teamCode(code)}</td>`;
+      }
+      const champCls = resultClass(champ, ar.champion);
+      const thirdCls = resultClass(third, ar.thirdPlace);
+      row += `<td class="td-center ${champCls}" style="font-size:.82rem;font-weight:600">${teamDisp(champ)}</td>`;
+      row += `<td class="td-center ${thirdCls}" style="font-size:.82rem;font-weight:600">${teamDisp(third)}</td>`;
+      row += `<td class="td-total">${p.points.champion + p.points.finalists + p.points.thirdPlace}</td></tr>`;
+      finBody.innerHTML += row;
+    });
+
+    // ── Special picks table ──
+    const spBody = document.getElementById('spBody');
+    participants.forEach(p => {
+      const champ = p.predictions.champion;
+      const third = p.predictions.thirdPlace;
+      const ts    = p.predictions.topScorer;
+      const champCls = resultClass(champ, ar.champion);
+      const thirdCls = resultClass(third, ar.thirdPlace);
+      const tsCls = !ar.topScorer ? 'pending'
+        : ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong';
+      const row = `<tr>
+        <td class="td-alias">${escHtml(p.alias)}</td>
+        <td class="td-center ${champCls}" style="font-size:.82rem;font-weight:600">${teamDisp(champ)}</td>
+        <td class="td-center ${thirdCls}" style="font-size:.82rem;font-weight:600">${teamDisp(third)}</td>
+        <td class="td-center ${tsCls}" style="font-size:.82rem;font-weight:600">${escHtml(ts || '—')}</td>
+        <td class="td-total">${p.points.champion + p.points.thirdPlace + p.points.topScorer}</td>
+      </tr>`;
+      spBody.innerHTML += row;
+    });
+
+    // ── All Cards ──
+    const allCards = document.getElementById('allCards');
+    participants.forEach(p => {
+      const pts = p.points;
+
+      // Group winners chips
+      let gwChips = '<div class="group-winners-grid">';
+      GROUPS.forEach(g => {
+        const code = p.predictions.groupWinners[g] || '?';
+        const actual = ar.groupWinners && ar.groupWinners[g];
+        let cls = '';
+        if (actual) cls = code === actual ? 'correct' : 'wrong';
+        const t = TEAMS[code];
+        const flag = t ? t.flag : '';
+        gwChips += `<div class="group-winner-chip ${cls}">
+          <div class="grp">Group ${g}</div>
+          <div class="team">${flag} ${escHtml(code)}</div>
+        </div>`;
+      });
+      gwChips += '</div>';
+
+      // Semi-final pills
+      const sfTeams = p.predictions.semiFinals || [];
+      const sfPills = sfTeams.map(code => {
+        const cls = resultClassArr(code, ar.semiFinals);
+        const t = TEAMS[code];
+        return `<span class="team-pill ${cls}">${t ? t.flag : ''} ${escHtml(code)}</span>`;
+      }).join('');
+
+      // Finalist pills
+      const finTeams = p.predictions.finalists || [];
+      const finPills = finTeams.map(code => {
+        const cls = resultClassArr(code, ar.finalists);
+        const t = TEAMS[code];
+        return `<span class="team-pill ${cls}">${t ? t.flag : ''} ${escHtml(code)}</span>`;
+      }).join('');
+
+      // Special rows
+      const champ = p.predictions.champion;
+      const third = p.predictions.thirdPlace;
+      const ts    = p.predictions.topScorer;
+      const champCls = resultClass(champ, ar.champion);
+      const thirdCls = resultClass(third, ar.thirdPlace);
+      const tsCls = !ar.topScorer ? '' : (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
+
+      const card = `
+        <div class="player-card">
+          <div class="player-card-header">
+            👤 ${escHtml(p.alias)}
+            <span class="pts-badge" style="margin-left:auto">${pts.total} pts</span>
+          </div>
+          <div class="player-card-body">
+
+            <div class="pred-section">
+              <div class="pred-label">Group Winners (1pt each)</div>
+              ${gwChips}
+            </div>
+
+            <div class="pred-section">
+              <div class="pred-label">Semi-finalists (2pt each)</div>
+              <div>${sfPills || '—'}</div>
+            </div>
+
+            <div class="pred-section">
+              <div class="pred-label">Finalists (2pt each)</div>
+              <div>${finPills || '—'}</div>
+            </div>
+
+            <div class="pred-section">
+              <div class="special-row">
+                <span class="slabel">🏆 Champion (10pt)</span>
+                <span class="sval ${champCls}">${teamDisp(champ)}</span>
+              </div>
+              <div class="special-row">
+                <span class="slabel">🥉 3rd Place (2pt)</span>
+                <span class="sval ${thirdCls}">${teamDisp(third)}</span>
+              </div>
+              <div class="special-row">
+                <span class="slabel">👟 Top Scorer (5pt)</span>
+                <span class="sval ${tsCls}">${escHtml(ts || '—')}</span>
+              </div>
+            </div>
+
+            <div class="score-summary">
+              <div class="sc"><div class="n">${pts.groupWinners}</div><div class="l">Groups</div></div>
+              <div class="sc"><div class="n">${pts.semiFinals}</div><div class="l">Semis</div></div>
+              <div class="sc"><div class="n">${pts.finalists}</div><div class="l">Finalists</div></div>
+              <div class="sc"><div class="n">${pts.champion}</div><div class="l">Champion</div></div>
+              <div class="sc"><div class="n">${pts.thirdPlace}</div><div class="l">3rd</div></div>
+              <div class="sc"><div class="n">${pts.topScorer}</div><div class="l">Scorer</div></div>
+              <div class="score-total"><div class="n">${pts.total}</div><div class="l">TOTAL</div></div>
+            </div>
+
+          </div>
+        </div>`;
+      allCards.innerHTML += card;
+    });
+
+    if (participants.length === 0) {
+      allCards.innerHTML = '<div class="empty-state"><div class="icon">🎯</div><p>No participants yet</p></div>';
+    }
+  })();
+</script>
+
+<style>
+  /* Colour coding for table cells */
+  td.correct { background: #dcfce7 !important; color: #166534; }
+  td.wrong   { background: #fee2e2 !important; color: #991b1b; }
+  td.pending { }
+</style>
+</body>
+</html>
