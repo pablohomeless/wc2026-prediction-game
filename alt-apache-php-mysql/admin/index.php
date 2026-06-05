@@ -18,8 +18,8 @@ $where = $round_filter !== 'ALL' ? "WHERE m.round = " . $db->quote($round_filter
 
 $matches = $db->query(
     "SELECT m.*,
-            th.name as home_name, th.flag as home_flag,
-            ta.name as away_name, ta.flag as away_flag
+            th.name as home_name, th.flag_emoji as home_flag,
+            ta.name as away_name, ta.flag_emoji as away_flag
      FROM matches m
      LEFT JOIN teams th ON th.id = m.home_team_id
      LEFT JOIN teams ta ON ta.id = m.away_team_id
@@ -78,7 +78,7 @@ layout_head('Admin Dashboard');
         <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
 
         <span class="match-meta" style="min-width:2.5rem">M<?= $m['match_number'] ?></span>
-        <?php if ($m['is_bonus']): ?><span class="badge badge-bonus">Bonus</span><?php endif; ?>
+        <?php if ($m['is_bonus_game']): ?><span class="badge badge-bonus">Bonus</span><?php endif; ?>
         <span style="font-weight:600;flex:1;min-width:200px">
             <?= $m['home_flag']??'' ?> <?= htmlspecialchars($m['home_name'] ?? $m['home_slot'] ?? '?') ?>
             <span class="text-muted"> vs </span>
@@ -212,7 +212,7 @@ layout_head('Admin Dashboard');
         <div class="form-group">
             <label class="form-label">Game Status</label>
             <select name="game_status" class="form-control" style="max-width:200px">
-                <?php foreach (['not_started'=>'Not Started','group_stage'=>'Group Stage','knockout'=>'Knockout','finished'=>'Finished'] as $v => $l): ?>
+                <?php foreach (['upcoming'=>'Upcoming','active'=>'Active','finished'=>'Finished'] as $v => $l): ?>
                 <option value="<?= $v ?>" <?= ($settings['game_status']??'')===$v?'selected':'' ?>><?= $l ?></option>
                 <?php endforeach; ?>
             </select>
@@ -222,7 +222,7 @@ layout_head('Admin Dashboard');
         <div class="card-title" style="font-size:1rem">🏆 Award Outcomes</div>
 
         <!-- Champion / Runner-up / 3rd -->
-        <?php foreach (['champion_team_id'=>'Champion','runner_up_team_id'=>'Runner-up','third_place_team_id'=>'3rd Place'] as $field => $lbl): ?>
+        <?php foreach (['champion_id'=>'Champion','runner_up_id'=>'Runner-up','third_place_id'=>'3rd Place'] as $field => $lbl): ?>
         <div class="form-group">
             <label class="form-label"><?= $lbl ?></label>
             <select name="<?= $field ?>" class="form-control" style="max-width:280px">
@@ -253,7 +253,7 @@ layout_head('Admin Dashboard');
 
         <!-- Boot/Ball awarded flags -->
         <div class="card-title" style="font-size:.95rem;margin-top:.75rem">Award extra slots?</div>
-        <?php foreach (['golden_boot_2_awarded'=>'Boot slot 2','golden_boot_3_awarded'=>'Boot slot 3','golden_ball_2_awarded'=>'Ball slot 2','golden_ball_3_awarded'=>'Ball slot 3'] as $field => $lbl): ?>
+        <?php foreach (['boot_2_awarded'=>'Boot slot 2','boot_3_awarded'=>'Boot slot 3','ball_2_awarded'=>'Ball slot 2','ball_3_awarded'=>'Ball slot 3'] as $field => $lbl): ?>
         <label style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;cursor:pointer">
             <input type="checkbox" name="<?= $field ?>" value="1" <?= !empty($settings[$field])?'checked':'' ?>>
             <?= $lbl ?>

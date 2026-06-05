@@ -19,8 +19,8 @@ $where = $round_filter !== 'ALL' ? "WHERE m.round = " . $db->quote($round_filter
 
 $matches = $db->query(
     "SELECT m.*,
-            th.name as home_name, th.code as home_code, th.flag as home_flag,
-            ta.name as away_name, ta.code as away_code, ta.flag as away_flag
+            th.name as home_name, th.code as home_code, th.flag_emoji as home_flag,
+            ta.name as away_name, ta.code as away_code, ta.flag_emoji as away_flag
      FROM matches m
      JOIN teams th ON th.id = m.home_team_id
      JOIN teams ta ON ta.id = m.away_team_id
@@ -61,7 +61,7 @@ function result_pts(array $m, ?array $pred): ?int {
         'home_score' => (int)$pred['home_score'],
         'away_score' => (int)$pred['away_score'],
     ];
-    return calculate_match_points($result, $prediction, (bool)$m['is_bonus']);
+    return calculate_match_points($result, $prediction, (bool)$m['is_bonus_game']);
 }
 
 $round_labels = [

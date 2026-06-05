@@ -78,14 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$locked) {
 
         $db->prepare(
             "INSERT INTO special_predictions
-              (user_id, champion_team_id, runner_up_team_id, third_place_team_id,
+              (user_id, champion_id, runner_up_id, third_place_id,
                golden_boot_1, golden_boot_2, golden_boot_3,
                golden_ball_1, golden_ball_2, golden_ball_3)
              VALUES (?,?,?,?,?,?,?,?,?,?)
              ON DUPLICATE KEY UPDATE
-              champion_team_id=VALUES(champion_team_id),
-              runner_up_team_id=VALUES(runner_up_team_id),
-              third_place_team_id=VALUES(third_place_team_id),
+              champion_id=VALUES(champion_id),
+              runner_up_id=VALUES(runner_up_id),
+              third_place_id=VALUES(third_place_id),
               golden_boot_1=VALUES(golden_boot_1), golden_boot_2=VALUES(golden_boot_2),
               golden_boot_3=VALUES(golden_boot_3), golden_ball_1=VALUES(golden_ball_1),
               golden_ball_2=VALUES(golden_ball_2), golden_ball_3=VALUES(golden_ball_3)"
@@ -127,9 +127,9 @@ $special = $sp->fetch() ?: [];
 
 // ─── Load group stage matches (M1–M72) ────────────────────────────
 $matches_raw = $db->query(
-    "SELECT m.*, th.name as home_name, th.code as home_code, th.flag as home_flag,
-            ta.name as away_name, ta.code as away_code, ta.flag as away_flag,
-            m.group_id, m.is_bonus
+    "SELECT m.*, th.name as home_name, th.code as home_code, th.flag_emoji as home_flag,
+            ta.name as away_name, ta.code as away_code, ta.flag_emoji as away_flag,
+            m.group_id, m.is_bonus_game as is_bonus
      FROM matches m
      JOIN teams th ON th.id = m.home_team_id
      JOIN teams ta ON ta.id = m.away_team_id
@@ -280,7 +280,7 @@ layout_head('Predictions');
                 <select name="champion_team_id" class="form-control" <?= $locked?'disabled':'' ?>>
                     <option value="">— Select —</option>
                     <?php foreach ($all_teams_sorted as $t): ?>
-                    <option value="<?= $t['id'] ?>" <?= (int)($special['champion_team_id']??0)===$t['id']?'selected':'' ?>>
+                    <option value="<?= $t['id'] ?>" <?= (int)($special['champion_id']??0)===$t['id']?'selected':'' ?>>
                         <?= $t['flag']??'' ?> <?= htmlspecialchars($t['name']) ?>
                     </option>
                     <?php endforeach; ?>
@@ -296,7 +296,7 @@ layout_head('Predictions');
                 <select name="runner_up_team_id" class="form-control" <?= $locked?'disabled':'' ?>>
                     <option value="">— Select —</option>
                     <?php foreach ($all_teams_sorted as $t): ?>
-                    <option value="<?= $t['id'] ?>" <?= (int)($special['runner_up_team_id']??0)===$t['id']?'selected':'' ?>>
+                    <option value="<?= $t['id'] ?>" <?= (int)($special['runner_up_id']??0)===$t['id']?'selected':'' ?>>
                         <?= $t['flag']??'' ?> <?= htmlspecialchars($t['name']) ?>
                     </option>
                     <?php endforeach; ?>
@@ -312,7 +312,7 @@ layout_head('Predictions');
                 <select name="third_place_team_id" class="form-control" <?= $locked?'disabled':'' ?>>
                     <option value="">— Select —</option>
                     <?php foreach ($all_teams_sorted as $t): ?>
-                    <option value="<?= $t['id'] ?>" <?= (int)($special['third_place_team_id']??0)===$t['id']?'selected':'' ?>>
+                    <option value="<?= $t['id'] ?>" <?= (int)($special['third_place_id']??0)===$t['id']?'selected':'' ?>>>
                         <?= $t['flag']??'' ?> <?= htmlspecialchars($t['name']) ?>
                     </option>
                     <?php endforeach; ?>
