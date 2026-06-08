@@ -64,6 +64,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$locked) {
         exit;
     }
 
+    if ($tab === 'knockout') {
+        // Save knockout round advancement predictions
+        $allowed_rounds = ['R32', 'R16', 'QF', 'SF', 'THIRD', 'FINAL'];
+        $stmt = $db->prepare(
+            "INSERT INTO knockout_predictions (user_id, round, slot, team_id)
+             VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE team_id = VALUES(team_id)"
+        );
+        foreach ($_POST['knockout'] ?? [] as $round => $slots) {
+            if (!in_array($round, $allowed_rounds, true)) continue;
+            foreach ($slots as $slot => $team_id) {
+                $team_id = (int)$team_id;
+                $slot    = (int)$slot;
+                if ($team_id > 0 && $slot > 0) {
+                    $stmt->execute([$uid, $round, $slot, $team_id]);
+                }
+            }
+        }
+        flash_set('success', 'Knockout predictions saved!');
+        header('Location: predictions.php?tab=knockout');
+        exit;
+    }
+
     if ($tab === 'special') {
         // Save special predictions
         $champion   = (int)($_POST['champion_team_id'] ?? 0);
@@ -125,6 +148,15 @@ $sp = $db->prepare("SELECT * FROM special_predictions WHERE user_id = ? LIMIT 1"
 $sp->execute([$uid]);
 $special = $sp->fetch() ?: [];
 
+$ko_preds_raw = $db->prepare(
+    "SELECT round, slot, team_id FROM knockout_predictions WHERE user_id = ?"
+);
+$ko_preds_raw->execute([$uid]);
+$ko_preds = [];
+foreach ($ko_preds_raw->fetchAll() as $row) {
+    $ko_preds[$row['round']][(int)$row['slot']] = (int)$row['team_id'];
+}
+
 // ─── Load group stage matches (M1–M72) ────────────────────────────
 $matches_raw = $db->query(
     "SELECT m.*, th.name as home_name, th.code as home_code, th.flag_emoji as home_flag,
@@ -150,6 +182,15 @@ $teams_map = get_teams_map();
 $all_teams_sorted = TEAMS;
 usort($all_teams_sorted, fn($a,$b) => strcmp($a['name'], $b['name']));
 
+$ko_rounds = [
+    'R32'   => ['label' => 'Round of 32',    'slots' => 32],
+    'R16'   => ['label' => 'Round of 16',    'slots' => 16],
+    'QF'    => ['label' => 'Quarter-finals', 'slots' => 8],
+    'SF'    => ['label' => 'Semi-finals',    'slots' => 4],
+    'THIRD' => ['label' => '3rd Place',      'slots' => 2],
+    'FINAL' => ['label' => 'Final',          'slots' => 2],
+];
+
 layout_head('Predictions');
 ?>
 
@@ -173,6 +214,7 @@ layout_head('Predictions');
 <div class="tabs">
     <button class="tab-btn <?= $active_tab==='group-stage'?'active':'' ?>" data-tab="tab-group-stage">⚽ Group Stage</button>
     <button class="tab-btn <?= $active_tab==='standings'?'active':'' ?>" data-tab="tab-standings">📊 Standings</button>
+    <button class="tab-btn <?= $active_tab==='knockout'?'active':'' ?>" data-tab="tab-knockout">🏆 Knockout</button>
     <button class="tab-btn <?= $active_tab==='special'?'active':'' ?>" data-tab="tab-special">⭐ Special</button>
 </div>
 
@@ -264,7 +306,47 @@ layout_head('Predictions');
 </form>
 </div>
 
-<!-- ══ TAB 3: Special predictions ════════════════════════════════ -->
+<!-- ══ TAB 3: Knockout predictions ════════════════════════════════ -->
+<div class="tab-panel <?= $active_tab==='knockout'?'active':'' ?>" id="tab-knockout">
+<div class="card-title" style="margin-bottom:.5rem">
+    Predict which teams advance through each knockout round.
+    <span class="text-muted text-small"> Select any team — doesn't need to match your group predictions.</span>
+</div>
+<form method="POST">
+    <?= csrf_field() ?>
+    <input type="hidden" name="active_tab" value="knockout">
+
+    <?php foreach ($ko_rounds as $round => $info):
+        $round_preds = $ko_preds[$round] ?? [];
+    ?>
+    <div class="card">
+        <div class="card-title"><?= htmlspecialchars($info['label']) ?></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem;">
+        <?php for ($slot = 1; $slot <= $info['slots']; $slot++):
+            $sel = $round_preds[$slot] ?? 0;
+        ?>
+            <select name="knockout[<?= $round ?>][<?= $slot ?>]"
+                    class="form-control"
+                    <?= $locked ? 'disabled' : '' ?>>
+                <option value="">— Team <?= $slot ?> —</option>
+                <?php foreach ($all_teams_sorted as $t): ?>
+                <option value="<?= $t['id'] ?>" <?= $sel===$t['id']?'selected':'' ?>>
+                    <?= $t['flag']??'' ?> <?= htmlspecialchars($t['name']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        <?php endfor; ?>
+        </div>
+    </div>
+    <?php endforeach; ?>
+
+    <?php if (!$locked): ?>
+    <button type="submit" class="btn btn-gold">💾 Save Knockout Predictions</button>
+    <?php endif; ?>
+</form>
+</div>
+
+<!-- ══ TAB 4: Special predictions ════════════════════════════════ -->
 <div class="tab-panel <?= $active_tab==='special'?'active':'' ?>" id="tab-special">
 <div class="card">
 <form method="POST">
@@ -369,7 +451,7 @@ layout_head('Predictions');
 // Activate the right tab on load
 document.addEventListener('DOMContentLoaded', function() {
     var param = new URLSearchParams(window.location.search).get('tab');
-    var map = { 'group-stage':'tab-group-stage', 'standings':'tab-standings', 'special':'tab-special' };
+    var map = { 'group-stage':'tab-group-stage', 'standings':'tab-standings', 'knockout':'tab-knockout', 'special':'tab-special' };
     var target = map[param] || 'tab-group-stage';
     document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===target); });
     document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.toggle('active', p.id===target); });

@@ -102,6 +102,23 @@ CREATE TABLE IF NOT EXISTS group_predictions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ─────────────────────────────────────────────────────────────────
+-- KNOCKOUT PREDICTIONS (which teams advance through each round)
+-- ─────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS knockout_predictions (
+    id       INT  NOT NULL AUTO_INCREMENT,
+    user_id  INT  NOT NULL,
+    round    ENUM('R32','R16','QF','SF','THIRD','FINAL') NOT NULL,
+    slot     INT  NOT NULL,
+    team_id  INT  NOT NULL,
+    points   INT  NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_user_round_slot (user_id, round, slot),
+    KEY idx_kp_round (round),
+    CONSTRAINT fk_kp_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kp_team FOREIGN KEY (team_id) REFERENCES teams(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ─────────────────────────────────────────────────────────────────
 -- SPECIAL PREDICTIONS (champion, golden boot/ball, etc.)
 -- ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS special_predictions (
