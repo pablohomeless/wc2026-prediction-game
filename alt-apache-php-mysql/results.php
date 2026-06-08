@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/data.php';
 require_once __DIR__ . '/_layout.php';
 
 auth_start();
@@ -28,7 +29,7 @@ $matches = $db->query(
      ORDER BY m.match_number"
 )->fetchAll();
 
-// Load user's predictions if logged in
+// Load user's match predictions if logged in
 $my_preds = [];
 if ($uid) {
     $stmt = $db->prepare("SELECT match_id, home_score, away_score FROM match_predictions WHERE user_id = ?");
@@ -37,6 +38,18 @@ if ($uid) {
         $my_preds[$row['match_id']] = $row;
     }
 }
+
+// Load user's knockout advancement predictions
+$my_ko_preds = [];
+if ($uid) {
+    $stmt = $db->prepare("SELECT round, team_id, points FROM knockout_predictions WHERE user_id = ?");
+    $stmt->execute([$uid]);
+    foreach ($stmt->fetchAll() as $row) {
+        $my_ko_preds[$row['round']][] = $row;
+    }
+}
+
+$teams_map = get_teams_map();
 
 // User total points
 $my_total = null;
@@ -112,6 +125,15 @@ $by_round = [];
 foreach ($matches as $m) {
     $by_round[$m['round']][] = $m;
 }
+
+// Build a set of team IDs that actually appeared in each knockout round
+$teams_in_round = [];
+foreach ($matches as $m) {
+    if ($m['round'] !== 'GROUP' && $m['home_team_id'] !== null) {
+        $teams_in_round[$m['round']][(int)$m['home_team_id']] = true;
+        $teams_in_round[$m['round']][(int)$m['away_team_id']] = true;
+    }
+}
 ?>
 
 <?php foreach ($by_round as $round => $round_matches): ?>
@@ -165,6 +187,40 @@ foreach ($matches as $m) {
 
     </div>
     <?php endforeach; ?>
+
+    <?php
+    // Show knockout advancement picks for this round (not group stage)
+    if ($uid && $round !== 'GROUP' && !empty($my_ko_preds[$round])):
+        $round_teams_known = !empty($teams_in_round[$round]);
+        $ko_pts_total = array_sum(array_column($my_ko_preds[$round], 'points'));
+    ?>
+    <div style="margin-top:.75rem;padding:.75rem;background:#f8fafc;border-radius:6px;border:1px solid #e2e8f0">
+        <div style="font-size:.82rem;font-weight:600;color:#475569;margin-bottom:.5rem">
+            🏆 Your advancement picks
+            <?php if ($round_teams_known && $ko_pts_total > 0): ?>
+            <span class="pts-chip pts-<?= min($ko_pts_total,4) ?>" style="margin-left:.5rem">+<?= $ko_pts_total ?>pts</span>
+            <?php endif; ?>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+        <?php foreach ($my_ko_preds[$round] as $kp):
+            $team = $teams_map[$kp['team_id']] ?? null;
+            if (!$team) continue;
+            $correct  = $round_teams_known && isset($teams_in_round[$round][$kp['team_id']]);
+            $unknown  = !$round_teams_known;
+            $chip_bg  = $unknown ? '#e2e8f0' : ($correct ? '#dcfce7' : '#fee2e2');
+            $chip_col = $unknown ? '#64748b' : ($correct ? '#166534' : '#991b1b');
+            $icon     = $unknown ? '' : ($correct ? '✓ ' : '✗ ');
+        ?>
+        <span style="display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:999px;font-size:.78rem;font-weight:600;background:<?= $chip_bg ?>;color:<?= $chip_col ?>">
+            <?= $team['flag']??'' ?> <?= $icon ?><?= htmlspecialchars($team['code']) ?>
+        </span>
+        <?php endforeach; ?>
+        </div>
+        <?php if (!$round_teams_known): ?>
+        <p style="font-size:.75rem;color:#94a3b8;margin-top:.4rem">Results pending — picks will be evaluated once this round's matches are entered.</p>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 </div>
 <?php endforeach; ?>
 <?php endif; ?>

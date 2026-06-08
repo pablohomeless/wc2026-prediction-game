@@ -266,7 +266,33 @@ function recalculate_all_scores(): void {
         }
     }
 
-    // 3. Recalculate special prediction points
+    // 3. Recalculate knockout advancement prediction points
+    $ko_round_pts = ['R32' => 1, 'R16' => 2, 'QF' => 2, 'SF' => 2, 'THIRD' => 2, 'FINAL' => 2];
+    foreach ($ko_round_pts as $round => $pts_per_team) {
+        // Collect the teams that actually played in this round
+        $teams_stmt = $db->prepare(
+            "SELECT home_team_id, away_team_id FROM matches
+             WHERE round = ? AND home_team_id IS NOT NULL AND away_team_id IS NOT NULL"
+        );
+        $teams_stmt->execute([$round]);
+        $actual_teams = [];
+        foreach ($teams_stmt->fetchAll() as $row) {
+            $actual_teams[(int)$row['home_team_id']] = true;
+            $actual_teams[(int)$row['away_team_id']] = true;
+        }
+        if (empty($actual_teams)) continue; // round hasn't started yet
+
+        // Score each prediction for this round
+        $kp_stmt = $db->prepare("SELECT id, team_id FROM knockout_predictions WHERE round = ?");
+        $kp_stmt->execute([$round]);
+        foreach ($kp_stmt->fetchAll() as $kp) {
+            $pts = isset($actual_teams[(int)$kp['team_id']]) ? $pts_per_team : 0;
+            $db->prepare("UPDATE knockout_predictions SET points = ? WHERE id = ?")
+               ->execute([$pts, $kp['id']]);
+        }
+    }
+
+    // 4. Recalculate special prediction points
     $settings_row = $db->query("SELECT * FROM tournament_settings WHERE id = 1")->fetch();
     if ($settings_row) {
         $sp_stmt = $db->query("SELECT * FROM special_predictions");
@@ -287,7 +313,7 @@ function recalculate_all_scores(): void {
         }
     }
 
-    // 4. Aggregate into user_scores
+    // 5. Aggregate into user_scores
     $users_stmt = $db->query("SELECT id FROM users WHERE is_active = 1");
     foreach ($users_stmt->fetchAll() as $u) {
         $uid = $u['id'];
@@ -324,6 +350,11 @@ function recalculate_all_scores(): void {
         $gp_q->execute([$uid]);
         $pts_standings = (int)$gp_q->fetchColumn();
 
+        // Knockout advancement points
+        $ko_adv_q = $db->prepare("SELECT COALESCE(SUM(points),0) FROM knockout_predictions WHERE user_id = ?");
+        $ko_adv_q->execute([$uid]);
+        $pts_ko_advancement = (int)($ko_adv_q->fetchColumn() ?: 0);
+
         // Special points
         $sp_q = $db->prepare(
             "SELECT COALESCE(pts_champion+pts_runner_up+pts_third_place+pts_golden_boot+pts_golden_ball,0)
@@ -337,20 +368,21 @@ function recalculate_all_scores(): void {
         $ao_q->execute([$uid]);
         $pts_override = (int)($ao_q->fetchColumn() ?: 0);
 
-        $pts_total = $pts_group + $pts_knockout + $pts_standings + $pts_special + $pts_override;
+        $pts_total = $pts_group + $pts_knockout + $pts_ko_advancement + $pts_standings + $pts_special + $pts_override;
 
         // Upsert user_scores
         $db->prepare(
             "INSERT INTO user_scores (user_id, points_total, points_group_matches, points_group_standings,
-             points_knockout, points_bonus, points_special)
-             VALUES (?,?,?,?,?,?,?)
+             points_knockout, points_knockout_advancement, points_bonus, points_special)
+             VALUES (?,?,?,?,?,?,?,?)
              ON DUPLICATE KEY UPDATE
              points_total=VALUES(points_total),
              points_group_matches=VALUES(points_group_matches),
              points_group_standings=VALUES(points_group_standings),
              points_knockout=VALUES(points_knockout),
+             points_knockout_advancement=VALUES(points_knockout_advancement),
              points_bonus=VALUES(points_bonus),
              points_special=VALUES(points_special)"
-        )->execute([$uid, $pts_total, $pts_group, $pts_standings, $pts_knockout, $pts_bonus, $pts_special]);
+        )->execute([$uid, $pts_total, $pts_group, $pts_standings, $pts_knockout, $pts_ko_advancement, $pts_bonus, $pts_special]);
     }
 }

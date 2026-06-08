@@ -56,9 +56,31 @@ layout_head('Rules');
     </ul>
 </div>
 
+<!-- Knockout Advancement -->
+<div class="card">
+    <div class="card-title">🏆 Knockout Advancement Predictions</div>
+    <p style="margin-bottom:1rem">
+        Predict which teams advance through each knockout round.
+        Points are awarded for every team you picked that actually plays in that round — order and slot don't matter.
+    </p>
+    <div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>Round</th><th>Teams to pick</th><th>Points per correct team</th><th>Max</th></tr></thead>
+        <tbody>
+            <tr><td>Round of 32</td><td>32</td><td><strong>1 pt</strong></td><td>32</td></tr>
+            <tr><td>Round of 16</td><td>16</td><td><strong>2 pts</strong></td><td>32</td></tr>
+            <tr><td>Quarter-finals</td><td>8</td><td><strong>2 pts</strong></td><td>16</td></tr>
+            <tr><td>Semi-finals</td><td>4</td><td><strong>2 pts</strong></td><td>8</td></tr>
+            <tr><td>3rd Place match</td><td>2</td><td><strong>2 pts</strong></td><td>4</td></tr>
+            <tr><td>Final</td><td>2</td><td><strong>2 pts</strong></td><td>4</td></tr>
+            <tr style="font-weight:700"><td colspan="3">Total</td><td>96</td></tr>
+        </tbody>
+    </table>
+    </div>
+</div>
+
 <!-- Special Predictions -->
 <div class="card">
-    <div class="card-title">⭐ Special Predictions</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1rem">
         <div class="stat-card">
             <div class="stat-val text-gold">10</div>
@@ -98,12 +120,13 @@ layout_head('Rules');
             <tr><td>Group stage matches (72 × up to 4 pts)</td><td>288</td></tr>
             <tr><td>Bonus match multiplier extra (12 × up to 8 bonus pts)</td><td>96</td></tr>
             <tr><td>Group standings (12 groups × 4 pts)</td><td>48</td></tr>
+            <tr><td>Knockout advancement predictions</td><td>96</td></tr>
             <tr><td>Champion</td><td>10</td></tr>
             <tr><td>Runner-up</td><td>5</td></tr>
             <tr><td>3rd Place</td><td>2</td></tr>
             <tr><td>Golden Boot (up to 3 slots × 5 pts)</td><td>15</td></tr>
             <tr><td>Golden Ball (up to 3 slots × 5 pts)</td><td>15</td></tr>
-            <tr><td style="font-weight:700">Grand Total</td><td style="font-weight:700">479</td></tr>
+            <tr><td style="font-weight:700">Grand Total</td><td style="font-weight:700">575</td></tr>
         </tbody>
     </table>
     </div>

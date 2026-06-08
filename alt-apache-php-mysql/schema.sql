@@ -150,14 +150,15 @@ CREATE TABLE IF NOT EXISTS special_predictions (
 -- USER SCORES (rolling totals, recalculated by admin)
 -- ─────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS user_scores (
-    id                    INT NOT NULL AUTO_INCREMENT,
-    user_id               INT NOT NULL,
-    points_total          INT NOT NULL DEFAULT 0,
-    points_group_matches  INT NOT NULL DEFAULT 0,
-    points_group_standings INT NOT NULL DEFAULT 0,
-    points_knockout       INT NOT NULL DEFAULT 0,
-    points_bonus          INT NOT NULL DEFAULT 0,
-    points_special        INT NOT NULL DEFAULT 0,
+    id                          INT NOT NULL AUTO_INCREMENT,
+    user_id                     INT NOT NULL,
+    points_total                INT NOT NULL DEFAULT 0,
+    points_group_matches        INT NOT NULL DEFAULT 0,
+    points_group_standings      INT NOT NULL DEFAULT 0,
+    points_knockout             INT NOT NULL DEFAULT 0,
+    points_knockout_advancement INT NOT NULL DEFAULT 0,
+    points_bonus                INT NOT NULL DEFAULT 0,
+    points_special              INT NOT NULL DEFAULT 0,
     updated_at            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_user (user_id),
