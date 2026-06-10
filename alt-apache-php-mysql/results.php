@@ -152,7 +152,7 @@ foreach ($matches as $m) {
     ?>
     <div class="match-row">
         <span class="match-meta">M<?= $m['match_number'] ?></span>
-        <?php if ($m['is_bonus']): ?>
+        <?php if ($m['is_bonus_game']): ?>
         <span class="badge badge-bonus">Bonus</span>
         <?php endif; ?>
         <span class="badge <?= $status_cls ?>"><?= $status_lbl ?></span>
