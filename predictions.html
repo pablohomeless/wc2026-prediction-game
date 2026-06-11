@@ -57,6 +57,7 @@
         <button class="tab-btn"         onclick="showTab('semifinals',    this)">Semi-finals</button>
         <button class="tab-btn"         onclick="showTab('the-final',     this)">The Final</button>
         <button class="tab-btn"         onclick="showTab('third-fourth',  this)">3rd/4th Place</button>
+        <button class="tab-btn"         onclick="showTab('top-scorer',    this)">👟 Top Scorer</button>
         <button class="tab-btn"         onclick="showTab('all-cards',     this)">All (cards)</button>
       </div>
 
@@ -142,6 +143,28 @@
                 </tr>
               </thead>
               <tbody id="t34Body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Tab: Top Scorer ── -->
+      <div class="tab-panel" id="tab-top-scorer">
+        <div class="card">
+          <div class="card-title">👟 Top Scorer (Golden Boot) — Predictions</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Each player predicted the tournament top scorer. <strong>5 pts</strong> if correct (case-insensitive match).
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align:left">Player</th>
+                  <th style="text-align:left">Predicted Top Scorer</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody id="tsBody"></tbody>
             </table>
           </div>
         </div>
@@ -280,6 +303,19 @@
       row += '<td class="td-center ' + winnerCls + '" style="font-size:.82rem;font-weight:600">' + teamDisp(winner) + '</td>';
       row += '<td class="td-total">' + (p.points.thirdPlaceParticipants + p.points.thirdPlace) + '</td></tr>';
       t34Body.innerHTML += row;
+    });
+
+    // ── Top Scorer ──
+    const tsBody = document.getElementById('tsBody');
+    participants.forEach(p => {
+      const ts = p.predictions.topScorer;
+      const cls = !ar.topScorer ? '' :
+        (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
+      tsBody.innerHTML += '<tr>' +
+        '<td class="td-alias">' + escHtml(p.alias) + '</td>' +
+        '<td class="' + cls + '" style="padding:.5rem 1rem">' + escHtml(ts || '—') + '</td>' +
+        '<td class="td-total">' + p.points.topScorer + '</td>' +
+        '</tr>';
     });
 
     // ── All Cards ──
