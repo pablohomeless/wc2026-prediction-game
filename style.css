@@ -499,7 +499,8 @@ tbody td { padding: .65rem .75rem; }
 /* ─── Scoring summary in player card ─────────────────────────────────────────── */
 .score-summary {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0;
   background: var(--gray-50);
   border-radius: 8px;
   padding: .5rem .75rem;
@@ -507,9 +508,20 @@ tbody td { padding: .65rem .75rem; }
   font-size: .8rem;
 }
 
-.score-summary .sc { text-align: center; }
-.score-summary .sc .n { font-weight: 800; font-size: 1.05rem; color: var(--darkblue); }
-.score-summary .sc .l { color: var(--gray-500); font-size: .68rem; }
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: .35rem 0;
+}
+
+.score-row + .score-row {
+  border-top: 1px solid var(--gray-200);
+}
+
+.score-row .sc { text-align: center; flex: 1; }
+.score-row .sc .n { font-weight: 800; font-size: 1.05rem; color: var(--darkblue); }
+.score-row .sc .l { color: var(--gray-500); font-size: .68rem; white-space: nowrap; }
 
 .score-total {
   background: var(--darkblue);
