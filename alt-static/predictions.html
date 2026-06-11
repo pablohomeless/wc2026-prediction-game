@@ -22,6 +22,7 @@
     <ul class="nav-links">
       <li><a href="index.html">Scoreboard</a></li>
       <li><a href="predictions.html" class="active">Predictions</a></li>
+      <li><a href="stats.html">Stats</a></li>
       <li><a href="results.html">Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
@@ -35,6 +36,7 @@
   <div class="nav-mobile" id="navMobile">
     <a href="index.html">Scoreboard</a>
     <a href="predictions.html" class="active">Predictions</a>
+    <a href="stats.html">Stats</a>
     <a href="results.html">Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
@@ -371,14 +373,18 @@
             '<div class="special-row"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval ' + tsCls + '">' + escHtml(ts || '—') + '</span></div>' +
           '</div>' +
           '<div class="score-summary">' +
-            '<div class="sc"><div class="n">' + pts.groupWinners + '</div><div class="l">Groups</div></div>' +
-            '<div class="sc"><div class="n">' + pts.semiFinals + '</div><div class="l">Semis</div></div>' +
-            '<div class="sc"><div class="n">' + pts.finalists + '</div><div class="l">Finalists</div></div>' +
-            '<div class="sc"><div class="n">' + pts.thirdPlaceParticipants + '</div><div class="l">3rd/4th</div></div>' +
-            '<div class="sc"><div class="n">' + pts.champion + '</div><div class="l">Champion</div></div>' +
-            '<div class="sc"><div class="n">' + pts.thirdPlace + '</div><div class="l">3rd W</div></div>' +
-            '<div class="sc"><div class="n">' + pts.topScorer + '</div><div class="l">Scorer</div></div>' +
-            '<div class="score-total"><div class="n">' + pts.total + '</div><div class="l">TOTAL</div></div>' +
+            '<div class="score-row">' +
+              '<div class="sc"><div class="n">' + pts.groupWinners + '</div><div class="l">🏅 Groups</div></div>' +
+              '<div class="sc"><div class="n">' + pts.semiFinals + '</div><div class="l">🏟️ Semis</div></div>' +
+              '<div class="sc"><div class="n">' + pts.finalists + '</div><div class="l">⚔️ Finalists</div></div>' +
+              '<div class="sc"><div class="n">' + pts.thirdPlaceParticipants + '</div><div class="l">🎖️ 3rd/4th</div></div>' +
+            '</div>' +
+            '<div class="score-row">' +
+              '<div class="sc"><div class="n">' + pts.champion + '</div><div class="l">🏆 Champion</div></div>' +
+              '<div class="sc"><div class="n">' + pts.thirdPlace + '</div><div class="l">🥉 3rd Place</div></div>' +
+              '<div class="sc"><div class="n">' + pts.topScorer + '</div><div class="l">👟 Scorer</div></div>' +
+              '<div class="score-total"><div class="n">' + pts.total + '</div><div class="l">TOTAL</div></div>' +
+            '</div>' +
           '</div>' +
         '</div></div>';
     });

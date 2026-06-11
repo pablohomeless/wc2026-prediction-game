@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Stats – Porra Mundial 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Stats page extras ── */
+    .stats-hero {
+      background: linear-gradient(135deg, #002868 0%, #BF0A30 60%, #002868 100%);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .stats-hero h1 { font-size: 2rem; font-weight: 800; color: var(--gold); margin-bottom: .4rem; }
+    .stats-hero p  { color: #e5e7eb; font-size: 1rem; }
+    .hero-kpis {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;
+    }
+    .hero-kpi {
+      background: rgba(255,255,255,.12); border-radius: 12px; padding: .75rem 1.5rem; min-width: 100px;
+    }
+    .hero-kpi .kn { font-size: 2rem; font-weight: 800; color: var(--gold); line-height: 1; }
+    .hero-kpi .kl { font-size: .75rem; color: #d1d5db; margin-top: .2rem; }
+
+    /* ── Section headings ── */
+    .section-title {
+      font-size: 1.15rem; font-weight: 700; color: var(--darkblue);
+      border-left: 4px solid var(--gold); padding-left: .75rem; margin-bottom: 1.25rem;
+    }
+
+    /* ── Bar charts ── */
+    .bar-list { display: flex; flex-direction: column; gap: .55rem; }
+    .bar-item { display: grid; grid-template-columns: 2.4rem 1fr 2.8rem; align-items: center; gap: .6rem; font-size: .85rem; }
+    .bar-item .bar-label { display: flex; align-items: center; gap: .35rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { height: 22px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 6px; transition: width .4s ease; display: flex; align-items: center; padding-left: 6px; font-size: .72rem; font-weight: 700; color: #fff; }
+    .bar-fill.gold-bar  { background: linear-gradient(90deg, #d97706, #fbbf24); }
+    .bar-fill.blue-bar  { background: linear-gradient(90deg, #1e40af, #3b82f6); }
+    .bar-fill.red-bar   { background: linear-gradient(90deg, #991b1b, #ef4444); }
+    .bar-fill.green-bar { background: linear-gradient(90deg, #065f46, #10b981); }
+    .bar-fill.gray-bar  { background: linear-gradient(90deg, #4b5563, #9ca3af); }
+    .bar-pct { font-size: .8rem; font-weight: 700; color: var(--gray-600); text-align: right; }
+
+    /* ── Group grid ── */
+    .group-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .group-card { background: #fff; border-radius: 12px; border: 1px solid var(--gray-100); box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 1rem 1.1rem; }
+    .group-card-title {
+      font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--gray-500); margin-bottom: .75rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .group-badge {
+      background: var(--darkblue); color: var(--gold); font-weight: 800;
+      width: 26px; height: 26px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; font-size: .85rem;
+    }
+
+    /* ── Bracket ── */
+    .bracket-wrapper {
+      overflow-x: auto; padding-bottom: .5rem;
+    }
+    .bracket {
+      display: grid;
+      grid-template-columns: 1fr 80px 1fr 80px 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 0;
+      min-width: 680px;
+      align-items: stretch;
+    }
+    .bracket-col {
+      display: flex; flex-direction: column; gap: 1rem; justify-content: space-evenly; padding: 1rem 0;
+    }
+    .bracket-col.center { justify-content: center; align-items: center; }
+    .bracket-node {
+      background: #fff;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: .7rem 1rem;
+      text-align: center;
+      position: relative;
+    }
+    .bracket-node.sf  { border-color: #3b82f6; }
+    .bracket-node.fin { border-color: var(--gold); background: #fffbeb; min-width: 160px; }
+    .bracket-node.champ {
+      border-color: var(--gold); background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      box-shadow: 0 4px 20px rgba(251,191,36,.35);
+      min-width: 180px; padding: 1.1rem 1.4rem;
+    }
+    .bracket-node.third { border-color: var(--bronze); background: #fef9f2; min-width: 140px; }
+    .bracket-node .bn-flag { font-size: 1.6rem; line-height: 1; }
+    .bracket-node .bn-name { font-weight: 700; font-size: .9rem; margin-top: .3rem; }
+    .bracket-node .bn-pct  { font-size: .75rem; color: var(--gray-500); margin-top: .15rem; }
+    .bracket-node .bn-label {
+      font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--gray-400); margin-bottom: .3rem;
+    }
+    .bracket-node.champ .bn-label { color: #92400e; }
+    .bracket-node.champ .bn-name  { font-size: 1.1rem; color: #78350f; }
+    .bracket-node.champ .bn-pct   { font-size: .8rem; color: #92400e; }
+    .connector-col {
+      display: flex; flex-direction: column; align-items: center; justify-content: space-evenly;
+      position: relative; padding: 1rem 0;
+    }
+    .connector-col::before {
+      content: ''; position: absolute; top: 50%; left: 0; right: 0;
+      border-top: 2px dashed var(--gray-300); transform: translateY(-50%);
+    }
+    .connector-arrow {
+      width: 100%; display: flex; align-items: center; justify-content: center;
+      color: var(--gray-400); font-size: 1.2rem; z-index: 1;
+    }
+    .third-row {
+      grid-column: 1 / -1;
+      display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;
+      padding: 1rem; background: var(--gray-50); border-radius: 12px; margin-top: .5rem;
+    }
+    .third-label {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--gray-500); text-align: center; margin-bottom: .75rem;
+    }
+    .third-vs { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .vs-badge { font-weight: 800; font-size: 1.1rem; color: var(--gray-400); }
+
+    /* ── Pill grid (top scorer etc.) ── */
+    .pill-grid { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .scorer-pill {
+      background: #fff; border: 1px solid var(--gray-200); border-radius: 999px;
+      padding: .35rem 1rem; font-size: .85rem; font-weight: 600;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .scorer-pill .sp-count {
+      background: var(--darkblue); color: var(--gold); border-radius: 999px;
+      padding: .1rem .5rem; font-size: .72rem; font-weight: 800;
+    }
+    .scorer-pill.top { border-color: var(--gold); background: #fffbeb; }
+
+    /* ── Stats summary row ── */
+    .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .stat-mini {
+      flex: 1; min-width: 130px; background: #fff; border-radius: 10px;
+      border: 1px solid var(--gray-100); padding: .8rem 1rem; text-align: center;
+    }
+    .stat-mini .mn { font-size: 1.6rem; font-weight: 800; color: var(--darkblue); }
+    .stat-mini .ml { font-size: .72rem; color: var(--gray-500); margin-top: .15rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .stats-hero h1 { font-size: 1.5rem; }
+      .hero-kpi .kn  { font-size: 1.5rem; }
+      .bracket { min-width: 520px; }
+    }
+
+    /* ── Insight callout ── */
+    .insight {
+      background: #eff6ff; border-left: 4px solid #3b82f6;
+      border-radius: 0 8px 8px 0; padding: .75rem 1rem;
+      font-size: .85rem; color: #1e3a5f; margin-top: 1rem;
+    }
+    .insight strong { color: #1d4ed8; }
+
+    /* ── Tab bar reuse ── */
+    .tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .tab-btn {
+      background: var(--gray-100); border: none; border-radius: 8px;
+      padding: .45rem .9rem; font-size: .82rem; font-weight: 600; cursor: pointer;
+      color: var(--gray-600); transition: background .15s, color .15s;
+    }
+    .tab-btn:hover  { background: var(--gray-200); }
+    .tab-btn.active { background: var(--darkblue); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Expert comparison ── */
+    .expert-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .expert-table th { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray-500); padding: .5rem .6rem; border-bottom: 2px solid var(--gray-200); text-align: left; }
+    .expert-table th.right { text-align: right; }
+    .expert-table td { padding: .5rem .6rem; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+    .expert-table tr:last-child td { border-bottom: none; }
+    .expert-table tr:hover td { background: var(--gray-50); }
+    .expert-table td.right { text-align: right; }
+    .rank-badge { display: inline-flex; align-items: center; background: var(--darkblue); color: #fff; border-radius: 5px; font-size: .7rem; font-weight: 800; padding: .1rem .38rem; white-space: nowrap; }
+    .rank-badge.top5  { background: #065f46; }
+    .rank-badge.top10 { background: #1e40af; }
+    .rank-badge.mid   { background: #6b7280; }
+    .odds-chip { display: inline-flex; align-items: center; border-radius: 5px; font-size: .78rem; font-weight: 700; padding: .1rem .4rem; white-space: nowrap; border: 1px solid transparent; }
+    .odds-chip.confirmed { background: #f0fdf4; color: #065f46; border-color: #a7f3d0; }
+    .odds-chip.est       { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .odds-chip.na        { background: var(--gray-100); color: var(--gray-500); border-color: var(--gray-200); }
+    .align-badge { font-size: .72rem; padding: .1rem .38rem; border-radius: 4px; font-weight: 700; white-space: nowrap; }
+    .align-yes  { background: #dcfce7; color: #166534; }
+    .align-no   { background: #fef2f2; color: #991b1b; }
+    .expert-source { font-size: .72rem; color: var(--gray-400); text-align: right; margin-top: .75rem; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="stats.html" class="active">Stats</a></li>
+      <li><a href="results.html">Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="stats.html" class="active">Stats</a>
+    <a href="results.html">Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <!-- Hero -->
+      <div class="stats-hero">
+        <div style="font-size:2.5rem;margin-bottom:.4rem">📊</div>
+        <h1>Prediction Statistics</h1>
+        <p>What does the crowd think will happen at <strong style="color:var(--gold)">FIFA World Cup 2026</strong>?</p>
+        <div class="hero-kpis" id="heroKpis"><!-- filled by JS --></div>
+      </div>
+
+      <!-- ── Consensus Bracket ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">🏆 Community Consensus Bracket</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+          The most popular picks at each stage — this is the crowd's favourite path to glory.
+        </p>
+        <div class="bracket-wrapper">
+          <div class="bracket" id="bracketGrid"><!-- filled by JS --></div>
+        </div>
+        <div id="thirdPlaceRow" style="margin-top:1rem"></div>
+        <div class="insight" id="bracketInsight"></div>
+      </div>
+
+      <!-- ── Knockouts Stats ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">🏟️ Knockout Stage Predictions</div>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="showKOTab('semis',     this)">Semi-finalists</button>
+          <button class="tab-btn"        onclick="showKOTab('finalists', this)">Finalists</button>
+          <button class="tab-btn"        onclick="showKOTab('champion',  this)">Champion</button>
+          <button class="tab-btn"        onclick="showKOTab('third',     this)">3rd/4th Place</button>
+        </div>
+        <div class="tab-panel active" id="ko-semis">
+          <div id="sfChart"></div>
+        </div>
+        <div class="tab-panel" id="ko-finalists">
+          <div id="finChart"></div>
+        </div>
+        <div class="tab-panel" id="ko-champion">
+          <div id="champChart"></div>
+        </div>
+        <div class="tab-panel" id="ko-third">
+          <div id="thirdChart"></div>
+        </div>
+      </div>
+
+      <!-- ── Group Winners ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">🏅 Group Winners — Who Does the Crowd Pick?</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+          For each group, how many players picked each team to top their group.
+        </p>
+        <div class="group-grid" id="groupGrid"><!-- filled by JS --></div>
+      </div>
+
+      <!-- ── Top Scorer ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">👟 Golden Boot Predictions</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+          Most popular top-scorer picks across all participants (5 pts if correct).
+        </p>
+        <div class="pill-grid" id="topScorerGrid"><!-- filled by JS --></div>
+        <div class="insight" id="scorerInsight"></div>
+      </div>
+
+      <!-- ── Consensus Summary ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">🎯 Consensus Snapshot</div>
+        <div class="stats-row" id="consensusRow"><!-- filled by JS --></div>
+      </div>
+
+      <!-- ── Crowd vs. Experts ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">🌍 Crowd vs. Experts</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+          How do our community predictions stack up against FIFA world rankings and bookmaker expectations?
+          The spots where the crowd diverges from expert opinion are the most interesting ones to watch! 👀
+        </p>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="showExpertTab('expert-champ',  this)">🏆 Champion</button>
+          <button class="tab-btn"        onclick="showExpertTab('expert-semis',  this)">🏟️ Semi-finalists</button>
+          <button class="tab-btn"        onclick="showExpertTab('expert-scorer', this)">👟 Top Scorer</button>
+        </div>
+        <div class="tab-panel active" id="expert-champ">
+          <div id="expertChampTable"></div>
+        </div>
+        <div class="tab-panel" id="expert-semis">
+          <div id="expertSemisTable"></div>
+        </div>
+        <div class="tab-panel" id="expert-scorer">
+          <div id="expertScorerTable"></div>
+        </div>
+        <div class="expert-source">
+          Sources: <strong>FIFA World Rankings</strong> (June 11, 2026) &nbsp;·&nbsp;
+          <strong>Oddschecker.com</strong> (June 11, 2026, "Most Popular Bets") &nbsp;·&nbsp;
+          <span class="odds-chip est" style="font-size:.7rem">~est.</span> = pre-tournament market estimate
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script src="participants-import.js"></script>
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  function showKOTab(id, btn) {
+    const card = btn.closest('.card');
+    card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('ko-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── Use PARTICIPANTS_IMPORT (all actual submissions) ──────────────────────
+  const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
+  const N = DATA.length;
+
+  // ── Helper: pct string ────────────────────────────────────────────────────
+  function pct(n) { return Math.round(n / N * 100); }
+  function pctStr(n) { return pct(n) + '%'; }
+
+  // ── Helper: team display ──────────────────────────────────────────────────
+  function teamFlag(code) {
+    const iso = FLAG_ICONS[code];
+    if (!iso) return '';
+    return `<span class="fi fi-${iso}"></span>`;
+  }
+  function teamName(code) {
+    const t = TEAMS[code];
+    return t ? t.name : code;
+  }
+  function teamShortDisplay(code) {
+    return teamFlag(code) + ' ' + teamName(code);
+  }
+
+  // ── Compute stats ─────────────────────────────────────────────────────────
+
+  // Group winners
+  const gwStats = {};
+  GROUPS.forEach(g => {
+    const counts = {};
+    DATA.forEach(p => {
+      const team = p.predictions.groupWinners[g];
+      if (team) counts[team] = (counts[team] || 0) + 1;
+    });
+    gwStats[g] = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  });
+
+  // Semi-finalists
+  const sfCounts = {};
+  DATA.forEach(p => {
+    (p.predictions.semiFinals || []).forEach(t => {
+      sfCounts[t] = (sfCounts[t] || 0) + 1;
+    });
+  });
+  const sfRanked = Object.entries(sfCounts).sort((a, b) => b[1] - a[1]);
+
+  // Finalists
+  const finCounts = {};
+  DATA.forEach(p => {
+    (p.predictions.finalists || []).forEach(t => {
+      finCounts[t] = (finCounts[t] || 0) + 1;
+    });
+  });
+  const finRanked = Object.entries(finCounts).sort((a, b) => b[1] - a[1]);
+
+  // Champion
+  const champCounts = {};
+  DATA.forEach(p => {
+    const c = p.predictions.champion;
+    if (c) champCounts[c] = (champCounts[c] || 0) + 1;
+  });
+  const champRanked = Object.entries(champCounts).sort((a, b) => b[1] - a[1]);
+
+  // 3rd/4th participants
+  const t34Counts = {};
+  DATA.forEach(p => {
+    (p.predictions.thirdPlaceParticipants || []).forEach(t => {
+      t34Counts[t] = (t34Counts[t] || 0) + 1;
+    });
+  });
+  const t34Ranked = Object.entries(t34Counts).sort((a, b) => b[1] - a[1]);
+
+  // 3rd place winner
+  const t3Counts = {};
+  DATA.forEach(p => {
+    const t = p.predictions.thirdPlace;
+    if (t) t3Counts[t] = (t3Counts[t] || 0) + 1;
+  });
+  const t3Ranked = Object.entries(t3Counts).sort((a, b) => b[1] - a[1]);
+
+  // Top scorer
+  const tsCounts = {};
+  DATA.forEach(p => {
+    const ts = (p.predictions.topScorer || '').trim();
+    if (!ts) return;
+    const key = ts.toLowerCase();
+    if (!tsCounts[key]) tsCounts[key] = { display: ts, count: 0 };
+    tsCounts[key].count++;
+  });
+  const tsRanked = Object.values(tsCounts).sort((a, b) => b.count - a.count);
+
+  // ── Bar chart builder ─────────────────────────────────────────────────────
+  const BAR_COLORS = ['gold-bar', 'blue-bar', 'red-bar', 'green-bar', 'gray-bar'];
+
+  function buildBarChart(ranked, showFlag = true, maxItems = 12, getExtra = null) {
+    const top = ranked.slice(0, maxItems);
+    const maxVal = top[0] ? top[0][1] : 1;
+    let html = '<div class="bar-list">';
+    top.forEach(([code, count], i) => {
+      const barW = Math.round(count / N * 100);
+      const color = BAR_COLORS[Math.min(i, BAR_COLORS.length - 1)];
+      const label = showFlag
+        ? `<span>${teamFlag(code)}</span><span>${teamName(code)}</span>`
+        : `<span>${code}</span>`;
+      const extra = getExtra ? getExtra(code) : '';
+      html += `
+        <div class="bar-item">
+          <div class="bar-label" style="font-size:.8rem" title="${teamName(code)}">${teamFlag(code)}</div>
+          <div>
+            <div style="font-size:.78rem;font-weight:600;margin-bottom:.2rem;color:var(--gray-700)">${teamName(code)}${extra ? `<span style="margin-left:.4rem">${extra}</span>` : ''}</div>
+            <div class="bar-track">
+              <div class="bar-fill ${color}" style="width:${barW}%">${barW >= 18 ? count + ' picks' : ''}</div>
+            </div>
+          </div>
+          <div class="bar-pct">${barW}%<br><span style="font-size:.7rem;font-weight:400;color:var(--gray-400)">${count}/${N}</span></div>
+        </div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // ── Expert Reference Data ─────────────────────────────────────────────────
+  // Official FIFA Rankings — June 11, 2026
+  const FIFA_RANKINGS = {
+    ARG:1,  ESP:2,  FRA:3,  ENG:4,  POR:5,  BRA:6,  MAR:7,  NED:8,  BEL:9,  GER:10,
+    CRO:11, COL:13, SEN:14, MEX:15, USA:16, URU:17, JPN:18, SUI:19, TUR:22, ECU:23, AUT:24, KOR:25, NOR:36
+  };
+
+  // Betting odds — Oddschecker.com, June 11, 2026
+  // confirmed=true: directly from Oddschecker "Most Popular Bets"
+  // confirmed=false: pre-tournament market estimate
+  const BETTING_ODDS = {
+    ESP:{odds:'5/1', impl:17,confirmed:true},  FRA:{odds:'5/1', impl:17,confirmed:true},
+    ENG:{odds:'8/1', impl:11,confirmed:true},  POR:{odds:'9/1', impl:10,confirmed:true},
+    NOR:{odds:'40/1',impl:2, confirmed:true},  ARG:{odds:'6/1', impl:14,confirmed:false},
+    BRA:{odds:'7/1', impl:13,confirmed:false}, GER:{odds:'12/1',impl:8, confirmed:false},
+    NED:{odds:'18/1',impl:5, confirmed:false}, BEL:{odds:'25/1',impl:4, confirmed:false},
+    MAR:{odds:'25/1',impl:4, confirmed:false}, CRO:{odds:'40/1',impl:2, confirmed:false},
+    URU:{odds:'40/1',impl:2, confirmed:false}, USA:{odds:'50/1',impl:2, confirmed:false},
+    COL:{odds:'50/1',impl:2, confirmed:false}, MEX:{odds:'66/1',impl:1, confirmed:false},
+    JPN:{odds:'66/1',impl:1, confirmed:false},
+  };
+
+  // Top scorer odds — pre-tournament estimates (Oddschecker / Betfair)
+  const SCORER_ODDS = [
+    {name:'Kylian Mbappé', team:'FRA', odds:'6/1',  impl:14},
+    {name:'Erling Haaland',team:'NOR', odds:'7/1',  impl:13},
+    {name:'Harry Kane',    team:'ENG', odds:'10/1', impl:9 },
+    {name:'Lamine Yamal',  team:'ESP', odds:'12/1', impl:8 },
+    {name:'Raphinha',      team:'BRA', odds:'14/1', impl:7 },
+    {name:'Vinicius Jr.',  team:'BRA', odds:'14/1', impl:7 },
+    {name:'Bukayo Saka',   team:'ENG', odds:'16/1', impl:6 },
+    {name:'Pedri',         team:'ESP', odds:'20/1', impl:5 },
+  ];
+
+  function rankBadgeHtml(code) {
+    const r = FIFA_RANKINGS[code];
+    if (!r) return '';
+    const cls = r <= 5 ? 'top5' : r <= 10 ? 'top10' : 'mid';
+    return `<span class="rank-badge ${cls}">FIFA #${r}</span>`;
+  }
+
+  function oddsChipTeam(code) {
+    const o = BETTING_ODDS[code];
+    if (!o) return '<span class="odds-chip na">N/A</span>';
+    return `<span class="odds-chip ${o.confirmed ? 'confirmed' : 'est'}">${o.odds}${o.confirmed ? '' : '~'}</span>`;
+  }
+
+  function showExpertTab(id, btn) {
+    const card = btn.closest('.card');
+    card.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function normName(s) {
+    return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z ]/g, '').trim();
+  }
+
+  function scorerBookieMatch(displayName) {
+    const parts = normName(displayName).split(' ').filter(p => p.length > 3);
+    return SCORER_ODDS.find(s => parts.some(p => normName(s.name).includes(p)));
+  }
+
+  // koExtra: inline FIFA rank badge + odds chip on KO bar charts
+  const koExtra = code => {
+    const r = rankBadgeHtml(code);
+    const oHtml = BETTING_ODDS[code] ? oddsChipTeam(code) : '';
+    return [r, oHtml].filter(Boolean).join(' ');
+  };
+
+  // ── Hero KPIs ─────────────────────────────────────────────────────────────
+  document.getElementById('heroKpis').innerHTML = [
+    { n: N,       l: 'Participants' },
+    { n: 12,      l: 'Groups' },
+    { n: sfRanked.length, l: 'Teams picked as SF' },
+    { n: champRanked.length, l: 'Different champions' },
+    { n: tsRanked.length, l: 'Top scorer names' },
+  ].map(k => `<div class="hero-kpi"><div class="kn">${k.n}</div><div class="kl">${k.l}</div></div>`).join('');
+
+  // ── Consensus Bracket ─────────────────────────────────────────────────────
+  function bracketNode(code, count, label, cls) {
+    const p = pct(count);
+    return `<div class="bracket-node ${cls}">
+      <div class="bn-label">${label}</div>
+      <div class="bn-flag">${teamFlag(code)}</div>
+      <div class="bn-name">${teamName(code)}</div>
+      <div class="bn-pct">${count}/${N} &nbsp;·&nbsp; ${p}%</div>
+    </div>`;
+  }
+
+  const sf = sfRanked.slice(0, 4);
+  const fin = finRanked.slice(0, 2);
+  const champ = champRanked[0];
+  const t34_top = t34Ranked.slice(0, 2);
+  const t3_top = t3Ranked[0];
+
+  // Build bracket — 5 columns: sf-left | connector | fin+champ | connector | sf-right
+  const sfLeft  = sf.slice(0, 2);
+  const sfRight = sf.slice(2, 4);
+
+  let bracketHtml = '';
+
+  // Col 1: left semis
+  bracketHtml += `<div class="bracket-col" style="gap:1.5rem">`;
+  sfLeft.forEach(([ code, cnt ], i) =>
+    bracketHtml += bracketNode(code, cnt, i === 0 ? 'Semi-finalist #1' : 'Semi-finalist #2', 'sf')
+  );
+  bracketHtml += `</div>`;
+
+  // Col 2: left connector
+  bracketHtml += `<div class="connector-col"><div class="connector-arrow">→</div></div>`;
+
+  // Col 3: finalists + champion (vertical stack)
+  bracketHtml += `<div class="bracket-col center" style="gap:1rem">`;
+  fin.forEach(([code, cnt], i) =>
+    bracketHtml += bracketNode(code, cnt, i === 0 ? 'Finalist #1' : 'Finalist #2', 'fin')
+  );
+  if (champ) {
+    bracketHtml += `<div style="font-size:1.5rem;color:var(--gold);line-height:1">▼</div>`;
+    bracketHtml += `<div class="bracket-node champ">
+      <div class="bn-label">🏆 Crowd Champion</div>
+      <div class="bn-flag" style="font-size:2rem">${teamFlag(champ[0])}</div>
+      <div class="bn-name">${teamName(champ[0])}</div>
+      <div class="bn-pct">${champ[1]}/${N} &nbsp;·&nbsp; ${pct(champ[1])}% of the vote</div>
+    </div>`;
+  }
+  bracketHtml += `</div>`;
+
+  // Col 4: right connector
+  bracketHtml += `<div class="connector-col"><div class="connector-arrow">←</div></div>`;
+
+  // Col 5: right semis
+  bracketHtml += `<div class="bracket-col" style="gap:1.5rem">`;
+  sfRight.forEach(([code, cnt], i) =>
+    bracketHtml += bracketNode(code, cnt, i === 0 ? 'Semi-finalist #3' : 'Semi-finalist #4', 'sf')
+  );
+  bracketHtml += `</div>`;
+
+  document.getElementById('bracketGrid').innerHTML = bracketHtml;
+
+  // 3rd/4th place row
+  let thirdHtml = `<div class="third-label">🥉 3rd / 4th Place Match — Crowd Picks</div><div class="third-vs">`;
+  t34_top.forEach(([code, cnt], i) => {
+    if (i === 1) thirdHtml += `<span class="vs-badge">vs</span>`;
+    thirdHtml += `<div class="bracket-node third" style="min-width:130px">
+      <div class="bn-label">${i === 0 ? '3rd/4th team #1' : '3rd/4th team #2'}</div>
+      <div class="bn-flag">${teamFlag(code)}</div>
+      <div class="bn-name">${teamName(code)}</div>
+      <div class="bn-pct">${cnt}/${N} &nbsp;·&nbsp; ${pct(cnt)}%</div>
+    </div>`;
+  });
+  if (t3_top) {
+    thirdHtml += `<div style="display:flex;flex-direction:column;align-items:center;gap:.3rem">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);letter-spacing:.07em">Winner</div>
+      <div class="bracket-node third" style="min-width:130px">
+        <div class="bn-label">🥉 3rd Place</div>
+        <div class="bn-flag">${teamFlag(t3_top[0])}</div>
+        <div class="bn-name">${teamName(t3_top[0])}</div>
+        <div class="bn-pct">${t3_top[1]}/${N} &nbsp;·&nbsp; ${pct(t3_top[1])}%</div>
+      </div></div>`;
+  }
+  thirdHtml += `</div>`;
+  document.getElementById('thirdPlaceRow').innerHTML = thirdHtml;
+
+  // Bracket insight
+  const topSF  = sfRanked[0];
+  const topFin = finRanked[0];
+  document.getElementById('bracketInsight').innerHTML =
+    `<strong>${teamName(topSF[0])}</strong> is the most popular semi-finalist choice (${topSF[1]}/${N} picks, ${pct(topSF[1])}%). ` +
+    `<strong>${champ ? teamName(champ[0]) : '—'}</strong> is the crowd's favourite to lift the trophy ` +
+    `(${champ ? champ[1] : 0}/${N} picks, ${champ ? pct(champ[1]) : 0}%). ` +
+    `${champRanked.length} different teams received at least one champion vote.`;
+
+  // ── KO Charts ─────────────────────────────────────────────────────────────
+  document.getElementById('sfChart').innerHTML =
+    `<p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+       ${sfRanked.length} different teams received at least one semi-finalist vote. <strong>2 pts</strong> per correct pick.
+     </p>` + buildBarChart(sfRanked, true, 12, koExtra);
+
+  document.getElementById('finChart').innerHTML =
+    `<p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+       ${finRanked.length} different teams received at least one finalist vote. <strong>4 pts</strong> per correct pick.
+     </p>` + buildBarChart(finRanked, true, 10, koExtra);
+
+  document.getElementById('champChart').innerHTML =
+    `<p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+       ${champRanked.length} different champions predicted. <strong>10 pts</strong> if correct.
+     </p>` + buildBarChart(champRanked, true, 10, koExtra);
+
+  document.getElementById('thirdChart').innerHTML =
+    `<p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+       Teams predicted to play in the 3rd/4th place match (<strong>3 pts</strong> each) and to win it (<strong>2 pts</strong>).
+     </p>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;flex-wrap:wrap">
+       <div>
+         <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">Teams in 3rd/4th match</div>
+         ${buildBarChart(t34Ranked, true, 8, koExtra)}
+       </div>
+       <div>
+         <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🥉 Winner of 3rd/4th</div>
+         ${buildBarChart(t3Ranked, true, 8, koExtra)}
+       </div>
+     </div>`;
+
+  // ── Group Winners Grid ────────────────────────────────────────────────────
+  const groupGrid = document.getElementById('groupGrid');
+  GROUPS.forEach(g => {
+    const entries = gwStats[g];
+    const top = entries[0];
+    const topPct = pct(top[1]);
+
+    let barsHtml = '<div class="bar-list">';
+    entries.forEach(([code, cnt], i) => {
+      const barW = Math.round(cnt / N * 100);
+      const color = i === 0 ? 'gold-bar' : (i === 1 ? 'blue-bar' : 'gray-bar');
+      barsHtml += `
+        <div class="bar-item">
+          <div style="font-size:1.1rem">${teamFlag(code)}</div>
+          <div>
+            <div style="font-size:.75rem;font-weight:600;margin-bottom:.15rem;color:var(--gray-700)">${teamName(code)}</div>
+            <div class="bar-track">
+              <div class="bar-fill ${color}" style="width:${barW}%">${barW >= 20 ? cnt : ''}</div>
+            </div>
+          </div>
+          <div class="bar-pct" style="font-size:.75rem">${barW}%</div>
+        </div>`;
+    });
+    barsHtml += '</div>';
+
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.innerHTML = `
+      <div class="group-card-title">
+        <span>Group ${g}</span>
+        <div class="group-badge">${g}</div>
+      </div>
+      ${barsHtml}
+      <div style="font-size:.72rem;color:var(--gray-400);margin-top:.6rem">
+        ${topPct}% expect ${teamName(top[0])} to top this group
+      </div>`;
+    groupGrid.appendChild(card);
+  });
+
+  // ── Top Scorer ────────────────────────────────────────────────────────────
+  const scorerGrid = document.getElementById('topScorerGrid');
+  tsRanked.forEach((ts, i) => {
+    const p = Math.round(ts.count / N * 100);
+    const pill = document.createElement('div');
+    pill.className = 'scorer-pill' + (i === 0 ? ' top' : '');
+    pill.innerHTML = (i === 0 ? '⭐ ' : '') +
+      `<span>${ts.display}</span>` +
+      `<span class="sp-count">${ts.count}/${N}</span>` +
+      `<span style="font-size:.75rem;color:var(--gray-400)">${p}%</span>`;
+    scorerGrid.appendChild(pill);
+  });
+
+  document.getElementById('scorerInsight').innerHTML =
+    `<strong>${tsRanked[0].display}</strong> is the runaway favourite with ${tsRanked[0].count}/${N} picks (${Math.round(tsRanked[0].count/N*100)}%). ` +
+    `${tsRanked.length} unique names were submitted — ${tsRanked.filter(t => t.count === 1).length} are solo picks (bold contrarian moves worth 5 pts!).`;
+
+  // ── Consensus Summary ─────────────────────────────────────────────────────
+  // Most agreed-on group winner
+  let highestGW = null, highestGWG = null, highestGWn = 0;
+  GROUPS.forEach(g => {
+    const top = gwStats[g][0];
+    if (top[1] > highestGWn) { highestGWn = top[1]; highestGW = top[0]; highestGWG = g; }
+  });
+  // Most contested group
+  let mostContested = null, lowestTop = N + 1;
+  GROUPS.forEach(g => {
+    const top = gwStats[g][0];
+    if (top[1] < lowestTop) { lowestTop = top[1]; mostContested = g; }
+  });
+
+  document.getElementById('consensusRow').innerHTML = `
+    <div class="stat-mini">
+      <div class="mn">${pct(champRanked[0][1])}%</div>
+      <div class="ml">agree on ${teamName(champRanked[0][0])} as champion</div>
+    </div>
+    <div class="stat-mini">
+      <div class="mn">${pct(sfRanked[0][1])}%</div>
+      <div class="ml">pick ${teamName(sfRanked[0][0])} in the semis</div>
+    </div>
+    <div class="stat-mini">
+      <div class="mn">${pct(highestGWn)}%</div>
+      <div class="ml">most agreed group (${highestGWG}: ${teamName(highestGW)})</div>
+    </div>
+    <div class="stat-mini">
+      <div class="mn">Group ${mostContested}</div>
+      <div class="ml">most contested group winner (only ${pct(gwStats[mostContested][0][1])}% for top pick)</div>
+    </div>
+    <div class="stat-mini">
+      <div class="mn">${pct(tsRanked[0].count)}%</div>
+      <div class="ml">back ${tsRanked[0].display} for the Golden Boot</div>
+    </div>`;
+
+  // ── Expert Comparison Tables ──────────────────────────────────────────────
+
+  function buildExpertChampTable() {
+    let html = `<table class="expert-table">
+      <thead><tr>
+        <th>#</th><th>Team</th>
+        <th class="right">Crowd</th>
+        <th class="right">FIFA Rank</th>
+        <th class="right">Bookmaker Odds</th>
+        <th class="right">Mkt Implied%</th>
+        <th class="right">Crowd vs Mkt</th>
+      </tr></thead><tbody>`;
+    champRanked.forEach(([code, count], i) => {
+      const cp = Math.round(count / N * 100);
+      const o  = BETTING_ODDS[code];
+      const ip = o ? o.impl : null;
+      let alignHtml = '';
+      if (ip !== null) {
+        const d = cp - ip;
+        if (Math.abs(d) <= 3) alignHtml = `<span class="align-badge align-yes">≈ aligned</span>`;
+        else if (d > 0)        alignHtml = `<span class="align-badge align-no">crowd +${d}pp</span>`;
+        else                   alignHtml = `<span class="align-badge align-yes">mkt +${-d}pp</span>`;
+      }
+      html += `<tr>
+        <td style="color:var(--gray-400);font-size:.78rem">${i + 1}</td>
+        <td><span style="margin-right:.35rem">${teamFlag(code)}</span><strong>${teamName(code)}</strong></td>
+        <td class="right"><strong>${cp}%</strong><br><span style="font-size:.72rem;color:var(--gray-400)">${count}/${N}</span></td>
+        <td class="right">${FIFA_RANKINGS[code] ? rankBadgeHtml(code) : '<span style="color:var(--gray-400)">—</span>'}</td>
+        <td class="right">${oddsChipTeam(code)}</td>
+        <td class="right">${ip !== null ? `<strong>${ip}%</strong>` : '<span style="color:var(--gray-400)">—</span>'}</td>
+        <td class="right">${alignHtml}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    const overrated  = champRanked.filter(([c,n]) => { const o = BETTING_ODDS[c]; return o && (Math.round(n/N*100) - o.impl) >= 5; });
+    const underrated = champRanked.filter(([c,n]) => { const o = BETTING_ODDS[c]; return o && (o.impl - Math.round(n/N*100)) >= 5; });
+    if (overrated.length || underrated.length) {
+      html += `<div class="insight" style="margin-top:.75rem">`;
+      if (overrated.length)
+        html += `🔥 <strong>Crowd over-weights:</strong> ${overrated.map(([c]) => teamName(c)).join(', ')} — our players back them more than the market does. `;
+      if (underrated.length)
+        html += `💡 <strong>Market over-weights:</strong> ${underrated.map(([c]) => teamName(c)).join(', ')} — bookmakers give these teams a stronger chance than our community does.`;
+      html += `</div>`;
+    }
+    return html;
+  }
+
+  function buildExpertSemisTable() {
+    let html = `<p style="font-size:.82rem;color:var(--gray-500);margin-bottom:.75rem">
+      % of participants who picked each team as a semi-finalist, vs. FIFA rank and championship odds (used as a proxy for tournament strength).
+    </p><table class="expert-table">
+      <thead><tr>
+        <th>#</th><th>Team</th>
+        <th class="right">Crowd %</th>
+        <th class="right">FIFA Rank</th>
+        <th class="right">Win Odds</th>
+        <th class="right">Crowd vs Mkt</th>
+      </tr></thead><tbody>`;
+    sfRanked.slice(0, 14).forEach(([code, count], i) => {
+      const cp = Math.round(count / N * 100);
+      const o  = BETTING_ODDS[code];
+      const ip = o ? o.impl : null;
+      let alignHtml = '';
+      if (ip !== null) {
+        const d = cp - ip;
+        if (Math.abs(d) <= 8) alignHtml = `<span class="align-badge align-yes">≈ aligned</span>`;
+        else if (d > 0)        alignHtml = `<span class="align-badge align-no">crowd +${d}pp</span>`;
+        else                   alignHtml = `<span class="align-badge align-yes">mkt +${-d}pp</span>`;
+      }
+      html += `<tr>
+        <td style="color:var(--gray-400);font-size:.78rem">${i + 1}</td>
+        <td><span style="margin-right:.35rem">${teamFlag(code)}</span><strong>${teamName(code)}</strong></td>
+        <td class="right"><strong>${cp}%</strong></td>
+        <td class="right">${FIFA_RANKINGS[code] ? rankBadgeHtml(code) : '—'}</td>
+        <td class="right">${oddsChipTeam(code)}</td>
+        <td class="right">${alignHtml}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    return html;
+  }
+
+  function buildExpertScorerTable() {
+    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">`;
+    // Community picks with matched bookie odds
+    html += `<div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">👥 Community Picks</div>
+      <table class="expert-table">
+        <thead><tr><th>#</th><th>Player</th><th class="right">Picks</th><th class="right">Bookie Odds~</th></tr></thead>
+        <tbody>`;
+    tsRanked.forEach((ts, i) => {
+      const bookie = scorerBookieMatch(ts.display);
+      const p = Math.round(ts.count / N * 100);
+      html += `<tr>
+        <td style="color:var(--gray-400);font-size:.78rem">${i === 0 ? '⭐' : i + 1}</td>
+        <td><strong>${ts.display}</strong></td>
+        <td class="right"><strong>${ts.count}</strong>&thinsp;<span style="color:var(--gray-400);font-size:.72rem">(${p}%)</span></td>
+        <td class="right">${bookie ? `<span class="odds-chip est">${bookie.odds}~</span>` : '<span style="color:var(--gray-400)">—</span>'}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    // Bookmaker top picks
+    html += `<div>
+      <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🎰 Bookmaker Favourites <span style="font-weight:400;color:var(--gray-500)">(pre-tournament est.)</span></div>
+      <table class="expert-table">
+        <thead><tr><th>#</th><th>Player</th><th class="right">Odds</th><th class="right">In our game?</th></tr></thead>
+        <tbody>`;
+    SCORER_ODDS.forEach((s, i) => {
+      const commEntry = tsRanked.find(ts => scorerBookieMatch(ts.display) === s);
+      const cnt = commEntry ? commEntry.count : 0;
+      html += `<tr>
+        <td style="color:var(--gray-400);font-size:.78rem">${i + 1}</td>
+        <td>${teamFlag(s.team)} <strong>${s.name}</strong></td>
+        <td class="right"><span class="odds-chip est">${s.odds}~</span>&thinsp;<span style="color:var(--gray-400);font-size:.7rem">(${s.impl}%)</span></td>
+        <td class="right">${cnt > 0
+          ? `<span style="background:#dcfce7;color:#166534;border-radius:4px;padding:.1rem .4rem;font-size:.75rem;font-weight:700">✓ ${cnt}×</span>`
+          : `<span style="background:#fef2f2;color:#991b1b;border-radius:4px;padding:.1rem .4rem;font-size:.75rem">none</span>`
+        }</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+    const topCom    = tsRanked[0].display;
+    const topBookie = SCORER_ODDS[0].name;
+    const aligned   = scorerBookieMatch(topCom) === SCORER_ODDS[0];
+    html += `<div class="insight" style="margin-top:1rem">
+      ${aligned
+        ? `✅ Great minds think alike! The community's top pick (<strong>${topCom}</strong>) matches the bookmakers' favourite.`
+        : `🔍 Interesting divergence: our community backs <strong>${topCom}</strong> while bookmakers rank <strong>${topBookie}</strong> as the top scorer favourite (${SCORER_ODDS[0].odds}~).`}
+    </div>`;
+    return html;
+  }
+
+  document.getElementById('expertChampTable').innerHTML  = buildExpertChampTable();
+  document.getElementById('expertSemisTable').innerHTML  = buildExpertSemisTable();
+  document.getElementById('expertScorerTable').innerHTML = buildExpertScorerTable();
+
+
+
+</script>
+</body>
+</html>
