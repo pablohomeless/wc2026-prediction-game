@@ -47,6 +47,20 @@
       font-size: .85rem; color: #1e3a5f; margin-top: 1rem;
     }
     .insight strong { color: #1d4ed8; }
+
+    /* ── Fun / clickbait tiles ── */
+    .fun-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .8rem; }
+    .fun-tile {
+      background: #fff; border: 1px solid var(--gray-200); border-left: 4px solid var(--gold);
+      border-radius: 10px; padding: .85rem 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .fun-tile .ft-emoji { font-size: 1.5rem; line-height: 1; }
+    .fun-tile .ft-title { font-weight: 800; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--darkblue); margin: .35rem 0 .3rem; }
+    .fun-tile .ft-body { font-size: .85rem; color: var(--gray-700); line-height: 1.4; }
+    .fun-tile .ft-body strong { color: #b45309; }
+    .fun-tile.red   { border-left-color: #ef4444; }
+    .fun-tile.green { border-left-color: #10b981; }
+    .fun-tile.blue  { border-left-color: #3b82f6; }
   </style>
 </head>
 <body>
@@ -128,6 +142,15 @@
         <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🎯 Group-Winner Hit Rate</div>
         <div id="liveGroupAcc"></div>
         <div class="insight" id="liveInsight"></div>
+      </div>
+
+      <!-- Hot takes / clickbait -->
+      <div class="card">
+        <div class="section-title">🍿 Hot Takes &amp; Clickbait</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+          Wildly unserious stats based on the live group leaders. Screenshots encouraged, complaints ignored. 😏
+        </p>
+        <div class="fun-grid" id="funFacts"></div>
       </div>
 
       <!-- Quick links -->
@@ -359,6 +382,89 @@
     if (best) ins += `Most-nailed leader: <strong>${teamName(best.code)}</strong> in Group ${best.g} (${Math.round(best.c / N * 100)}% had it). `;
     if (worst && best && worst.g !== best.g) ins += `Biggest surprise: <strong>${teamName(worst.code)}</strong> topping Group ${worst.g} — only ${Math.round(worst.c / N * 100)}% saw it coming.`;
     document.getElementById('liveInsight').innerHTML = ins;
+
+    // ── Hot takes / clickbait ──
+    (function buildFunFacts() {
+      const el = document.getElementById('funFacts');
+      if (!el) return;
+      const facts = [];
+
+      // 1. Wooden spoon — fewest correct leaders
+      if (rows.length && decidedLeaders) {
+        const worstScore = rows[rows.length - 1].correct;
+        const losers = rows.filter(r => r.correct === worstScore);
+        const who = losers.length === 1
+          ? `<strong>${escHtml(losers[0].alias)}</strong>`
+          : `<strong>${losers.length} players</strong> `;
+        facts.push({
+          cls: 'red', emoji: '🪦', title: 'Wooden Spoon Watch',
+          body: worstScore === 0
+            ? `${who} ${losers.length === 1 ? 'has' : 'have'} a glorious <strong>0/${decidedLeaders}</strong> group leaders right. Statistically already cooked. 🍳`
+            : `${who} ${losers.length === 1 ? 'is' : 'are'} rock bottom with just <strong>${worstScore}/${decidedLeaders}</strong> leaders right. Start saving for the beer round. 🍺`
+        });
+      }
+
+      // 2. Crystal ball — best
+      if (rows.length && topScore > 0) {
+        const who = leadersAtTop === 1 ? `<strong>${escHtml(rows[0].alias)}</strong>` : `<strong>${leadersAtTop} players</strong>`;
+        facts.push({
+          cls: 'green', emoji: '🔮', title: 'Crystal Ball Award',
+          body: `${who} called <strong>${topScore}/${decidedLeaders}</strong> current group leaders. Suspiciously accurate — checking for hidden crystal balls. 👀`
+        });
+      }
+
+      // 3. Lone wolf / nobody saw it — current leader the fewest people predicted
+      const decided = GROUPS.filter(g => leaders[g]);
+      if (decided.length) {
+        let minG = null, minCnt = Infinity;
+        decided.forEach(g => {
+          const c = DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length;
+          if (c < minCnt) { minCnt = c; minG = g; }
+        });
+        if (minG !== null) {
+          const code = leaders[minG];
+          facts.push(minCnt === 0
+            ? { cls: 'blue', emoji: '👻', title: 'Nobody Saw It Coming',
+                body: `Not one single soul backed ${teamFlag(code)} <strong>${teamName(code)}</strong> to top Group ${minG}. Plot twist of the century. 🎬` }
+            : { cls: 'blue', emoji: '🦄', title: 'Lone Wolf Genius',
+                body: `Only <strong>${minCnt}</strong> ${minCnt === 1 ? 'person' : 'people'} predicted ${teamFlag(code)} <strong>${teamName(code)}</strong> would lead Group ${minG}. Big-brain energy. 🧠` });
+        }
+      }
+
+      // 4. Champion in crisis — predicted champ not even topping its group
+      const inCrisis = DATA.filter(p => {
+        const champ = p.predictions.champion;
+        const grp = TEAMS[champ] && TEAMS[champ].group;
+        return grp && leaders[grp] && leaders[grp] !== champ;
+      }).length;
+      if (inCrisis > 0) {
+        facts.push({
+          cls: 'red', emoji: '🚨', title: 'Champion in Crisis',
+          body: `<strong>${Math.round(inCrisis / N * 100)}%</strong> of players crowned a champion that isn't even topping its own group right now. Bold. Very bold. 🫣`
+        });
+      }
+
+      // 5. Flock mentality — most popular champion + status
+      const champTally = {};
+      DATA.forEach(p => { const c = p.predictions.champion; if (c) champTally[c] = (champTally[c] || 0) + 1; });
+      const champEntries = Object.entries(champTally).sort((a, b) => b[1] - a[1]);
+      if (champEntries.length) {
+        const [code, cnt] = champEntries[0];
+        const grp = TEAMS[code] && TEAMS[code].group;
+        const leading = grp && leaders[grp] === code;
+        facts.push({
+          cls: leading ? 'green' : 'red', emoji: '🐑', title: 'Flock Mentality',
+          body: `<strong>${Math.round(cnt / N * 100)}%</strong> backed ${teamFlag(code)} <strong>${teamName(code)}</strong> to lift the trophy — ${leading ? "and they're topping their group. The herd might be onto something. 🐐" : "who aren't even top of their group yet. Awkward silence. 😬"}`
+        });
+      }
+
+      el.innerHTML = facts.map(f => `
+        <div class="fun-tile ${f.cls || ''}">
+          <div class="ft-emoji">${f.emoji}</div>
+          <div class="ft-title">${f.title}</div>
+          <div class="ft-body">${f.body}</div>
+        </div>`).join('');
+    })();
   })();
 </script>
 </body>
