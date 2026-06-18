@@ -6,6 +6,48 @@
   <title>Porra Mundial 2026 ⚽</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Live results / stats (shared look with stats.html) ── */
+    .section-title {
+      font-size: 1.15rem; font-weight: 700; color: var(--darkblue);
+      border-left: 4px solid var(--gold); padding-left: .75rem; margin-bottom: 1rem;
+    }
+    .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .stat-mini {
+      flex: 1; min-width: 130px; background: #fff; border-radius: 10px;
+      border: 1px solid var(--gray-100); padding: .8rem 1rem; text-align: center;
+    }
+    .stat-mini .mn { font-size: 1.6rem; font-weight: 800; color: var(--darkblue); }
+    .stat-mini .ml { font-size: .72rem; color: var(--gray-500); margin-top: .15rem; }
+
+    .expert-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .expert-table th { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray-500); padding: .5rem .6rem; border-bottom: 2px solid var(--gray-200); text-align: left; }
+    .expert-table th.right { text-align: right; }
+    .expert-table td { padding: .5rem .6rem; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+    .expert-table tr:last-child td { border-bottom: none; }
+    .expert-table tr:hover td { background: var(--gray-50); }
+    .expert-table td.right { text-align: right; }
+    .rank-badge { display: inline-flex; align-items: center; background: var(--darkblue); color: #fff; border-radius: 5px; font-size: .7rem; font-weight: 800; padding: .1rem .38rem; white-space: nowrap; }
+    .rank-badge.top5  { background: #065f46; }
+    .rank-badge.top10 { background: #1e40af; }
+    .rank-badge.mid   { background: #6b7280; }
+
+    .bar-list { display: flex; flex-direction: column; gap: .55rem; }
+    .bar-item { display: grid; grid-template-columns: 2.4rem 1fr 2.8rem; align-items: center; gap: .6rem; font-size: .85rem; }
+    .bar-item .bar-label { display: flex; align-items: center; gap: .35rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { height: 22px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 6px; transition: width .4s ease; display: flex; align-items: center; padding-left: 6px; font-size: .72rem; font-weight: 700; color: #fff; }
+    .bar-fill.green-bar { background: linear-gradient(90deg, #065f46, #10b981); }
+    .bar-fill.gray-bar  { background: linear-gradient(90deg, #4b5563, #9ca3af); }
+    .bar-pct { font-size: .8rem; font-weight: 700; color: var(--gray-600); text-align: right; }
+
+    .insight {
+      background: #eff6ff; border-left: 4px solid #3b82f6;
+      border-radius: 0 8px 8px 0; padding: .75rem 1rem;
+      font-size: .85rem; color: #1e3a5f; margin-top: 1rem;
+    }
+    .insight strong { color: #1d4ed8; }
+  </style>
 </head>
 <body>
 
@@ -23,7 +65,7 @@
       <li><a href="index.html" class="active">Scoreboard</a></li>
       <li><a href="predictions.html">Predictions</a></li>
       <li><a href="stats.html">Stats</a></li>
-      <li><a href="results.html">Results</a></li>
+      <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
     </ul>
@@ -37,7 +79,7 @@
     <a href="index.html" class="active">Scoreboard</a>
     <a href="predictions.html">Predictions</a>
     <a href="stats.html">Stats</a>
-    <a href="results.html">Results</a>
+    <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
   </div>
@@ -61,7 +103,7 @@
       <!-- Phase notice (hidden unless needed) -->
       <div id="phaseNotice"></div>
 
-      <!-- Scoreboard -->
+      <!-- Leaderboard -->
       <div class="card">
         <div class="section-header">
           <div class="card-title" style="margin-bottom:0;border:none;padding:0">
@@ -72,22 +114,28 @@
         <div id="scoreboardWrap" style="margin-top:1rem"></div>
       </div>
 
+      <!-- Predictions vs. Live Results -->
+      <div class="card">
+        <div class="section-title">🔴 Predictions vs. Live Results</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+          How the crowd's predictions are holding up against the <strong>real tournament</strong> so far<span id="liveAsOf"></span>.
+          Based on the current group leaders — <strong>1 pt</strong> per correct group winner.
+        </p>
+        <div class="alert alert-info" id="liveSampleNote" style="display:none;font-size:.8rem">
+          ⚠️ Live results are sample data — edit <code>live-data.js</code> with official FIFA scores.
+        </div>
+        <div class="stats-row" id="liveKpis" style="margin:0 0 1.25rem"></div>
+        <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🎯 Group-Winner Hit Rate</div>
+        <div id="liveGroupAcc"></div>
+        <div class="insight" id="liveInsight"></div>
+      </div>
+
       <!-- Quick links -->
       <div class="quick-grid">
         <a href="predictions.html" class="quick-card">
           <div class="icon">🎯</div>
           <h3>All Predictions</h3>
           <p>See every player's picks side by side</p>
-        </a>
-        <a href="results.html" class="quick-card">
-          <div class="icon">📊</div>
-          <h3>Match Results</h3>
-          <p>Live scores and how picks scored</p>
-        </a>
-        <a href="rules.html" class="quick-card">
-          <div class="icon">📋</div>
-          <h3>Rules &amp; Scoring</h3>
-          <p>How points are calculated</p>
         </a>
       </div>
 
@@ -102,31 +150,41 @@
 </footer>
 
 <script src="data.js"></script>
+<script src="live-data.js"></script>
+<script src="participants-import.js"></script>
 <script>
   // ── Hamburger ──
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
   }
 
-  // ── Render scoreboard ──
+  function escHtml(str) {
+    return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function teamFlag(code) {
+    const iso = (typeof FLAG_ICONS !== 'undefined') ? FLAG_ICONS[code] : null;
+    return iso ? `<span class="fi fi-${iso}"></span>` : '';
+  }
+  function teamName(code) {
+    const t = (typeof TEAMS !== 'undefined') ? TEAMS[code] : null;
+    return t ? escHtml(t.name) : escHtml(code);
+  }
+
   (function () {
     const phase = SETTINGS.phase;
-    const participants = getComputedParticipants();
 
     // Deadline box
     const now = new Date();
     const deadline = new Date(SETTINGS.predictionDeadline);
-    if (now > deadline) {
-      document.getElementById('deadlineBox').style.display = 'none';
-    }
+    if (now > deadline) document.getElementById('deadlineBox').style.display = 'none';
 
     // Phase notice
     const phaseNotice = document.getElementById('phaseNotice');
     if (phase === 'pre') {
       phaseNotice.innerHTML = `
         <div class="alert alert-info">
-          🔒 Tournament hasn't started yet — predictions are locked in. 
-          Check back on <strong>June 11, 2026</strong> when the group stage kicks off!
+          ⚽ <strong>Group stage under way.</strong> The full points scoreboard unlocks once results
+          are finalised — meanwhile, here's how everyone stacks up against the live group leaders.
         </div>`;
     } else if (phase === 'group') {
       phaseNotice.innerHTML = `
@@ -145,83 +203,163 @@
         </div>`;
     }
 
-    // Participant count
-    document.getElementById('participantCount').textContent =
-      participants.length + ' participant' + (participants.length !== 1 ? 's' : '');
-
     const wrap = document.getElementById('scoreboardWrap');
 
-    if (phase === 'pre') {
-      // Before start: show no scoreboard, invite to view predictions
+    // Official scoreboard (calcPoints over ACTUAL_RESULTS) — shown when it has data
+    const computed = getComputedParticipants();
+    const officialHasData = phase !== 'pre' && computed.some(p => p.points && p.points.total > 0);
+
+    if (officialHasData) {
+      const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+      const rowClass = r => r === 1 ? 'row-gold' : r === 2 ? 'row-silver' : r === 3 ? 'row-bronze' : '';
+      let orows = '';
+      computed.forEach((p, idx) => {
+        const rank = idx + 1, pts = p.points;
+        orows += `
+          <tr class="${rowClass(rank)}">
+            <td class="td-rank">${medal(rank)}</td>
+            <td class="td-alias">${escHtml(p.alias)}</td>
+            <td class="td-center">${pts.groupWinners}</td>
+            <td class="td-center">${pts.semiFinals}</td>
+            <td class="td-center">${pts.finalists}</td>
+            <td class="td-center">${pts.thirdPlaceParticipants}</td>
+            <td class="td-center">${pts.champion}</td>
+            <td class="td-center">${pts.thirdPlace}</td>
+            <td class="td-center">${pts.topScorer}</td>
+            <td class="td-total">${pts.total}</td>
+          </tr>`;
+      });
       wrap.innerHTML = `
-        <div class="empty-state">
-          <div class="icon">🎯</div>
-          <p style="font-weight:600;color:#374151">Scoreboard will appear once the tournament begins</p>
-          <p style="margin-top:.5rem;font-size:.85rem">
-            <a href="predictions.html" style="color:var(--darkblue);font-weight:600;text-decoration:underline">
-              View all predictions →
-            </a>
-          </p>
-        </div>`;
+        <div class="table-wrap"><table>
+          <thead><tr>
+            <th>#</th><th style="text-align:left">Player</th>
+            <th>Group<br>Winners</th><th>Semi-<br>finals</th><th>Finalists</th>
+            <th>3rd/4th<br>Teams</th><th>Champion</th><th>3rd Place</th>
+            <th>Top Scorer</th><th>TOTAL</th>
+          </tr></thead>
+          <tbody>${orows}</tbody>
+        </table></div>`;
+    }
+
+    // ── Guard: live data present? ──
+    if (typeof LIVE_MATCHES === 'undefined' || typeof getGroupLeaders !== 'function') {
+      document.getElementById('participantCount').textContent =
+        computed.length + ' participant' + (computed.length !== 1 ? 's' : '');
+      if (!officialHasData) {
+        wrap.innerHTML = `
+          <div class="empty-state"><div class="icon">🎯</div>
+          <p style="font-weight:600;color:#374151">Live results are not available yet</p></div>`;
+      }
       return;
     }
 
-    if (participants.length === 0) {
-      wrap.innerHTML = `
-        <div class="empty-state">
-          <div class="icon">🎯</div>
-          <p>No participants yet</p>
-        </div>`;
-      return;
+    const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
+    const N = DATA.length;
+
+    document.getElementById('participantCount').textContent =
+      N + ' participant' + (N !== 1 ? 's' : '');
+
+    const leaders        = getGroupLeaders();
+    const playedCounts   = getGroupPlayedCounts();
+    const groupsInProg   = GROUPS.filter(g => playedCounts[g] > 0).length;
+    const decidedLeaders = GROUPS.filter(g => leaders[g]).length;
+    const matchesPlayed  = LIVE_MATCHES.filter(m => m.hs != null && m.as != null).length;
+    const denom          = decidedLeaders || 12;
+
+    // "as of" label + sample note
+    const asOf = LIVE_INFO && LIVE_INFO.asOf ? LIVE_INFO.asOf : null;
+    if (asOf) {
+      const dt = new Date(asOf + 'T00:00:00');
+      document.getElementById('liveAsOf').textContent =
+        ' (as of ' + (isNaN(dt) ? asOf : dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })) + ')';
     }
+    if (LIVE_INFO && LIVE_INFO.isSampleData) document.getElementById('liveSampleNote').style.display = '';
 
-    const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
-    const rowClass = r => r === 1 ? 'row-gold' : r === 2 ? 'row-silver' : r === 3 ? 'row-bronze' : '';
+    // Per-participant live points: group winners vs current leaders (1 pt each)
+    const rows = DATA.map(p => {
+      let correct = 0;
+      GROUPS.forEach(g => { if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; });
+      return { alias: p.alias, correct };
+    }).sort((a, b) => b.correct - a.correct || a.alias.localeCompare(b.alias));
 
-    let rows = '';
-    participants.forEach((p, idx) => {
-      const rank = idx + 1;
-      const pts = p.points;
-      rows += `
-        <tr class="${rowClass(rank)}">
-          <td class="td-rank">${medal(rank)}</td>
-          <td class="td-alias">${escHtml(p.alias)}</td>
-          <td class="td-center">${pts.groupWinners}</td>
-          <td class="td-center">${pts.semiFinals}</td>
-          <td class="td-center">${pts.finalists}</td>
-          <td class="td-center">${pts.thirdPlaceParticipants}</td>
-          <td class="td-center">${pts.champion}</td>
-          <td class="td-center">${pts.thirdPlace}</td>
-          <td class="td-center">${pts.topScorer}</td>
-          <td class="td-total">${pts.total}</td>
+    const totalCorrect = rows.reduce((s, r) => s + r.correct, 0);
+    const avgCorrect   = N ? totalCorrect / N : 0;
+    const overallAcc   = (decidedLeaders && N) ? Math.round(totalCorrect / (N * decidedLeaders) * 100) : 0;
+    const topScore     = rows[0] ? rows[0].correct : 0;
+    const leadersAtTop = rows.filter(r => r.correct === topScore).length;
+
+    // ── Live leaderboard → Leaderboard card (only when the official board isn't shown) ──
+    if (!officialHasData) {
+      let bhtml = `
+        <p style="font-size:.83rem;color:var(--gray-500);margin:0 0 1rem">
+          Provisional standings based on the current group leaders — <strong>1 pt</strong> per correct
+          group winner. Knockout points unlock later.
+        </p>
+        <div class="table-wrap"><table class="expert-table"><thead><tr>
+          <th>#</th><th>Player</th>
+          <th class="right">Leaders ✓</th>
+          <th class="right">Live pts</th>
+        </tr></thead><tbody>`;
+      rows.forEach((r, i) => {
+        const rank = i + 1;
+        const cls = rank <= 3 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
+        bhtml += `<tr>
+          <td><span class="rank-badge ${cls}">${rank}</span></td>
+          <td><strong>${escHtml(r.alias)}</strong></td>
+          <td class="right">${r.correct}/${denom}</td>
+          <td class="right"><strong>${r.correct}</strong></td>
         </tr>`;
-    });
+      });
+      bhtml += `</tbody></table></div>`;
+      wrap.innerHTML = bhtml;
+    }
 
-    wrap.innerHTML = `
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th style="text-align:left">Player</th>
-              <th>Group<br>Winners</th>
-              <th>Semi-<br>finals</th>
-              <th>Finalists</th>
-              <th>3rd/4th<br>Teams</th>
-              <th>Champion</th>
-              <th>3rd Place</th>
-              <th>Top Scorer</th>
-              <th>TOTAL</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+    // ── KPI row ──
+    document.getElementById('liveKpis').innerHTML = `
+      <div class="stat-mini"><div class="mn">${groupsInProg}/12</div><div class="ml">groups in progress</div></div>
+      <div class="stat-mini"><div class="mn">${matchesPlayed}</div><div class="ml">matches played</div></div>
+      <div class="stat-mini"><div class="mn">${overallAcc}%</div><div class="ml">group-leader picks correct</div></div>
+      <div class="stat-mini"><div class="mn">${avgCorrect.toFixed(1)}</div><div class="ml">avg leaders right / player</div></div>
+      <div class="stat-mini"><div class="mn">${topScore}/${denom}</div><div class="ml">best so far (${leadersAtTop} player${leadersAtTop === 1 ? '' : 's'})</div></div>`;
+
+    // ── Group-winner hit rate ──
+    let ghtml = '<div class="bar-list">';
+    GROUPS.forEach(g => {
+      const code = leaders[g];
+      if (!code) {
+        ghtml += `<div class="bar-item">
+          <div class="bar-label" style="font-size:.8rem">${g}</div>
+          <div><div style="font-size:.74rem;color:var(--gray-400);margin-bottom:.2rem">No leader yet</div>
+          <div class="bar-track"><div class="bar-fill gray-bar" style="width:0%"></div></div></div>
+          <div class="bar-pct">—</div></div>`;
+        return;
+      }
+      const cnt = DATA.filter(p => p.predictions.groupWinners[g] === code).length;
+      const w = Math.round(cnt / N * 100);
+      ghtml += `<div class="bar-item">
+        <div class="bar-label" style="font-size:.8rem" title="Group ${g}">${g}</div>
+        <div>
+          <div style="font-size:.74rem;font-weight:600;margin-bottom:.2rem;color:var(--gray-700)">${teamFlag(code)} ${teamName(code)}</div>
+          <div class="bar-track"><div class="bar-fill green-bar" style="width:${w}%">${w >= 18 ? cnt + ' picks' : ''}</div></div>
+        </div>
+        <div class="bar-pct">${w}%<br><span style="font-size:.7rem;font-weight:400;color:var(--gray-400)">${cnt}/${N}</span></div>
       </div>`;
-  })();
+    });
+    ghtml += '</div>';
+    document.getElementById('liveGroupAcc').innerHTML = ghtml;
 
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+    // ── Insight ──
+    const ranked = GROUPS.filter(g => leaders[g]).map(g => {
+      const code = leaders[g];
+      const c = DATA.filter(p => p.predictions.groupWinners[g] === code).length;
+      return { g, code, c };
+    }).sort((a, b) => b.c - a.c);
+    const best = ranked[0], worst = ranked[ranked.length - 1];
+    let ins = `So far the crowd has correctly picked <strong>${overallAcc}%</strong> of current group leaders. `;
+    if (best) ins += `Most-nailed leader: <strong>${teamName(best.code)}</strong> in Group ${best.g} (${Math.round(best.c / N * 100)}% had it). `;
+    if (worst && best && worst.g !== best.g) ins += `Biggest surprise: <strong>${teamName(worst.code)}</strong> topping Group ${worst.g} — only ${Math.round(worst.c / N * 100)}% saw it coming.`;
+    document.getElementById('liveInsight').innerHTML = ins;
+  })();
 </script>
 </body>
 </html>
