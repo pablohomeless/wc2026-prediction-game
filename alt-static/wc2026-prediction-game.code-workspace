@@ -4,5 +4,16 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"/^Get-Command node -ErrorAction SilentlyContinue; Get-Command npm -ErrorAction SilentlyContinue; Get-Command npx -ErrorAction SilentlyContinue; node -v; npm -v; where\\.exe node; where\\.exe npm; where\\.exe npx$/": {
+				"approve": true,
+				"matchCommandLine": true
+			},
+			"/^Test-Path \"C:\\\\Program Files\\\\nodejs\\\\node\\.exe\"; Test-Path \"\\$env:AppData\\\\npm\\\\node\\.exe\"$/": {
+				"approve": true,
+				"matchCommandLine": true
+			}
+		}
+	}
 }
