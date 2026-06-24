@@ -388,77 +388,84 @@
       const el = document.getElementById('funFacts');
       if (!el) return;
       const facts = [];
+      const standings = (typeof computeGroupStandings === 'function') ? computeGroupStandings() : null;
+      const leaderRows = standings ? GROUPS.filter(g => leaders[g]).map(g => {
+        const row = (standings[g] || []).find(r => r.code === leaders[g]);
+        return row ? { g, code: leaders[g], row } : null;
+      }).filter(Boolean) : [];
+      const leaderPickCounts = leaderRows.map(item => ({
+        ...item,
+        count: DATA.filter(p => p.predictions.groupWinners[item.g] === item.code).length,
+      }));
+      const allRows = standings
+        ? GROUPS.flatMap(g => (standings[g] || []).filter(r => r.P > 0).map(r => ({ ...r, g })))
+        : [];
 
-      // 1. Wooden spoon — fewest correct leaders
-      if (rows.length && decidedLeaders) {
-        const worstScore = rows[rows.length - 1].correct;
-        const losers = rows.filter(r => r.correct === worstScore);
-        const who = losers.length === 1
-          ? `<strong>${escHtml(losers[0].alias)}</strong>`
-          : `<strong>${losers.length} players</strong> `;
-        facts.push({
-          cls: 'red', emoji: '🪦', title: 'Wooden Spoon Watch',
-          body: worstScore === 0
-            ? `${who} ${losers.length === 1 ? 'has' : 'have'} a glorious <strong>0/${decidedLeaders}</strong> group leaders right. Statistically already cooked. 🍳`
-            : `${who} ${losers.length === 1 ? 'is' : 'are'} rock bottom with just <strong>${worstScore}/${decidedLeaders}</strong> leaders right. Start saving for the beer round. 🍺`
-        });
-      }
-
-      // 2. Crystal ball — best
       if (rows.length && topScore > 0) {
-        const who = leadersAtTop === 1 ? `<strong>${escHtml(rows[0].alias)}</strong>` : `<strong>${leadersAtTop} players</strong>`;
+        const leadersNow = rows.filter(r => r.correct === topScore);
+        const who = leadersNow.length === 1
+          ? `<strong>${escHtml(leadersNow[0].alias)}</strong>`
+          : `<strong>${leadersNow.length} players</strong>`;
         facts.push({
-          cls: 'green', emoji: '🔮', title: 'Crystal Ball Award',
-          body: `${who} called <strong>${topScore}/${decidedLeaders}</strong> current group leaders. Suspiciously accurate — checking for hidden crystal balls. 👀`
+          cls: 'green', emoji: '🎯', title: 'Ten-Hit Wonder',
+          body: `${who} ${leadersNow.length === 1 ? 'has' : 'have'} already nailed <strong>${topScore}/${decidedLeaders}</strong> live group leaders. That is less prediction model and more suspicious satellite access. 🛰️`
         });
       }
 
-      // 3. Lone wolf / nobody saw it — current leader the fewest people predicted
-      const decided = GROUPS.filter(g => leaders[g]);
-      if (decided.length) {
-        let minG = null, minCnt = Infinity;
-        decided.forEach(g => {
-          const c = DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length;
-          if (c < minCnt) { minCnt = c; minG = g; }
+      if (leaderPickCounts.length) {
+        const shock = leaderPickCounts.slice().sort((a, b) =>
+          a.count - b.count ||
+          (b.row.GF - a.row.GF) ||
+          a.g.localeCompare(b.g)
+        )[0];
+        facts.push({
+          cls: 'blue', emoji: '🧨', title: 'Chaos Meter',
+          body: `${teamFlag(shock.code)} <strong>${teamName(shock.code)}</strong> have turned Group ${shock.g} into a tax audit: only <strong>${shock.count}</strong> of ${N} players (${Math.round(shock.count / N * 100)}%) backed them, and they are still leading. 📉`
         });
-        if (minG !== null) {
-          const code = leaders[minG];
-          facts.push(minCnt === 0
-            ? { cls: 'blue', emoji: '👻', title: 'Nobody Saw It Coming',
-                body: `Not one single soul backed ${teamFlag(code)} <strong>${teamName(code)}</strong> to top Group ${minG}. Plot twist of the century. 🎬` }
-            : { cls: 'blue', emoji: '🦄', title: 'Lone Wolf Genius',
-                body: `Only <strong>${minCnt}</strong> ${minCnt === 1 ? 'person' : 'people'} predicted ${teamFlag(code)} <strong>${teamName(code)}</strong> would lead Group ${minG}. Big-brain energy. 🧠` });
+      }
+
+      if (allRows.length) {
+        const drawBoss = allRows.slice().sort((a, b) =>
+          b.D - a.D ||
+          b.Pts - a.Pts ||
+          b.GF - a.GF ||
+          a.code.localeCompare(b.code)
+        )[0];
+        if (drawBoss && drawBoss.D > 0) {
+          facts.push({
+            cls: 'blue', emoji: '🤝', title: 'Draw Dealers',
+            body: `${teamFlag(drawBoss.code)} <strong>${teamName(drawBoss.code)}</strong> have already banked <strong>${drawBoss.D}</strong> draw${drawBoss.D === 1 ? '' : 's'} in Group ${drawBoss.g}. Somewhere a coach is framing a 0-0 like modern art. 🖼️`
+          });
         }
       }
 
-      // 4. Champion in crisis — predicted champ not even topping its group
-      const inCrisis = DATA.filter(p => {
-        const champ = p.predictions.champion;
-        const grp = TEAMS[champ] && TEAMS[champ].group;
-        return grp && leaders[grp] && leaders[grp] !== champ;
-      }).length;
-      if (inCrisis > 0) {
+      if (leaderRows.length) {
+        const bully = leaderRows.slice().sort((a, b) =>
+          b.row.GD - a.row.GD ||
+          b.row.GF - a.row.GF ||
+          a.g.localeCompare(b.g)
+        )[0];
         facts.push({
-          cls: 'red', emoji: '🚨', title: 'Champion in Crisis',
-          body: `<strong>${Math.round(inCrisis / N * 100)}%</strong> of players crowned a champion that isn't even topping its own group right now. Bold. Very bold. 🫣`
+          cls: 'green', emoji: '🥊', title: 'Bully Ball',
+          body: `${teamFlag(bully.code)} <strong>${teamName(bully.code)}</strong> are leading Group ${bully.g} with a <strong>${bully.row.GD > 0 ? '+' : ''}${bully.row.GD}</strong> goal difference. That is not a group campaign, that is a hostile takeover. 📈`
         });
       }
 
-      // 5. Flock mentality — most popular champion + status
       const champTally = {};
       DATA.forEach(p => { const c = p.predictions.champion; if (c) champTally[c] = (champTally[c] || 0) + 1; });
-      const champEntries = Object.entries(champTally).sort((a, b) => b[1] - a[1]);
-      if (champEntries.length) {
-        const [code, cnt] = champEntries[0];
-        const grp = TEAMS[code] && TEAMS[code].group;
-        const leading = grp && leaders[grp] === code;
+      const delayedChamp = Object.entries(champTally)
+        .map(([code, cnt]) => ({ code, cnt, grp: TEAMS[code] && TEAMS[code].group }))
+        .filter(item => item.grp && leaders[item.grp] && leaders[item.grp] !== item.code)
+        .sort((a, b) => b.cnt - a.cnt || a.code.localeCompare(b.code))[0];
+      if (delayedChamp) {
         facts.push({
-          cls: leading ? 'green' : 'red', emoji: '🐑', title: 'Flock Mentality',
-          body: `<strong>${Math.round(cnt / N * 100)}%</strong> backed ${teamFlag(code)} <strong>${teamName(code)}</strong> to lift the trophy — ${leading ? "and they're topping their group. The herd might be onto something. 🐐" : "who aren't even top of their group yet. Awkward silence. 😬"}`
+          cls: 'red', emoji: '🛂', title: 'Trophy Detour',
+          body: `<strong>${Math.round(delayedChamp.cnt / N * 100)}%</strong> of the field still has ${teamFlag(delayedChamp.code)} <strong>${teamName(delayedChamp.code)}</strong> lifting the trophy, even though they are not top of Group ${delayedChamp.grp} right now. Scenic route to immortality. 🗺️`
         });
       }
 
       el.innerHTML = facts.map(f => `
+
         <div class="fun-tile ${f.cls || ''}">
           <div class="ft-emoji">${f.emoji}</div>
           <div class="ft-title">${f.title}</div>
