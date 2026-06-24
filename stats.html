@@ -202,6 +202,20 @@
 
     /* ── Live results section ── */
     @media (max-width: 720px) { .live-cols { grid-template-columns: 1fr !important; } }
+
+    /* ── Fun / impossibility tiles ── */
+    .fun-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+    .fun-tile {
+      border-radius: 12px; padding: 1.1rem 1.2rem; border: 1px solid var(--gray-100);
+      background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .fun-tile.red   { border-left: 4px solid #ef4444; background: #fef2f2; }
+    .fun-tile.green { border-left: 4px solid #10b981; background: #f0fdf4; }
+    .fun-tile.blue  { border-left: 4px solid #3b82f6; background: #eff6ff; }
+    .fun-tile .ft-emoji { font-size: 1.6rem; line-height: 1; }
+    .fun-tile .ft-title { font-weight: 800; font-size: .95rem; margin: .4rem 0 .35rem; color: var(--darkblue); }
+    .fun-tile .ft-body  { font-size: .83rem; color: var(--gray-700); line-height: 1.45; }
+    .fun-tile .ft-body strong { color: #b45309; }
   </style>
 </head>
 <body>
@@ -277,6 +291,16 @@
           </div>
         </div>
         <div class="insight" id="liveInsight"></div>
+      </div>
+
+      <!-- ── Reality Check / Impossibility tiles ── -->
+      <div class="card" style="padding:1.5rem">
+        <div class="section-title">💥 Reality Check — Picks the Results Already Killed</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+          The fun (or brutal) part: which predictions have the real results made
+          <strong>mathematically impossible</strong>, and which crowd favourites are already flopping?
+        </p>
+        <div class="fun-grid" id="funFacts"><!-- filled by JS --></div>
       </div>
 
       <!-- ── Consensus Bracket ── -->
@@ -1046,6 +1070,159 @@
     if (best) ins += `Most-nailed leader: <strong>${teamName(best.code)}</strong> in Group ${best.g} (${Math.round(best.c / N * 100)}% had it). `;
     if (worst && best && worst.g !== best.g) ins += `Biggest surprise: <strong>${teamName(worst.code)}</strong> topping Group ${worst.g} — only ${Math.round(worst.c / N * 100)}% saw it coming.`;
     document.getElementById('liveInsight').innerHTML = ins;
+  })();
+
+  // ── Reality Check: impossibility fun tiles ────────────────────────────────
+  (function () {
+    const el = document.getElementById('funFacts');
+    if (!el || typeof computeGroupStandings !== 'function' || typeof getGroupLeaders !== 'function') return;
+    const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const standings = computeGroupStandings();
+    const leaders   = getGroupLeaders();
+    const facts     = [];
+    const GROUP_GAMES = 3;
+    const maxPtsOf = r => r.Pts + 3 * (GROUP_GAMES - r.P);
+    const leaderRows = GROUPS.filter(g => leaders[g]).map(g => {
+      const row = (standings[g] || []).find(r => r.code === leaders[g]);
+      return row ? { g, code: leaders[g], row } : null;
+    }).filter(Boolean);
+    const leaderPickCounts = leaderRows.map(item => ({
+      ...item,
+      count: DATA.filter(p => p.predictions.groupWinners[item.g] === item.code).length,
+    }));
+    const allRows = GROUPS.flatMap(g => (standings[g] || []).filter(r => r.P > 0).map(r => ({ ...r, g })));
+
+    // Teams that can no longer finish 1st (can't even match current leader's points)
+    const cantWin = {};
+    GROUPS.forEach(g => {
+      const arr = standings[g] || [];
+      if (!arr.length || arr[0].P === 0) return;
+      const leadPts = Math.max.apply(null, arr.map(r => r.Pts));
+      arr.forEach(r => { if (r.P > 0 && maxPtsOf(r) < leadPts) cantWin[r.code] = true; });
+    });
+
+    // 1. Backing a corpse — group-winner picks now mathematically dead
+    const deadPick = {}; let deadTotal = 0;
+    DATA.forEach(p => GROUPS.forEach(g => {
+      const pick = p.predictions.groupWinners[g];
+      if (pick && cantWin[pick]) { deadPick[pick] = (deadPick[pick] || 0) + 1; deadTotal++; }
+    }));
+    const deadEntries = Object.entries(deadPick).sort((a, b) => b[1] - a[1]);
+    if (deadEntries.length) {
+      const [code, cnt] = deadEntries[0];
+      const grp = TEAMS[code] && TEAMS[code].group;
+      const row = (standings[grp] || []).find(r => r.code === code);
+      facts.push({
+        cls: 'red', emoji: '⚰️', title: 'Backing a Corpse',
+        body: `Across every sheet, <strong>${deadTotal}</strong> group-winner pick${deadTotal === 1 ? ' is' : 's are'} now mathematically impossible. Star exhibit: ${teamFlag(code)} <strong>${teamName(code)}</strong>, still crowned Group ${grp} winners by <strong>${cnt}</strong> ${cnt === 1 ? 'player' : 'players'} (${Math.round(cnt / N * 100)}%) — ${row && row.GF === 0 ? 'zero goals scored and ' : ''}dead last with no way up. That ink is now a tattoo. 🦃`
+      });
+    }
+
+    // 2. The herd's big miss — most-backed group winner who isn't leading
+    let missG = null, missCode = null, missCnt = -1;
+    GROUPS.forEach(g => {
+      if (!leaders[g]) return;
+      const tally = {};
+      DATA.forEach(p => { const c = p.predictions.groupWinners[g]; if (c) tally[c] = (tally[c] || 0) + 1; });
+      const top = Object.entries(tally).sort((a, b) => b[1] - a[1])[0];
+      if (top && top[0] !== leaders[g] && top[1] > missCnt) { missCnt = top[1]; missCode = top[0]; missG = g; }
+    });
+    if (missG && missCnt > 0) {
+      const arr = standings[missG] || [];
+      const row = arr.find(r => r.code === missCode);
+      const pos = arr.findIndex(r => r.code === missCode) + 1;
+      const ord = pos === 2 ? '2nd' : pos === 3 ? '3rd' : pos + 'th';
+      facts.push({
+        cls: 'red', emoji: '🧇', title: "The Herd's Big Miss",
+        body: `<strong>${Math.round(missCnt / N * 100)}%</strong> of you anointed ${teamFlag(missCode)} <strong>${teamName(missCode)}</strong> as Group ${missG} winners. Reality: <strong>${ord}</strong>${row && row.W === 0 ? ' and still winless' : ''}, with ${teamFlag(leaders[missG])} <strong>${teamName(leaders[missG])}</strong> top instead. Time for a humble pie. 🥧`
+      });
+    }
+
+    // 3. Current leader with the fewest believers
+    if (leaderPickCounts.length) {
+      const shock = leaderPickCounts.slice().sort((a, b) =>
+        a.count - b.count ||
+        (b.row.GF - a.row.GF) ||
+        a.g.localeCompare(b.g)
+      )[0];
+      facts.push({
+        cls: 'green', emoji: '🐎', title: 'Nobody Saw It Coming',
+        body: `Only <strong>${shock.count}</strong> of ${N} player${shock.count === 1 ? '' : 's'} (${Math.round(shock.count / N * 100)}%) picked ${teamFlag(shock.code)} <strong>${teamName(shock.code)}</strong> to top Group ${shock.g} — and there they are, leading${shock.row ? ` with ${shock.row.GF} goals scored` : ''}. The ultimate dark horse. 🌟`
+      });
+    }
+
+    // 4. Draw machine with believers still onboard
+    if (allRows.length) {
+      const drawBoss = allRows.slice().sort((a, b) =>
+        b.D - a.D ||
+        b.Pts - a.Pts ||
+        b.GF - a.GF ||
+        a.code.localeCompare(b.code)
+      )[0];
+      if (drawBoss && drawBoss.D > 0) {
+        const winPickers = DATA.filter(p => p.predictions.groupWinners[drawBoss.g] === drawBoss.code).length;
+        facts.push({
+          cls: 'blue', emoji: '🤝', title: 'Draw Addiction',
+          body: `${teamFlag(drawBoss.code)} <strong>${teamName(drawBoss.code)}</strong> have already stacked up <strong>${drawBoss.D}</strong> draw${drawBoss.D === 1 ? '' : 's'} in Group ${drawBoss.g}. ${winPickers ? `<strong>${winPickers}</strong> entries still bet on that spreadsheet ending in first place.` : 'Nobody filed paperwork for this much compromise.'} 📑`
+        });
+      }
+    }
+
+    // 5. Golden Boot blues — predicted top scorer whose nation has gone quietest
+    const SCORER_TEAM = {
+      'Kylian Mbappe': 'FRA', 'Kylian Mbappé': 'FRA', 'Harry Kane': 'ENG', 'Lamine Yamal': 'ESP',
+      'Cristiano Ronaldo': 'POR', 'Andrej Kramarić': 'CRO', 'Andrej Kramaric': 'CRO',
+      'Michael Olise': 'FRA', 'Raphinha': 'BRA', 'Erling Haaland': 'NOR', 'Vinicius Junior': 'BRA', 'Vinicius Jr.': 'BRA',
+    };
+    const gfOf = code => {
+      const grp = TEAMS[code] && TEAMS[code].group;
+      const row = grp && (standings[grp] || []).find(r => r.code === code);
+      return row && row.P > 0 ? row.GF : null;
+    };
+    let bootAlias = null, bootScorer = null, bootCode = null, bootGF = Infinity;
+    DATA.forEach(p => {
+      const code = SCORER_TEAM[(p.predictions.topScorer || '').trim()];
+      if (!code) return;
+      const gf = gfOf(code);
+      if (gf != null && gf < bootGF) { bootGF = gf; bootAlias = p.alias; bootScorer = p.predictions.topScorer; bootCode = code; }
+    });
+    if (bootCode) {
+      const grp = TEAMS[bootCode].group;
+      const pos = (standings[grp] || []).findIndex(r => r.code === bootCode) + 1;
+      const ord = pos === 1 ? '1st' : pos === 2 ? '2nd' : pos === 3 ? '3rd' : pos + 'th';
+      facts.push({
+        cls: 'blue', emoji: '👢', title: 'Golden Boot Headwind',
+        body: `<strong>${esc(bootAlias)}</strong> tipped <strong>${esc(bootScorer)}</strong> for the Golden Boot — but ${teamFlag(bootCode)} <strong>${teamName(bootCode)}</strong> have managed just <strong>${bootGF} goal${bootGF === 1 ? '' : 's'}</strong> and sit ${ord} in Group ${grp}. The boot stays in airport security. 🧦`
+      });
+    }
+
+    // 6. Most popular champion currently off the group lead
+    const champTally = {};
+    DATA.forEach(p => {
+      const champ = p.predictions.champion;
+      if (champ) champTally[champ] = (champTally[champ] || 0) + 1;
+    });
+    const delayedChamp = Object.entries(champTally)
+      .map(([code, cnt]) => ({ code, cnt, grp: TEAMS[code] && TEAMS[code].group }))
+      .filter(item => item.grp && leaders[item.grp] && leaders[item.grp] !== item.code)
+      .sort((a, b) => b.cnt - a.cnt || a.code.localeCompare(b.code))[0];
+    if (delayedChamp) {
+      facts.push({
+        cls: 'red', emoji: '🚧', title: 'Champion in Roadworks',
+        body: `<strong>${Math.round(delayedChamp.cnt / N * 100)}%</strong> of the pool still has ${teamFlag(delayedChamp.code)} <strong>${teamName(delayedChamp.code)}</strong> winning it all, even though they are currently parked behind the Group ${delayedChamp.grp} leader. GPS says: rerouting. 🛣️`
+      });
+    }
+
+    if (!facts.length) {
+      el.innerHTML = `<div class="fun-tile blue"><div class="ft-emoji">🤷</div><div class="ft-title">Nothing impossible yet</div><div class="ft-body">Every prediction is still alive. Check back after the next round of results.</div></div>`;
+      return;
+    }
+    el.innerHTML = facts.map(f => `
+      <div class="fun-tile ${f.cls}">
+        <div class="ft-emoji">${f.emoji}</div>
+        <div class="ft-title">${f.title}</div>
+        <div class="ft-body">${f.body}</div>
+      </div>`).join('');
   })();
 
 </script>

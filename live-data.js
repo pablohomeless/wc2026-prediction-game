@@ -5,7 +5,7 @@
  *  REAL DATA — sourced from the official FIFA results & standings pages:
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/standings
- *  Snapshot taken on 2026-06-18 (matchday 1 complete for all 12 groups).
+ *  Snapshot taken on 2026-06-24 (matchday 2 complete for groups A–L).
  *
  *  HOW TO UPDATE as the tournament progresses:
  *    1. Open the FIFA scores-fixtures page.
@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-06-18",                 // "information as of" date shown on the page
+  asOf: "2026-06-24",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -34,61 +34,85 @@ const LIVE_MATCHES = [
   // ── Group A ──
   { group: "A", date: "2026-06-11", home: "MEX", away: "RSA", hs: 2, as: 0 },
   { group: "A", date: "2026-06-12", home: "KOR", away: "CZE", hs: 2, as: 1 },
+  { group: "A", date: "2026-06-17", home: "MEX", away: "KOR", hs: 1, as: 0 },
+  { group: "A", date: "2026-06-17", home: "CZE", away: "RSA", hs: 1, as: 1 },
 
   // ── Group B ──
   { group: "B", date: "2026-06-12", home: "CAN", away: "BIH", hs: 1, as: 1 },
   { group: "B", date: "2026-06-13", home: "QAT", away: "SUI", hs: 1, as: 1 },
+  { group: "B", date: "2026-06-18", home: "CAN", away: "QAT", hs: 6, as: 0 },
+  { group: "B", date: "2026-06-18", home: "SUI", away: "BIH", hs: 4, as: 1 },
 
   // ── Group C ──
   { group: "C", date: "2026-06-14", home: "BRA", away: "MAR", hs: 1, as: 1 },
   { group: "C", date: "2026-06-14", home: "HAI", away: "SCO", hs: 0, as: 1 },
+  { group: "C", date: "2026-06-19", home: "BRA", away: "HAI", hs: 3, as: 0 },
+  { group: "C", date: "2026-06-19", home: "MAR", away: "SCO", hs: 1, as: 0 },
 
   // ── Group D ──
   { group: "D", date: "2026-06-13", home: "USA", away: "PAR", hs: 4, as: 1 },
   { group: "D", date: "2026-06-14", home: "AUS", away: "TUR", hs: 2, as: 0 },
+  { group: "D", date: "2026-06-18", home: "USA", away: "AUS", hs: 2, as: 0 },
+  { group: "D", date: "2026-06-18", home: "PAR", away: "TUR", hs: 1, as: 0 },
 
   // ── Group E ──
   { group: "E", date: "2026-06-14", home: "GER", away: "CUW", hs: 7, as: 1 },
   { group: "E", date: "2026-06-15", home: "CIV", away: "ECU", hs: 1, as: 0 },
+  { group: "E", date: "2026-06-19", home: "GER", away: "CIV", hs: 2, as: 1 },
+  { group: "E", date: "2026-06-19", home: "ECU", away: "CUW", hs: 0, as: 0 },
 
   // ── Group F ──
   { group: "F", date: "2026-06-14", home: "NED", away: "JPN", hs: 2, as: 2 },
   { group: "F", date: "2026-06-15", home: "SWE", away: "TUN", hs: 5, as: 1 },
+  { group: "F", date: "2026-06-19", home: "NED", away: "SWE", hs: 5, as: 1 },
+  { group: "F", date: "2026-06-19", home: "JPN", away: "TUN", hs: 4, as: 0 },
 
   // ── Group G ──
   { group: "G", date: "2026-06-15", home: "BEL", away: "EGY", hs: 1, as: 1 },
   { group: "G", date: "2026-06-16", home: "IRN", away: "NZL", hs: 2, as: 2 },
+  { group: "G", date: "2026-06-20", home: "EGY", away: "NZL", hs: 3, as: 1 },
+  { group: "G", date: "2026-06-20", home: "IRN", away: "BEL", hs: 0, as: 0 },
 
   // ── Group H ──
   { group: "H", date: "2026-06-15", home: "ESP", away: "CPV", hs: 0, as: 0 },
   { group: "H", date: "2026-06-16", home: "KSA", away: "URU", hs: 1, as: 1 },
+  { group: "H", date: "2026-06-20", home: "ESP", away: "KSA", hs: 4, as: 0 },
+  { group: "H", date: "2026-06-20", home: "URU", away: "CPV", hs: 2, as: 2 },
 
   // ── Group I ──
   { group: "I", date: "2026-06-16", home: "FRA", away: "SEN", hs: 3, as: 1 },
   { group: "I", date: "2026-06-17", home: "IRQ", away: "NOR", hs: 1, as: 4 },
+  { group: "I", date: "2026-06-22", home: "FRA", away: "IRQ", hs: 3, as: 0 },
+  { group: "I", date: "2026-06-23", home: "NOR", away: "SEN", hs: 3, as: 2 },
 
   // ── Group J ──
   { group: "J", date: "2026-06-17", home: "ARG", away: "ALG", hs: 3, as: 0 },
   { group: "J", date: "2026-06-17", home: "AUT", away: "JOR", hs: 3, as: 1 },
+  { group: "J", date: "2026-06-22", home: "ARG", away: "AUT", hs: 2, as: 0 },
+  { group: "J", date: "2026-06-23", home: "JOR", away: "ALG", hs: 1, as: 2 },
 
   // ── Group K ──
   { group: "K", date: "2026-06-17", home: "POR", away: "COD", hs: 1, as: 1 },
   { group: "K", date: "2026-06-18", home: "UZB", away: "COL", hs: 1, as: 3 },
+  { group: "K", date: "2026-06-23", home: "POR", away: "UZB", hs: 5, as: 0 },
+  { group: "K", date: "2026-06-24", home: "COL", away: "COD", hs: 1, as: 0 },
 
   // ── Group L ──
   { group: "L", date: "2026-06-17", home: "ENG", away: "CRO", hs: 4, as: 2 },
   { group: "L", date: "2026-06-18", home: "GHA", away: "PAN", hs: 1, as: 0 },
+  { group: "L", date: "2026-06-23", home: "ENG", away: "GHA", hs: 0, as: 0 },
+  { group: "L", date: "2026-06-24", home: "PAN", away: "CRO", hs: 0, as: 1 },
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
-// Snapshot from the FIFA standings page on 2026-06-18. After matchday 1 several
-// groups are level on points/GD/GF; FIFA's official ranking resolves these ties
-// (fair-play / drawing of lots), which can differ from a pure points/GD sort —
-// so we store FIFA's displayed leader explicitly to stay faithful to the source.
+// Snapshot from the FIFA standings page on 2026-06-24 (matchday 2 done in groups
+// A–L). When teams are level on points/GD/GF, FIFA's official ranking resolves
+// the tie; we store FIFA's displayed leader explicitly to stay faithful to the
+// source.
 const OFFICIAL_LEADERS = {
-  A: "KOR", B: "SUI", C: "SCO", D: "USA",
-  E: "GER", F: "SWE", G: "NZL", H: "URU",
-  I: "NOR", J: "ARG", K: "COL", L: "ENG",
+  A: "MEX", B: "CAN", C: "BRA", D: "USA",
+  E: "GER", F: "NED", G: "EGY", H: "ESP",
+  I: "FRA", J: "ARG", K: "COL", L: "ENG",
 };
 
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────
