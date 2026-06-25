@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Who Can Still Win? - Porra Mundial 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg1: #0b1023;
+      --bg2: #12213d;
+      --card: #f8fafc;
+      --ink: #0f172a;
+      --muted: #475569;
+      --accent: #f59e0b;
+      --accent2: #22c55e;
+      --danger: #ef4444;
+      --line: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 500px at 10% -10%, #1d4ed8 0%, transparent 55%),
+        radial-gradient(900px 400px at 95% 5%, #f97316 0%, transparent 45%),
+        linear-gradient(145deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 1.2rem 1rem 2rem;
+    }
+
+    .hero {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 16px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.62);
+      backdrop-filter: blur(6px);
+      padding: 1.15rem 1rem;
+      box-shadow: 0 12px 34px rgba(2, 6, 23, 0.35);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 0.55rem 0 0;
+      color: #e2e8f0;
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .kpis {
+      margin-top: 0.9rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .kpi {
+      border-radius: 10px;
+      padding: 0.6rem 0.65rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .kpi .n {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fef08a;
+      line-height: 1;
+    }
+
+    .kpi .l {
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 0.9rem;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.15);
+      padding: 0.9rem;
+    }
+
+    .title {
+      margin: 0 0 0.6rem;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.7rem;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.35rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      font-size: 0.72rem;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    td.num, th.num { text-align: right; }
+
+    .chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 0.1rem 0.45rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .up { background: #dcfce7; color: #166534; }
+    .mid { background: #e0f2fe; color: #075985; }
+    .down { background: #fee2e2; color: #991b1b; }
+
+    .fun {
+      margin-top: 0.8rem;
+      border-left: 4px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      background: #fffbeb;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.86rem;
+      line-height: 1.45;
+      color: #7c2d12;
+    }
+
+    .legend-note {
+      margin-top: 0.6rem;
+      color: #334155;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Who Has The Best Shot Right Now?</h1>
+      <p>
+        Simulation-based forecast using live group standings + all submitted future picks (semis/finals/champion/3rd place),
+        with Golden Boot forced to either <strong>Leo Messi</strong> or <strong>Kylian Mbappe</strong>.
+      </p>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2 class="title">Win Probability Leaderboard</h2>
+        <p class="sub">Odds are based on simulated full-tournament outcomes from this stage onward.</p>
+        <table id="oddsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Player</th>
+              <th class="num">Top Pts %</th>
+              <th class="num">Title Share %</th>
+              <th class="num">Avg final pts</th>
+              <th>Momentum</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="fun" id="funSummary"></div>
+      </article>
+
+      <article class="card">
+        <h2 class="title">Top 6 Chance Split</h2>
+        <canvas id="pie" height="250"></canvas>
+        <div class="legend-note" id="scenarioNote"></div>
+      </article>
+    </section>
+
+    <section class="card" style="margin-top:0.9rem">
+      <h2 class="title">Chaos Meter</h2>
+      <canvas id="bar" height="130"></canvas>
+      <p class="sub" id="chaosText" style="margin-top:0.55rem"></p>
+    </section>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="live-data.js"></script>
+  <script src="participants-import.js"></script>
+  <script>
+    (function () {
+      const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
+      const N = DATA.length;
+      const RUNS = 30000;
+      const MESSI_SHARE = 0.80; // 80% Messi, 20% Mbappe in this scenario.
+      const MOMENTUM_POINTS_MAX = 2.5; // Max carry-over points from current live form.
+
+      const leaders = typeof getGroupLeaders === 'function' ? getGroupLeaders() : null;
+      const standings = typeof computeGroupStandings === 'function' ? computeGroupStandings() : null;
+      const decidedGroups = leaders ? GROUPS.filter(g => leaders[g]).length : 0;
+      const decidedDenom = Math.max(1, decidedGroups);
+
+      const liveHitsByAlias = {};
+      let maxLiveHits = 0;
+      DATA.forEach(p => {
+        let hits = 0;
+        GROUPS.forEach(g => {
+          if (leaders && leaders[g] && p.predictions.groupWinners && p.predictions.groupWinners[g] === leaders[g]) hits++;
+        });
+        liveHitsByAlias[p.alias] = hits;
+        if (hits > maxLiveHits) maxLiveHits = hits;
+      });
+      const liveLeaders = Object.keys(liveHitsByAlias).filter(a => liveHitsByAlias[a] === maxLiveHits);
+
+      function canonicalScorer(name) {
+        const s = String(name || '').toLowerCase().trim();
+        if (s.includes('mbappe') || s.includes('mbappé')) return 'mbappe';
+        if (s.includes('messi')) return 'messi';
+        return s;
+      }
+
+      function weightedPick(items, weights) {
+        let total = 0;
+        for (let i = 0; i < weights.length; i++) total += Math.max(0, weights[i]);
+        if (total <= 0) return items[Math.floor(Math.random() * items.length)];
+        let r = Math.random() * total;
+        for (let i = 0; i < items.length; i++) {
+          r -= Math.max(0, weights[i]);
+          if (r <= 0) return items[i];
+        }
+        return items[items.length - 1];
+      }
+
+      function pickUniqueFromMap(weightMap, count, pool) {
+        const chosen = [];
+        const available = (pool || Object.keys(weightMap)).filter(Boolean);
+        while (chosen.length < count && available.length) {
+          const ws = available.map(k => weightMap[k] || 0.1);
+          const c = weightedPick(available, ws);
+          chosen.push(c);
+          const idx = available.indexOf(c);
+          if (idx >= 0) available.splice(idx, 1);
+        }
+        return chosen;
+      }
+
+      function countsOf(pathFn) {
+        const c = {};
+        DATA.forEach(p => {
+          const vals = pathFn(p) || [];
+          vals.forEach(v => { if (v) c[v] = (c[v] || 0) + 1; });
+        });
+        return c;
+      }
+
+      const sfCounts = countsOf(p => p.predictions.semiFinals || []);
+      const finCounts = countsOf(p => p.predictions.finalists || []);
+      const t34Counts = countsOf(p => p.predictions.thirdPlaceParticipants || []);
+      const champCounts = (() => {
+        const c = {};
+        DATA.forEach(p => {
+          const v = p.predictions.champion;
+          if (v) c[v] = (c[v] || 0) + 1;
+        });
+        return c;
+      })();
+      const t3Counts = (() => {
+        const c = {};
+        DATA.forEach(p => {
+          const v = p.predictions.thirdPlace;
+          if (v) c[v] = (c[v] || 0) + 1;
+        });
+        return c;
+      })();
+
+      function groupWinnerWeights(group) {
+        const rows = standings[group] || [];
+        const pickShare = {};
+        DATA.forEach(p => {
+          const pick = p.predictions.groupWinners && p.predictions.groupWinners[group];
+          if (pick) pickShare[pick] = (pickShare[pick] || 0) + 1;
+        });
+
+        const leadPts = rows.length ? Math.max.apply(null, rows.map(r => r.Pts)) : 0;
+
+        const teams = rows.map(r => r.code);
+        const weights = teams.map(code => {
+          const r = rows.find(x => x.code === code);
+          if (!r) return 0.001;
+
+          const gamesLeft = Math.max(0, 3 - (r.P || 0));
+          const maxPossiblePts = r.Pts + 3 * gamesLeft;
+          if (maxPossiblePts < leadPts) {
+            // Team cannot mathematically top the group anymore.
+            return 0.00001;
+          }
+
+          const crowd = (pickShare[code] || 0) / Math.max(1, N);
+          const leadGap = leadPts - r.Pts;
+          const liveBoost = Math.exp(1.45 * r.Pts + 0.35 * (r.GD || 0) + 0.12 * (r.GF || 0) - 0.95 * leadGap);
+          const crowdBoost = 1 + crowd * 1.15;
+          const leaderBoost = leaders && leaders[group] === code ? 1.8 : 1;
+          const lateStageBoost = gamesLeft <= 1 ? 1.35 : 1;
+          return liveBoost * crowdBoost * leaderBoost * lateStageBoost;
+        });
+
+        return { teams, weights };
+      }
+
+      function simulateOutcome() {
+        const groupWinners = {};
+        GROUPS.forEach(g => {
+          const { teams, weights } = groupWinnerWeights(g);
+          groupWinners[g] = weightedPick(teams, weights);
+        });
+
+        const semiFinals = pickUniqueFromMap(sfCounts, 4);
+        const finalists = pickUniqueFromMap(finCounts, 2, semiFinals);
+
+        let thirdPool = semiFinals.filter(t => !finalists.includes(t));
+        if (thirdPool.length < 2) {
+          const extra = Object.keys(t34Counts).filter(t => !finalists.includes(t));
+          thirdPool = Array.from(new Set(thirdPool.concat(extra))).slice(0, 6);
+        }
+        const thirdPlaceParticipants = pickUniqueFromMap(t34Counts, 2, thirdPool);
+
+        const champion = weightedPick(finalists, finalists.map(t => champCounts[t] || 0.1));
+        const thirdPlace = weightedPick(
+          thirdPlaceParticipants,
+          thirdPlaceParticipants.map(t => t3Counts[t] || 0.1)
+        );
+
+        const topScorer = Math.random() < MESSI_SHARE ? 'Leo Messi' : 'Kylian Mbappe';
+
+        return { groupWinners, semiFinals, finalists, thirdPlaceParticipants, champion, thirdPlace, topScorer };
+      }
+
+      function scoreParticipant(p, actual) {
+        let s = 0;
+
+        GROUPS.forEach(g => {
+          if (p.predictions.groupWinners && p.predictions.groupWinners[g] === actual.groupWinners[g]) s += 1;
+        });
+
+        (p.predictions.semiFinals || []).forEach(t => { if (actual.semiFinals.includes(t)) s += 2; });
+        (p.predictions.finalists || []).forEach(t => { if (actual.finalists.includes(t)) s += 4; });
+        (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (actual.thirdPlaceParticipants.includes(t)) s += 3; });
+
+        if (p.predictions.champion === actual.champion) s += 10;
+        if (p.predictions.thirdPlace === actual.thirdPlace) s += 2;
+
+        if (canonicalScorer(p.predictions.topScorer) === canonicalScorer(actual.topScorer)) s += 5;
+
+        const liveMomentum = (liveHitsByAlias[p.alias] / decidedDenom) * MOMENTUM_POINTS_MAX;
+        return s + liveMomentum;
+      }
+
+      const stats = {};
+      DATA.forEach(p => {
+        stats[p.alias] = { wins: 0, firsts: 0, total: 0, top3: 0 };
+      });
+
+      for (let i = 0; i < RUNS; i++) {
+        const actual = simulateOutcome();
+        const scored = DATA.map(p => ({ alias: p.alias, score: scoreParticipant(p, actual) }));
+        scored.sort((a, b) => b.score - a.score || a.alias.localeCompare(b.alias));
+
+        const best = scored[0].score;
+        const winners = scored.filter(r => r.score === best);
+        winners.forEach(w => { stats[w.alias].firsts += 1; });
+        winners.forEach(w => { stats[w.alias].wins += 1 / winners.length; });
+
+        scored.slice(0, 3).forEach(r => { stats[r.alias].top3 += 1; });
+        scored.forEach(r => { stats[r.alias].total += r.score; });
+      }
+
+      const ranked = Object.entries(stats)
+        .map(([alias, s]) => ({
+          alias,
+          topPtsPct: (s.firsts / RUNS) * 100,
+          winPct: (s.wins / RUNS) * 100,
+          avgPts: s.total / RUNS,
+          top3Pct: (s.top3 / RUNS) * 100,
+        }))
+        .sort((a, b) => b.topPtsPct - a.topPtsPct || b.avgPts - a.avgPts || b.winPct - a.winPct);
+
+      function momentumChip(item) {
+        if (item.top3Pct >= 45) return '<span class="chip up">On fire</span>';
+        if (item.top3Pct >= 25) return '<span class="chip mid">In the hunt</span>';
+        return '<span class="chip down">Needs chaos</span>';
+      }
+
+      const tbody = document.querySelector('#oddsTable tbody');
+      ranked.slice(0, 12).forEach((r, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = [
+          '<td>' + (i + 1) + '</td>',
+          '<td><strong>' + r.alias + '</strong></td>',
+          '<td class="num"><strong>' + r.topPtsPct.toFixed(1) + '%</strong></td>',
+          '<td class="num">' + r.winPct.toFixed(1) + '%</td>',
+          '<td class="num">' + r.avgPts.toFixed(1) + '</td>',
+          '<td>' + momentumChip(r) + '</td>'
+        ].join('');
+        tbody.appendChild(tr);
+      });
+
+      const top = ranked[0];
+      const second = ranked[1];
+      const gap = top && second ? (top.topPtsPct - second.topPtsPct) : 0;
+
+      document.getElementById('funSummary').innerHTML =
+        top
+        ? 'Prediction drumroll: <strong>' + top.alias + '</strong> currently has the best top-points chance (' + top.topPtsPct.toFixed(1) + '%). ' +
+          (second ? 'Next closest is <strong>' + second.alias + '</strong> at ' + second.topPtsPct.toFixed(1) + '%. ' : '') +
+          (gap >= 8
+            ? 'This is a real front-runner moment.'
+            : gap >= 3
+              ? 'This is still a proper title race.'
+              : 'Photo finish vibes: this is extremely open.')
+        : 'No data.';
+
+      document.getElementById('kpis').innerHTML = [
+        { n: N, l: 'participants' },
+        { n: RUNS.toLocaleString(), l: 'simulations' },
+        { n: maxLiveHits + '/' + decidedDenom, l: 'best live hits now' },
+        { n: (100 - MESSI_SHARE * 100).toFixed(0) + '/' + (MESSI_SHARE * 100).toFixed(0), l: 'Mbappe/Messi split' },
+        { n: LIVE_INFO && LIVE_INFO.asOf ? LIVE_INFO.asOf : 'n/a', l: 'live data as of' }
+      ].map(k => '<div class="kpi"><div class="n">' + k.n + '</div><div class="l">' + k.l + '</div></div>').join('');
+
+      const pieLabels = ranked.slice(0, 6).map(r => r.alias);
+      const pieData = ranked.slice(0, 6).map(r => Number(r.topPtsPct.toFixed(2)));
+      const others = Math.max(0, 100 - pieData.reduce((a, b) => a + b, 0));
+      pieLabels.push('Everyone else');
+      pieData.push(Number(others.toFixed(2)));
+
+      new Chart(document.getElementById('pie'), {
+        type: 'doughnut',
+        data: {
+          labels: pieLabels,
+          datasets: [{
+            data: pieData,
+            backgroundColor: ['#1d4ed8', '#ea580c', '#16a34a', '#7c3aed', '#0891b2', '#e11d48', '#94a3b8'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12 } },
+            tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '%' } }
+          },
+          cutout: '58%'
+        }
+      });
+
+      const top10 = ranked.slice(0, 10);
+      new Chart(document.getElementById('bar'), {
+        type: 'bar',
+        data: {
+          labels: top10.map(r => r.alias),
+          datasets: [{
+            label: 'Top-3 finish probability %',
+            data: top10.map(r => Number(r.top3Pct.toFixed(1))),
+            backgroundColor: '#0ea5e9'
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, ticks: { callback: v => v + '%' } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      document.getElementById('scenarioNote').textContent =
+        'Model note: this revision gives more carry-over weight to current live leaders and player momentum, while still sampling knockout outcomes from submitted bracket preferences.';
+
+      const entropy = ranked.reduce((e, r) => {
+        const p = r.winPct / 100;
+        return p > 0 ? e - p * Math.log2(p) : e;
+      }, 0);
+      const maxEntropy = Math.log2(Math.max(2, ranked.length));
+      const openness = (entropy / maxEntropy) * 100;
+
+      document.getElementById('chaosText').textContent =
+        openness > 78
+          ? 'Chaos meter: HIGH. The pack is still very much alive.'
+          : openness > 58
+            ? 'Chaos meter: MEDIUM. A few are pulling away, but there is room for shocks.'
+            : 'Chaos meter: LOW. The race is narrowing to clear favourites.';
+
+      if (liveLeaders.length) {
+        const leadNames = liveLeaders.slice(0, 3).join(', ') + (liveLeaders.length > 3 ? '...' : '');
+        document.getElementById('chaosText').textContent += ' Live leaderboard co-leader(s): ' + leadNames + '.';
+      }
+    })();
+  </script>
+</body>
+</html>

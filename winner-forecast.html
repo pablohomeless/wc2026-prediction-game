@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Who Is Winning the Porra Right Now?</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --ink: #0f172a;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --accent: #0ea5e9;
+      --accent2: #f59e0b;
+      --ok: #10b981;
+      --warn: #f97316;
+      --bad: #ef4444;
+      --muted: #64748b;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 10% 0%, #e0f2fe 0%, rgba(224, 242, 254, 0) 35%),
+        radial-gradient(circle at 90% 0%, #fef3c7 0%, rgba(254, 243, 199, 0) 32%),
+        var(--bg);
+      color: var(--ink);
+    }
+
+    .hero {
+      border-radius: 16px;
+      padding: 1.4rem 1.2rem;
+      background: linear-gradient(130deg, #082f49 0%, #0c4a6e 45%, #7c2d12 100%);
+      color: #fff;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.18);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: 0.02em;
+      color: #fef08a;
+    }
+
+    .hero p {
+      margin: 0.55rem 0 0;
+      font-size: 0.94rem;
+      color: #e2e8f0;
+      line-height: 1.45;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .kpi {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 0.6rem 0.8rem;
+    }
+
+    .kpi .n {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fef08a;
+      line-height: 1;
+    }
+
+    .kpi .l {
+      margin-top: 0.2rem;
+      font-size: 0.74rem;
+      color: #e2e8f0;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
+      padding: 1rem;
+    }
+
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1rem;
+      color: #0f172a;
+    }
+
+    .subtitle {
+      margin-top: -0.2rem;
+      margin-bottom: 0.8rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
+    .bar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .bar-item {
+      display: grid;
+      grid-template-columns: 180px 1fr 64px;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .bar-label {
+      font-size: 0.8rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 20px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0ea5e9, #0284c7);
+      transition: width 0.6s ease;
+    }
+
+    .bar-fill.top1 { background: linear-gradient(90deg, #f59e0b, #d97706); }
+    .bar-fill.top2 { background: linear-gradient(90deg, #14b8a6, #0f766e); }
+    .bar-fill.top3 { background: linear-gradient(90deg, #8b5cf6, #6d28d9); }
+
+    .bar-pct {
+      text-align: right;
+      font-size: 0.79rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .tiny {
+      display: block;
+      color: #64748b;
+      font-size: 0.67rem;
+      font-weight: 500;
+    }
+
+    .donut-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 0.8rem;
+    }
+
+    .donut {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.07);
+    }
+
+    .donut::after {
+      content: '';
+      position: absolute;
+      inset: 30px;
+      border-radius: 50%;
+      background: var(--panel);
+      box-shadow: inset 0 0 0 1px #e2e8f0;
+    }
+
+    .legend {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+      font-size: 0.75rem;
+      color: #334155;
+    }
+
+    .sw {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0 0.9rem;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 0.18rem 0.6rem;
+      font-size: 0.71rem;
+      font-weight: 700;
+      border: 1px solid;
+    }
+
+    .pill.ok { color: #166534; background: #dcfce7; border-color: #86efac; }
+    .pill.warn { color: #92400e; background: #ffedd5; border-color: #fdba74; }
+    .pill.bad { color: #991b1b; background: #fee2e2; border-color: #fca5a5; }
+
+    .board {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.77rem;
+    }
+
+    .board th {
+      text-align: left;
+      padding: 0.42rem 0.35rem;
+      border-bottom: 2px solid #e2e8f0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.66rem;
+      color: #64748b;
+    }
+
+    .board td {
+      padding: 0.42rem 0.35rem;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+    }
+
+    .rank {
+      display: inline-flex;
+      min-width: 22px;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 0.07rem 0.3rem;
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .rank.r1 { background: #fef3c7; color: #92400e; }
+    .rank.r2 { background: #ccfbf1; color: #115e59; }
+    .rank.r3 { background: #ede9fe; color: #5b21b6; }
+
+    .foot {
+      margin-top: 0.75rem;
+      color: #64748b;
+      font-size: 0.71rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .bar-item { grid-template-columns: 140px 1fr 56px; }
+    }
+
+    @media (max-width: 620px) {
+      .bar-item { grid-template-columns: 110px 1fr 50px; }
+      .hero h1 { font-size: 1.25rem; }
+      .hero p { font-size: 0.85rem; }
+      .board { font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="stats.html">Stats</a></li>
+      <li><a href="winner-forecast.html" class="active">Who Wins Now?</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="stats.html">Stats</a>
+    <a href="winner-forecast.html" class="active">Who Wins Now?</a>
+  </div>
+</nav>
+
+<main>
+  <div class="container" style="padding-top:1.2rem; padding-bottom:1.2rem;">
+    <section class="hero">
+      <h1>Crystal Ball Mode: Who Has The Best Shot Right Now?</h1>
+      <p>
+        Live form (group leaders hit-rate) + knockout picks (semis/final/champion) + the special rule that Golden Boot will be
+        <strong>Messi or Mbappe</strong>.
+      </p>
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Top Win Chances (Live Model)</h2>
+        <p class="subtitle">These percentages are relative in-pool chances at this stage, not bookmaker odds.</p>
+        <div class="bar-list" id="topBars"></div>
+        <div class="foot" id="insight"></div>
+      </section>
+
+      <section class="card">
+        <h2>How Concentrated Is The Race?</h2>
+        <p class="subtitle">If this donut is dominated by a few colors, the pack is pulling away. If not, chaos season is alive.</p>
+        <div class="donut-wrap">
+          <div class="donut" id="donut"></div>
+          <div class="legend" id="legend"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:1rem;">
+      <h2>Fun Breakdown Table</h2>
+      <div class="pill-row">
+        <span class="pill ok">Live Leaders Hits: 40%</span>
+        <span class="pill warn">Knockout Forecast Strength: 45%</span>
+        <span class="pill bad">Messi/Mbappe Scorer Edge: 15%</span>
+      </div>
+      <table class="board" id="board"></table>
+      <p class="foot">
+        Notes: This model rewards players whose knockout picks align with stronger crowd consensus while still crediting current live performance.
+        For top-scorer, a pick containing Messi or Mbappe gets the special boost under your scenario.
+      </p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  ⚽ Porra Mundial 2026 — Fun forecast view generated from live-data.js + participants-import.js
+</footer>
+
+<script src="data.js"></script>
+<script src="live-data.js"></script>
+<script src="participants-import.js"></script>
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  function norm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function isMessiOrMbappe(name) {
+    const t = norm(name);
+    return t.includes('messi') || t.includes('mbappe');
+  }
+
+  const DATA = (typeof PARTICIPANTS_IMPORT !== 'undefined' && PARTICIPANTS_IMPORT.length)
+    ? PARTICIPANTS_IMPORT
+    : PARTICIPANTS;
+
+  const N = DATA.length;
+  const GROUP_GAMES = 3;
+
+  const standings = computeGroupStandings();
+  const leaders = getGroupLeaders();
+  const decided = GROUPS.filter(g => leaders[g]).length;
+
+  const sfCounts = {};
+  const finCounts = {};
+  const champCounts = {};
+
+  DATA.forEach(p => {
+    (p.predictions.semiFinals || []).forEach(t => sfCounts[t] = (sfCounts[t] || 0) + 1);
+    (p.predictions.finalists || []).forEach(t => finCounts[t] = (finCounts[t] || 0) + 1);
+    if (p.predictions.champion) champCounts[p.predictions.champion] = (champCounts[p.predictions.champion] || 0) + 1;
+  });
+
+  function popularity(counts, team) {
+    return (counts[team] || 0) / N;
+  }
+
+  function avgPopularity(counts, arr) {
+    const list = (arr || []).filter(Boolean);
+    if (!list.length) return 0;
+    const sum = list.reduce((acc, t) => acc + popularity(counts, t), 0);
+    return sum / list.length;
+  }
+
+  function leaderHits(p) {
+    let c = 0;
+    GROUPS.forEach(g => {
+      if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) c++;
+    });
+    return c;
+  }
+
+  function maxPtsOf(r) {
+    return r.Pts + 3 * (GROUP_GAMES - r.P);
+  }
+
+  const impossibleTeams = new Set();
+  GROUPS.forEach(g => {
+    const rows = standings[g] || [];
+    if (!rows.length || !rows.some(r => r.P > 0)) return;
+    const leadPts = Math.max.apply(null, rows.map(r => r.Pts));
+    rows.forEach(r => {
+      if (r.P > 0 && maxPtsOf(r) < leadPts) impossibleTeams.add(r.code);
+    });
+  });
+
+  const scores = DATA.map(p => {
+    const hit = leaderHits(p);
+    const liveForm = decided ? hit / decided : 0;
+
+    const sfStrength = avgPopularity(sfCounts, p.predictions.semiFinals || []);
+    const finStrength = avgPopularity(finCounts, p.predictions.finalists || []);
+    const champStrength = popularity(champCounts, p.predictions.champion);
+    const knockoutStrength = (sfStrength * 0.35) + (finStrength * 0.35) + (champStrength * 0.30);
+
+    const scorerBoost = isMessiOrMbappe(p.predictions.topScorer) ? 1 : 0;
+
+    const deadGroupPicks = GROUPS.reduce((acc, g) => {
+      const t = p.predictions.groupWinners[g];
+      return acc + (impossibleTeams.has(t) ? 1 : 0);
+    }, 0);
+
+    const modelScore =
+      (liveForm * 0.40) +
+      (knockoutStrength * 0.45) +
+      (scorerBoost * 0.15) -
+      ((deadGroupPicks / 12) * 0.06);
+
+    return {
+      alias: p.alias,
+      hit,
+      liveForm,
+      sfStrength,
+      finStrength,
+      champStrength,
+      knockoutStrength,
+      scorerBoost,
+      deadGroupPicks,
+      modelScore: Math.max(0.001, modelScore),
+      champ: p.predictions.champion,
+      scorer: p.predictions.topScorer,
+    };
+  });
+
+  // Softmax for relative win chances.
+  const temp = 0.17;
+  const z = scores.reduce((acc, r) => acc + Math.exp(r.modelScore / temp), 0);
+  scores.forEach(r => {
+    r.winChance = (Math.exp(r.modelScore / temp) / z) * 100;
+  });
+
+  scores.sort((a, b) => b.winChance - a.winChance || b.hit - a.hit || a.alias.localeCompare(b.alias));
+
+  const top10 = scores.slice(0, 10);
+  const top5 = scores.slice(0, 5);
+
+  document.getElementById('kpis').innerHTML = [
+    { n: N, l: 'Participants' },
+    { n: decided + '/12', l: 'Groups with leader' },
+    { n: top10[0] ? top10[0].alias : '-', l: 'Current model leader' },
+    { n: top10[0] ? top10[0].winChance.toFixed(1) + '%' : '-', l: 'Leader win chance' },
+  ].map(k => `<div class="kpi"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join('');
+
+  // Bars
+  const maxChance = top10[0] ? top10[0].winChance : 1;
+  document.getElementById('topBars').innerHTML = top10.map((r, i) => {
+    const w = Math.max(3, (r.winChance / maxChance) * 100);
+    const cls = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
+    return `
+      <div class="bar-item">
+        <div class="bar-label">${i + 1}. ${r.alias}</div>
+        <div class="bar-track"><div class="bar-fill ${cls}" style="width:${w}%"></div></div>
+        <div class="bar-pct">${r.winChance.toFixed(1)}%<span class="tiny">live ${r.hit}/${decided || 12}</span></div>
+      </div>`;
+  }).join('');
+
+  // Donut of top5 + field
+  const donutParts = top5.map(r => r.winChance);
+  const field = Math.max(0, 100 - donutParts.reduce((a, b) => a + b, 0));
+  const colors = ['#f59e0b', '#14b8a6', '#8b5cf6', '#0ea5e9', '#f43f5e', '#cbd5e1'];
+  const vals = [...donutParts, field];
+
+  let acc = 0;
+  const slices = vals.map((v, i) => {
+    const from = acc;
+    acc += v;
+    return `${colors[i]} ${from.toFixed(2)}% ${acc.toFixed(2)}%`;
+  });
+  document.getElementById('donut').style.background = `conic-gradient(${slices.join(', ')})`;
+
+  const legendHtml = top5.map((r, i) => `
+      <div class="legend-item">
+        <span class="sw" style="background:${colors[i]}"></span>
+        <span>${r.alias}</span>
+        <strong>${r.winChance.toFixed(1)}%</strong>
+      </div>`).join('') + `
+      <div class="legend-item">
+        <span class="sw" style="background:${colors[5]}"></span>
+        <span>All others</span>
+        <strong>${field.toFixed(1)}%</strong>
+      </div>`;
+  document.getElementById('legend').innerHTML = legendHtml;
+
+  // Table
+  const board = document.getElementById('board');
+  board.innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Player</th>
+        <th>Win %</th>
+        <th>Live Hits</th>
+        <th>Knockout Strength</th>
+        <th>Champion Pick</th>
+        <th>Top Scorer Pick</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${top10.map((r, i) => `
+        <tr>
+          <td><span class="rank r${i + 1 <= 3 ? i + 1 : ''}">${i + 1}</span></td>
+          <td><strong>${r.alias}</strong>${r.deadGroupPicks ? `<span class="tiny">${r.deadGroupPicks} dead group pick${r.deadGroupPicks > 1 ? 's' : ''}</span>` : ''}</td>
+          <td><strong>${r.winChance.toFixed(2)}%</strong></td>
+          <td>${r.hit}/${decided || 12}</td>
+          <td>${(r.knockoutStrength * 100).toFixed(1)}%</td>
+          <td>${r.champ || '-'}</td>
+          <td>${r.scorer || '-'} ${r.scorerBoost ? '✓' : ''}</td>
+        </tr>`).join('')}
+    </tbody>`;
+
+  const lead = scores[0];
+  const second = scores[1];
+  const messiMbappeCount = scores.filter(s => s.scorerBoost).length;
+  document.getElementById('insight').innerHTML =
+    `<strong>${lead.alias}</strong> currently leads the model at <strong>${lead.winChance.toFixed(1)}%</strong>. ` +
+    `${second ? `Gap to #2 (<strong>${second.alias}</strong>) is <strong>${(lead.winChance - second.winChance).toFixed(1)} points</strong>. ` : ''}` +
+    `<strong>${messiMbappeCount}/${N}</strong> players get the Messi/Mbappe scorer bonus in this scenario.`;
+</script>
+</body>
+</html>

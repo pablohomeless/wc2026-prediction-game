@@ -6,6 +6,31 @@
   <title>Predictions – Porra Mundial 2026</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Prediction result colors for finalized groups (A, B, C) */
+    .td-center.correct {
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+    .td-center.wrong {
+      background: #fed7aa;
+      color: #9a3412;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+    
+    /* Group winner chips */
+    .group-winner-chip.correct {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+    .group-winner-chip.wrong {
+      background: #fed7aa;
+      border-color: #fdba74;
+    }
+  </style>
 </head>
 <body>
 
@@ -247,10 +272,12 @@
 
     participants.forEach(p => {
       let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      const FINALIZED_GROUPS = ['A', 'B', 'C']; // Only show colors for finalized groups
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
         const actual = ar.groupWinners && ar.groupWinners[g];
-        const cls = actual ? (pred === actual ? 'correct' : 'wrong') : '';
+        const isFinalized = FINALIZED_GROUPS.includes(g);
+        const cls = (actual && isFinalized) ? (pred === actual ? 'correct' : 'wrong') : '';
         const t = TEAMS[pred];
         row += '<td class="td-center ' + cls + '" style="font-size:.8rem;font-weight:600">' +
                '<span title="' + (t ? t.name : pred) + '">' + teamShort(pred) + '</span></td>';
@@ -322,6 +349,7 @@
 
     // ── All Cards ──
     const allCards = document.getElementById('allCards');
+    const FINALIZED_GROUPS = ['A', 'B', 'C']; // Only show colors for finalized groups
     participants.forEach(p => {
       const pts = p.points;
 
@@ -329,7 +357,8 @@
       GROUPS.forEach(g => {
         const code = p.predictions.groupWinners[g] || '?';
         const actual = ar.groupWinners && ar.groupWinners[g];
-        const cls = actual ? (code === actual ? 'correct' : 'wrong') : '';
+        const isFinalized = FINALIZED_GROUPS.includes(g);
+        const cls = (actual && isFinalized) ? (code === actual ? 'correct' : 'wrong') : '';
         gwChips += '<div class="group-winner-chip ' + cls + '">' +
                    '<div class="grp">Group ' + g + '</div>' +
                    '<div class="team">' + teamShort(code) + '</div></div>';
