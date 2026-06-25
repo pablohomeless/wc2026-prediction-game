@@ -275,9 +275,14 @@
       const FINALIZED_GROUPS = ['A', 'B', 'C']; // Only show colors for finalized groups
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
-        const actual = ar.groupWinners && ar.groupWinners[g];
         const isFinalized = FINALIZED_GROUPS.includes(g);
-        const cls = (actual && isFinalized) ? (pred === actual ? 'correct' : 'wrong') : '';
+        let actual;
+        if (isFinalized) {
+          actual = OFFICIAL_LEADERS[g];
+        } else {
+          actual = ar.groupWinners && ar.groupWinners[g];
+        }
+        const cls = actual ? (pred === actual ? 'correct' : 'wrong') : '';
         const t = TEAMS[pred];
         row += '<td class="td-center ' + cls + '" style="font-size:.8rem;font-weight:600">' +
                '<span title="' + (t ? t.name : pred) + '">' + teamShort(pred) + '</span></td>';
@@ -349,16 +354,21 @@
 
     // ── All Cards ──
     const allCards = document.getElementById('allCards');
-    const FINALIZED_GROUPS = ['A', 'B', 'C']; // Only show colors for finalized groups
+    const FINALIZED_GROUPS_CARDS = ['A', 'B', 'C']; // Only show colors for finalized groups
     participants.forEach(p => {
       const pts = p.points;
 
       let gwChips = '<div class="group-winners-grid">';
       GROUPS.forEach(g => {
         const code = p.predictions.groupWinners[g] || '?';
-        const actual = ar.groupWinners && ar.groupWinners[g];
-        const isFinalized = FINALIZED_GROUPS.includes(g);
-        const cls = (actual && isFinalized) ? (code === actual ? 'correct' : 'wrong') : '';
+        const isFinalized = FINALIZED_GROUPS_CARDS.includes(g);
+        let actual;
+        if (isFinalized) {
+          actual = OFFICIAL_LEADERS[g];
+        } else {
+          actual = ar.groupWinners && ar.groupWinners[g];
+        }
+        const cls = actual ? (code === actual ? 'correct' : 'wrong') : '';
         gwChips += '<div class="group-winner-chip ' + cls + '">' +
                    '<div class="grp">Group ' + g + '</div>' +
                    '<div class="team">' + teamShort(code) + '</div></div>';
