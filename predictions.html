@@ -276,13 +276,14 @@
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
         const isFinalized = FINALIZED_GROUPS.includes(g);
-        let actual;
-        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined') {
-          actual = OFFICIAL_LEADERS[g];
-        } else {
-          actual = ar.groupWinners && ar.groupWinners[g];
+        let cls = '';
+        
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined' && OFFICIAL_LEADERS[g]) {
+          // For finalized groups: always apply color based on OFFICIAL_LEADERS
+          const actual = OFFICIAL_LEADERS[g];
+          cls = pred === actual ? 'correct' : 'wrong';
         }
-        const cls = actual ? (pred === actual ? 'correct' : 'wrong') : '';
+        
         const t = TEAMS[pred];
         row += '<td class="td-center ' + cls + '" style="font-size:.8rem;font-weight:600">' +
                '<span title="' + (t ? t.name : pred) + '">' + teamShort(pred) + '</span></td>';
@@ -358,17 +359,30 @@
     participants.forEach(p => {
       const pts = p.points;
 
+      // Calculate live points for finalized groups (A, B, C)
+      let liveGroupPts = 0;
+      if (typeof OFFICIAL_LEADERS !== 'undefined' && p.predictions && p.predictions.groupWinners) {
+        FINALIZED_GROUPS_CARDS.forEach(g => {
+          const pred = p.predictions.groupWinners[g];
+          const actual = OFFICIAL_LEADERS[g];
+          if (pred && actual && pred === actual) {
+            liveGroupPts += 1;
+          }
+        });
+      }
+
       let gwChips = '<div class="group-winners-grid">';
       GROUPS.forEach(g => {
         const code = p.predictions.groupWinners[g] || '?';
         const isFinalized = FINALIZED_GROUPS_CARDS.includes(g);
-        let actual;
-        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined') {
-          actual = OFFICIAL_LEADERS[g];
-        } else {
-          actual = ar.groupWinners && ar.groupWinners[g];
+        let cls = '';
+        
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined' && OFFICIAL_LEADERS[g]) {
+          // For finalized groups: always apply color based on OFFICIAL_LEADERS
+          const actual = OFFICIAL_LEADERS[g];
+          cls = code === actual ? 'correct' : 'wrong';
         }
-        const cls = actual ? (code === actual ? 'correct' : 'wrong') : '';
+        
         gwChips += '<div class="group-winner-chip ' + cls + '">' +
                    '<div class="grp">Group ' + g + '</div>' +
                    '<div class="team">' + teamShort(code) + '</div></div>';
@@ -398,6 +412,9 @@
       const tsCls = !ar.topScorer ? '' :
         (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
 
+      // Live total (finalized groups only)
+      const liveTotalPts = liveGroupPts;
+
       allCards.innerHTML += '<div class="player-card">' +
         '<div class="player-card-header">👤 ' + escHtml(p.alias) +
         '<span class="pts-badge" style="margin-left:auto">' + pts.total + ' pts</span></div>' +
@@ -412,6 +429,11 @@
             '<div class="special-row"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval ' + tsCls + '">' + escHtml(ts || '—') + '</span></div>' +
           '</div>' +
           '<div class="score-summary">' +
+            '<div class="score-row" style="background: #f0fdf4; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; border-left: 4px solid #10b981;">' +
+              '<div style="font-size: 0.8rem; font-weight: 700; color: #059669; margin-bottom: 0.5rem;">✅ Live Points (Groups A-B-C Finalized)</div>' +
+              '<div class="sc"><div class="n">' + liveGroupPts + '</div><div class="l">🏅 Groups A-B-C</div></div>' +
+              '<div class="sc" style="margin-left: auto;"><div class="n" style="color: #10b981; font-size: 1.1rem;">' + liveTotalPts + '</div><div class="l">LIVE TOTAL</div></div>' +
+            '</div>' +
             '<div class="score-row">' +
               '<div class="sc"><div class="n">' + pts.groupWinners + '</div><div class="l">🏅 Groups</div></div>' +
               '<div class="sc"><div class="n">' + pts.semiFinals + '</div><div class="l">🏟️ Semis</div></div>' +
