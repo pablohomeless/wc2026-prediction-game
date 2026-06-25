@@ -53,15 +53,24 @@
       gap: 1rem;
     }
     .group-card { background: #fff; border-radius: 12px; border: 1px solid var(--gray-100); box-shadow: 0 1px 4px rgba(0,0,0,.07); padding: 1rem 1.1rem; }
+    .group-card.finalized {
+      background: #f0fdf4; border-color: #86efac; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
     .group-card-title {
       font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
       color: var(--gray-500); margin-bottom: .75rem;
       display: flex; align-items: center; justify-content: space-between;
     }
+    .group-card.finalized .group-card-title {
+      color: #059669;
+    }
     .group-badge {
       background: var(--darkblue); color: var(--gold); font-weight: 800;
       width: 26px; height: 26px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center; font-size: .85rem;
+    }
+    .group-card.finalized .group-badge {
+      background: #10b981; color: #fff;
     }
 
     /* ── Bracket ── */
@@ -342,9 +351,12 @@
       <!-- ── Group Winners ── -->
       <div class="card" style="padding:1.5rem">
         <div class="section-title">🏅 Group Winners — Who Does the Crowd Pick?</div>
-        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:.75rem">
           For each group, how many players picked each team to top their group.
         </p>
+        <div class="alert alert-success" style="margin-bottom:1.25rem;font-size:.8rem">
+          ✅ Groups A, B, C are now <strong>finalized</strong> (highlighted in green). Their standings are definitive!
+        </div>
         <div class="group-grid" id="groupGrid"><!-- filled by JS --></div>
       </div>
 
@@ -743,10 +755,12 @@
 
   // ── Group Winners Grid ────────────────────────────────────────────────────
   const groupGrid = document.getElementById('groupGrid');
+  const FINALIZED_GROUPS = ['A', 'B', 'C']; // Finalized groups
   GROUPS.forEach(g => {
     const entries = gwStats[g];
     const top = entries[0];
     const topPct = pct(top[1]);
+    const isFinalized = FINALIZED_GROUPS.includes(g);
 
     let barsHtml = '<div class="bar-list">';
     entries.forEach(([code, cnt], i) => {
@@ -767,15 +781,15 @@
     barsHtml += '</div>';
 
     const card = document.createElement('div');
-    card.className = 'group-card';
+    card.className = 'group-card' + (isFinalized ? ' finalized' : '');
     card.innerHTML = `
       <div class="group-card-title">
-        <span>Group ${g}</span>
+        <span>Group ${g}${isFinalized ? ' ✅' : ''}</span>
         <div class="group-badge">${g}</div>
       </div>
       ${barsHtml}
-      <div style="font-size:.72rem;color:var(--gray-400);margin-top:.6rem">
-        ${topPct}% expect ${teamName(top[0])} to top this group
+      <div style="font-size:.72rem;color:${isFinalized ? '#059669' : 'var(--gray-400)'};margin-top:.6rem">
+        ${isFinalized ? '✅ FINALIZED — ' : ''}${topPct}% expect ${teamName(top[0])} to top this group
       </div>`;
     groupGrid.appendChild(card);
   });
@@ -1101,6 +1115,42 @@
       arr.forEach(r => { if (r.P > 0 && maxPtsOf(r) < leadPts) cantWin[r.code] = true; });
     });
 
+    // ── NEWEST: Finalized group winners — champagne or tears for groups A, B, C ──
+    const FINALIZED_GROUPS = ['A', 'B', 'C'];
+    FINALIZED_GROUPS.forEach(g => {
+      if (!leaders[g]) return;
+      const leader = leaders[g];
+      const tally = {};
+      DATA.forEach(p => { const c = p.predictions.groupWinners[g]; if (c) tally[c] = (tally[c] || 0) + 1; });
+      const entries = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+      const topPick = entries[0];
+      const topPct = Math.round(topPick[1] / N * 100);
+      const isPerfect = topPick[0] === leader;
+
+      if (isPerfect && topPct >= 70) {
+        facts.push({
+          cls: 'green', emoji: '🎉', title: `Group ${g}: Textbook Call`,
+          body: `<strong>${topPct}%</strong> of the crowd called it right — ${teamFlag(leader)} <strong>${teamName(leader)}</strong> topped Group ${g} exactly as forecast. The herd was unstoppable. Cheers! 🍾`
+        });
+      } else if (isPerfect && topPct < 70 && topPct >= 40) {
+        facts.push({
+          cls: 'green', emoji: '⚡', title: `Group ${g}: Split Decision Pays Off`,
+          body: `The crowd was split on Group ${g}, but <strong>${topPct}%</strong> who backed ${teamFlag(leader)} <strong>${teamName(leader)}</strong> came up aces. The other <strong>${100 - topPct}%</strong>? Different day, different bracket. 🎲`
+        });
+      } else if (isPerfect && topPct < 40) {
+        facts.push({
+          cls: 'green', emoji: '🌟', title: `Group ${g}: The Believers Won Big`,
+          body: `Only <strong>${topPct}%</strong> of the pool predicted ${teamFlag(leader)} <strong>${teamName(leader)}</strong> to top Group ${g} — and they absolutely called it! The true believers deserve champagne AND a lottery ticket. 🎰`
+        });
+      } else {
+        const wrongPct = topPick[1];
+        facts.push({
+          cls: 'red', emoji: '💔', title: `Group ${g}: The Majority Lost This One`,
+          body: `<strong>${Math.round(wrongPct / N * 100)}%</strong> of the pool crowned ${teamFlag(topPick[0])} <strong>${teamName(topPick[0])}</strong> Group ${g} winners. Reality delivered ${teamFlag(leader)} <strong>${teamName(leader)}</strong> instead. Sometimes the herd stampedes off a cliff. 🐑`
+        });
+      }
+    });
+
     // 1. Backing a corpse — group-winner picks now mathematically dead
     const deadPick = {}; let deadTotal = 0;
     DATA.forEach(p => GROUPS.forEach(g => {
@@ -1212,6 +1262,8 @@
         body: `<strong>${Math.round(delayedChamp.cnt / N * 100)}%</strong> of the pool still has ${teamFlag(delayedChamp.code)} <strong>${teamName(delayedChamp.code)}</strong> winning it all, even though they are currently parked behind the Group ${delayedChamp.grp} leader. GPS says: rerouting. 🛣️`
       });
     }
+
+
 
     if (!facts.length) {
       el.innerHTML = `<div class="fun-tile blue"><div class="ft-emoji">🤷</div><div class="ft-title">Nothing impossible yet</div><div class="ft-body">Every prediction is still alive. Check back after the next round of results.</div></div>`;

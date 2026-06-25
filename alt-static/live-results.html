@@ -32,18 +32,29 @@
       padding: .85rem .9rem; display: flex; align-items: center; gap: .7rem;
       box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
+    .leader-card.finalized {
+      background: #f0fdf4; border-color: #86efac; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    }
     .leader-card .grp {
       background: var(--darkblue); color: var(--gold); font-weight: 800;
       width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center; font-size: .9rem;
     }
+    .leader-card.finalized .grp {
+      background: #10b981; color: #fff;
+    }
     .leader-card .fi { font-size: 1.35rem; border-radius: 3px; }
     .leader-card .lc-name { font-weight: 700; font-size: .9rem; color: var(--gray-800); line-height: 1.1; }
     .leader-card .lc-sub  { font-size: .68rem; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; }
+    .leader-card.finalized .lc-sub { color: #059669; }
     .leader-card.tbd { opacity: .55; }
 
     /* Group results block */
     .group-block { margin-bottom: 1.1rem; }
+    .group-block.finalized {
+      background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px;
+      padding: 1rem; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
     .group-block-title {
       display: flex; align-items: center; gap: .55rem; margin-bottom: .6rem;
     }
@@ -52,8 +63,17 @@
       width: 28px; height: 28px; border-radius: 7px;
       display: flex; align-items: center; justify-content: center; font-size: .85rem;
     }
+    .group-block.finalized .group-block-title .gbt-badge {
+      background: #10b981; color: #fff;
+    }
     .group-block-title .gbt-text { font-weight: 700; color: var(--darkblue); font-size: 1rem; }
+    .group-block.finalized .group-block-title .gbt-text {
+      color: #059669;
+    }
     .group-block-title .gbt-leader { font-size: .72rem; color: var(--gray-500); margin-left: auto; }
+    .group-block.finalized .group-block-title .gbt-leader {
+      color: #059669; font-weight: 600;
+    }
 
     .match-row {
       display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
@@ -192,19 +212,21 @@
     const leaders = getGroupLeaders();
     const played  = getGroupPlayedCounts();
     const standings = computeGroupStandings();
+    const FINALIZED_GROUPS = ['A', 'B', 'C']; // Finalized groups
 
     // ── Group leaders ──
     let lhtml = '';
     GROUPS.forEach(g => {
       const code = leaders[g];
+      const isFinalized = FINALIZED_GROUPS.includes(g);
       if (code) {
         lhtml += `
-          <div class="leader-card">
-            <div class="grp">${g}</div>
+          <div class="leader-card${isFinalized ? ' finalized' : ''}">
+            <div class="grp">${g}${isFinalized ? ' ✓' : ''}</div>
             ${flagIcon(code)}
             <div>
               <div class="lc-name">${teamName(code)}</div>
-              <div class="lc-sub">Group ${g} leader</div>
+              <div class="lc-sub">${isFinalized ? '✅ Finalized' : 'Group ' + g + ' leader'}</div>
             </div>
           </div>`;
       } else {
@@ -227,13 +249,14 @@
         .filter(m => m.group === g && m.hs != null && m.as != null)
         .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
       const leaderCode = leaders[g];
+      const isFinalized = FINALIZED_GROUPS.includes(g);
 
-      rhtml += `<div class="group-block">
+      rhtml += `<div class="group-block${isFinalized ? ' finalized' : ''}">
         <div class="group-block-title">
           <div class="gbt-badge">${g}</div>
-          <div class="gbt-text">Group ${g}</div>
+          <div class="gbt-text">Group ${g}${isFinalized ? ' ✅' : ''}</div>
           <div class="gbt-leader">${leaderCode
-            ? '🥇 ' + flagIcon(leaderCode) + ' ' + teamName(leaderCode)
+            ? '🥇 ' + flagIcon(leaderCode) + ' ' + teamName(leaderCode) + (isFinalized ? ' (Final)' : '')
             : 'No results yet'}</div>
         </div>`;
 

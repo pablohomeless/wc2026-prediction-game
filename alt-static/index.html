@@ -117,6 +117,15 @@
       <!-- Phase notice (hidden unless needed) -->
       <div id="phaseNotice"></div>
 
+      <!-- Status Disclaimer -->
+      <div class="alert alert-success" style="margin-bottom:1.5rem">
+        ✅ <strong>Groups A, B, C are finalized!</strong> We're showing:
+        <br>
+        • <strong>Real Leaderboard:</strong> Points earned from finalized groups (A, B, C) — official tournament scoring
+        <br>
+        • <strong>Live Leaderboard:</strong> Bonus points from live predictions on ongoing/future groups
+      </div>
+
       <!-- Leaderboard -->
       <div class="card">
         <div class="section-header">
@@ -126,6 +135,20 @@
           <span class="badge" id="participantCount"></span>
         </div>
         <div id="scoreboardWrap" style="margin-top:1rem"></div>
+      </div>
+
+      <!-- Real Leaderboard (Finalized Groups Only) -->
+      <div class="card">
+        <div class="section-header">
+          <div class="card-title" style="margin-bottom:0;border:none;padding:0">
+            🥇 Real Leaderboard (Groups A, B, C ✅)
+          </div>
+        </div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin:1rem 0">
+          Definitive standings based on <strong>finalized groups only</strong> (A, B, C). 
+          Each correct group winner = <strong>1 point</strong>.
+        </p>
+        <div id="realLeaderboardWrap" style="margin-top:1rem"></div>
       </div>
 
       <!-- Predictions vs. Live Results -->
@@ -337,6 +360,39 @@
       wrap.innerHTML = bhtml;
     }
 
+    // ── Real Leaderboard (Finalized Groups Only) ──
+    // Only count A, B, C (finalized groups)
+    const FINALIZED_GROUPS = ['A', 'B', 'C'];
+    const realRows = DATA.map(p => {
+      let correct = 0;
+      FINALIZED_GROUPS.forEach(g => { 
+        if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; 
+      });
+      return { alias: p.alias, correct };
+    }).sort((a, b) => b.correct - a.correct || a.alias.localeCompare(b.alias));
+
+    const realLeaderboardWrap = document.getElementById('realLeaderboardWrap');
+    if (realLeaderboardWrap) {
+      let realHtml = `
+        <div class="table-wrap"><table class="expert-table"><thead><tr>
+          <th>#</th><th>Player</th>
+          <th class="right">A, B, C ✓</th>
+          <th class="right">Points</th>
+        </tr></thead><tbody>`;
+      realRows.forEach((r, i) => {
+        const rank = i + 1;
+        const cls = rank <= 3 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
+        realHtml += `<tr>
+          <td><span class="rank-badge ${cls}">${rank}</span></td>
+          <td><strong>${escHtml(r.alias)}</strong></td>
+          <td class="right">${r.correct}/${FINALIZED_GROUPS.length}</td>
+          <td class="right"><strong>${r.correct}</strong></td>
+        </tr>`;
+      });
+      realHtml += `</tbody></table></div>`;
+      realLeaderboardWrap.innerHTML = realHtml;
+    }
+
     // ── KPI row ──
     document.getElementById('liveKpis').innerHTML = `
       <div class="stat-mini"><div class="mn">${groupsInProg}/12</div><div class="ml">groups in progress</div></div>
@@ -400,7 +456,64 @@
       const allRows = standings
         ? GROUPS.flatMap(g => (standings[g] || []).filter(r => r.P > 0).map(r => ({ ...r, g })))
         : [];
+      // ── NEWEST: Finalized Groups (A, B, C) Fun Facts ──
+      const FINALIZED_GROUPS = ['A', 'B', 'C'];
+      const finalGroupLeaders = FINALIZED_GROUPS.map(g => ({ g, leader: leaders[g] })).filter(x => x.leader);
+      
+      if (finalGroupLeaders.length > 0) {
+        // Perfect scorers in finalized groups
+        const perfectInABC = DATA.map(p => {
+          let correct = 0;
+          FINALIZED_GROUPS.forEach(g => {
+            if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
+          });
+          return { ...p, correctABC: correct };
+        }).filter(p => p.correctABC === FINALIZED_GROUPS.length);
 
+        if (perfectInABC.length > 0) {
+          const perfectNames = perfectInABC.map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          facts.push({
+            cls: 'green', emoji: '✨', title: 'Perfect Score (A, B, C)',
+            body: `${perfectNames} got <strong>ALL THREE</strong> finalized groups correct. That is not luck, that is prophecy with a spreadsheet. 🔮`
+          });
+        }
+
+        // Predictions that got ZERO finalized groups right
+        const zeroInABC = DATA.map(p => {
+          let correct = 0;
+          FINALIZED_GROUPS.forEach(g => {
+            if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
+          });
+          return { ...p, correctABC: correct };
+        }).filter(p => p.correctABC === 0);
+
+        if (zeroInABC.length > 0) {
+          const zeroNames = zeroInABC.slice(0, 3).map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          const andMore = zeroInABC.length > 3 ? ` and ${zeroInABC.length - 3} others` : '';
+          facts.push({
+            cls: 'red', emoji: '💀', title: 'Cold Start',
+            body: `${zeroNames}${andMore} went 0-for-3 in the finalized groups. The algorithm did not lie — just did not help. 🎯➡️❌`
+          });
+        }
+
+        // Most shocking correctness
+        const perGroupCorrect = {};
+        FINALIZED_GROUPS.forEach(g => {
+          if (leaders[g]) {
+            const cnt = DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length;
+            perGroupCorrect[g] = cnt;
+          }
+        });
+        const leastCorrect = Object.entries(perGroupCorrect).sort((a, b) => a[1] - b[1])[0];
+        if (leastCorrect && leastCorrect[1] < N * 0.5) {
+          const leader = leaders[leastCorrect[0]];
+          const missed = N - leastCorrect[1];
+          facts.push({
+            cls: 'blue', emoji: '🌪️', title: 'Upset Alert!',
+            body: `${teamFlag(leader)} <strong>${teamName(leader)}</strong> topping Group ${leastCorrect[0]} was a CURVE BALL — <strong>${missed}/${N}</strong> players (${Math.round(missed / N * 100)}%) got it wrong. Group prediction chaos! 🎢`
+          });
+        }
+      }
       if (rows.length && topScore > 0) {
         const leadersNow = rows.filter(r => r.correct === topScore);
         const who = leadersNow.length === 1

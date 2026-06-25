@@ -105,12 +105,12 @@ const LIVE_MATCHES = [
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
-// Snapshot from the FIFA standings page on 2026-06-24 (matchday 2 done in groups
-// A–L). When teams are level on points/GD/GF, FIFA's official ranking resolves
-// the tie; we store FIFA's displayed leader explicitly to stay faithful to the
-// source.
+// Snapshot from the FIFA standings page on 2026-06-25. Groups A, B, C are now
+// finalized (all matches played). When teams are level on points/GD/GF, FIFA's 
+// official ranking resolves the tie; we store FIFA's displayed leader explicitly 
+// to stay faithful to the source.
 const OFFICIAL_LEADERS = {
-  A: "MEX", B: "CAN", C: "BRA", D: "USA",
+  A: "MEX", B: "SUI", C: "BRA", D: "USA",
   E: "GER", F: "NED", G: "EGY", H: "ESP",
   I: "FRA", J: "ARG", K: "COL", L: "ENG",
 };
