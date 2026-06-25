@@ -277,7 +277,7 @@
         const pred = p.predictions.groupWinners[g] || '?';
         const isFinalized = FINALIZED_GROUPS.includes(g);
         let actual;
-        if (isFinalized) {
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined') {
           actual = OFFICIAL_LEADERS[g];
         } else {
           actual = ar.groupWinners && ar.groupWinners[g];
@@ -363,7 +363,7 @@
         const code = p.predictions.groupWinners[g] || '?';
         const isFinalized = FINALIZED_GROUPS_CARDS.includes(g);
         let actual;
-        if (isFinalized) {
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined') {
           actual = OFFICIAL_LEADERS[g];
         } else {
           actual = ar.groupWinners && ar.groupWinners[g];
