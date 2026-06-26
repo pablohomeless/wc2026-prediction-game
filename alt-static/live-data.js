@@ -115,6 +115,27 @@ const OFFICIAL_LEADERS = {
   I: "FRA", J: "ARG", K: "COL", L: "ENG",
 };
 
+// ─── FINALIZED GROUPS — SINGLE SOURCE OF TRUTH ───────────────────────────────
+// A group is "finalized" once all its matches are played and its winner is
+// locked in. The winners of these groups are FINAL and feed the official points
+// calculation. As each new group finishes, add its letter here (and make sure
+// its winner is correct in OFFICIAL_LEADERS above). Everything downstream —
+// predictions colouring, the All-Cards points, the results page and the
+// scoreboard — recomputes from this automatically. No other file needs editing.
+const FINALIZED_GROUPS = ["A", "B", "C"];
+
+// Feed the finalized group winners into ACTUAL_RESULTS so that calcPoints() in
+// data.js (the ONE scoring function used across every page) produces the real
+// points wherever both data.js and live-data.js are loaded. This keeps "what
+// actually happened" in a single place — ACTUAL_RESULTS — sourced from the live
+// FIFA standings above. Knockout-round results get added to ACTUAL_RESULTS the
+// same way later, and the very same calcPoints() will score them.
+if (typeof ACTUAL_RESULTS !== "undefined" && ACTUAL_RESULTS.groupWinners) {
+  FINALIZED_GROUPS.forEach((g) => {
+    if (OFFICIAL_LEADERS[g]) ACTUAL_RESULTS.groupWinners[g] = OFFICIAL_LEADERS[g];
+  });
+}
+
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────
 // Computes a classic group table (Pts, W/D/L, GF, GA, GD) from LIVE_MATCHES.
 // Tiebreakers used here: Points → Goal Difference → Goals For → team name.

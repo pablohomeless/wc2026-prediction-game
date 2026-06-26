@@ -212,6 +212,7 @@
 </footer>
 
 <script src="data.js"></script>
+<script src="live-data.js"></script>
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
@@ -267,21 +268,16 @@
     const gwDone = GROUPS.filter(g => ar.groupWinners && ar.groupWinners[g]).length;
     if (gwDone > 0) {
       document.getElementById('gwLegend').textContent =
-        gwDone + '/12 decided. Green = correct, Red = wrong.';
+        gwDone + '/12 decided. Green = correct, Orange = wrong.';
     }
 
     participants.forEach(p => {
       let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
-      const FINALIZED_GROUPS = ['A', 'B', 'C']; // Only show colors for finalized groups
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
-        const isFinalized = FINALIZED_GROUPS.includes(g);
-        let actual;
-        if (isFinalized) {
-          actual = OFFICIAL_LEADERS[g];
-        } else {
-          actual = ar.groupWinners && ar.groupWinners[g];
-        }
+        // ar.groupWinners is only populated for finalized groups (see
+        // live-data.js), so colours apply only where the result is final.
+        const actual = ar.groupWinners && ar.groupWinners[g];
         const cls = actual ? (pred === actual ? 'correct' : 'wrong') : '';
         const t = TEAMS[pred];
         row += '<td class="td-center ' + cls + '" style="font-size:.8rem;font-weight:600">' +
@@ -354,20 +350,15 @@
 
     // ── All Cards ──
     const allCards = document.getElementById('allCards');
-    const FINALIZED_GROUPS_CARDS = ['A', 'B', 'C']; // Only show colors for finalized groups
     participants.forEach(p => {
       const pts = p.points;
 
       let gwChips = '<div class="group-winners-grid">';
       GROUPS.forEach(g => {
         const code = p.predictions.groupWinners[g] || '?';
-        const isFinalized = FINALIZED_GROUPS_CARDS.includes(g);
-        let actual;
-        if (isFinalized) {
-          actual = OFFICIAL_LEADERS[g];
-        } else {
-          actual = ar.groupWinners && ar.groupWinners[g];
-        }
+        // Colour finalized groups only: ar.groupWinners is populated solely for
+        // finalized groups (see live-data.js).
+        const actual = ar.groupWinners && ar.groupWinners[g];
         const cls = actual ? (code === actual ? 'correct' : 'wrong') : '';
         gwChips += '<div class="group-winner-chip ' + cls + '">' +
                    '<div class="grp">Group ' + g + '</div>' +
@@ -436,7 +427,7 @@
 
 <style>
   td.correct { background: #dcfce7 !important; color: #166534; }
-  td.wrong   { background: #fee2e2 !important; color: #991b1b; }
+  td.wrong   { background: #fed7aa !important; color: #9a3412; }
   .fi { font-size: 1.15em; vertical-align: -0.1em; border-radius: 2px; }
 </style>
 </body>
