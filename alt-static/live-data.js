@@ -111,8 +111,9 @@ const LIVE_MATCHES = [
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
-// Snapshot from the FIFA standings page on 2026-06-26. Groups A-F are now
-// finalized (all matches played). When teams are level on points/GD/GF, FIFA's 
+// Snapshot from the FIFA standings page on 2026-06-26. Group winners are
+// available from standings; finalized groups are controlled below. When teams
+// are level on points/GD/GF, FIFA's 
 // official ranking resolves the tie; we store FIFA's displayed leader explicitly 
 // to stay faithful to the source.
 const OFFICIAL_LEADERS = {
@@ -128,7 +129,7 @@ const OFFICIAL_LEADERS = {
 // its winner is correct in OFFICIAL_LEADERS above). Everything downstream —
 // predictions colouring, the All-Cards points, the results page and the
 // scoreboard — recomputes from this automatically. No other file needs editing.
-const FINALIZED_GROUPS = ["A", "B", "C", "D", "E", "F"];
+const FINALIZED_GROUPS = ["A", "B", "C"];
 
 // Feed the finalized group winners into ACTUAL_RESULTS so that calcPoints() in
 // data.js (the ONE scoring function used across every page) produces the real
