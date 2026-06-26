@@ -355,7 +355,7 @@
           For each group, how many players picked each team to top their group.
         </p>
         <div class="alert alert-success" style="margin-bottom:1.25rem;font-size:.8rem">
-          ✅ Groups A, B, C are now <strong>finalized</strong> (highlighted in green). Their standings are definitive!
+          ✅ Groups A-F are now <strong>finalized</strong> (highlighted in green). Their standings are definitive!
         </div>
         <div class="group-grid" id="groupGrid"><!-- filled by JS --></div>
       </div>
@@ -755,7 +755,9 @@
 
   // ── Group Winners Grid ────────────────────────────────────────────────────
   const groupGrid = document.getElementById('groupGrid');
-  const FINALIZED_GROUPS = ['A', 'B', 'C']; // Finalized groups
+  const FINALIZED_GROUPS = (typeof window.FINALIZED_GROUPS !== 'undefined')
+    ? window.FINALIZED_GROUPS
+    : ['A', 'B', 'C', 'D', 'E', 'F'];
   GROUPS.forEach(g => {
     const entries = gwStats[g];
     const top = entries[0];
@@ -1115,9 +1117,55 @@
       arr.forEach(r => { if (r.P > 0 && maxPtsOf(r) < leadPts) cantWin[r.code] = true; });
     });
 
-    // ── NEWEST: Finalized group winners — champagne or tears for groups A, B, C ──
-    const FINALIZED_GROUPS = ['A', 'B', 'C'];
-    FINALIZED_GROUPS.forEach(g => {
+    // ── NEWEST: Finalized group winners — champagne or tears ──
+    const FINALIZED_GROUPS_LIST = (typeof window.FINALIZED_GROUPS !== 'undefined')
+      ? window.FINALIZED_GROUPS
+      : ['A', 'B', 'C', 'D', 'E', 'F'];
+
+    // ── D/E/F Roast Pack (always shown first) ──
+    const ROAST_GROUPS = ['D', 'E', 'F'].filter(g => FINALIZED_GROUPS_LIST.includes(g) && leaders[g]);
+    if (ROAST_GROUPS.length > 0) {
+      const roastRows = DATA.map(p => {
+        let correct = 0;
+        ROAST_GROUPS.forEach(g => {
+          if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
+        });
+        return { alias: p.alias, correct };
+      });
+
+      const roastPerfect = roastRows.filter(r => r.correct === ROAST_GROUPS.length);
+      if (roastPerfect.length > 0) {
+        const names = roastPerfect.slice(0, 4).map(r => `<strong>${esc(r.alias)}</strong>`).join(', ');
+        const andMore = roastPerfect.length > 4 ? ` and ${roastPerfect.length - 4} others` : '';
+        facts.push({
+          cls: 'green', emoji: '🔥', title: 'D-E-F Snipers',
+          body: `${names}${andMore} went a clean <strong>${ROAST_GROUPS.length}/${ROAST_GROUPS.length}</strong> on Groups D-E-F. Either elite football IQ or a suspiciously accurate crystal ball. 🔮`
+        });
+      }
+
+      const roastZero = roastRows.filter(r => r.correct === 0);
+      if (roastZero.length > 0) {
+        const names = roastZero.slice(0, 4).map(r => `<strong>${esc(r.alias)}</strong>`).join(', ');
+        const andMore = roastZero.length > 4 ? ` and ${roastZero.length - 4} others` : '';
+        facts.push({
+          cls: 'red', emoji: '🪦', title: 'D-E-F Disasterclass',
+          body: `${names}${andMore} managed a heroic <strong>0/${ROAST_GROUPS.length}</strong> in Groups D-E-F. The bracket is fine, the ego needs ice. 🧊`
+        });
+      }
+
+      const hardestDEF = ROAST_GROUPS
+        .map(g => ({ g, cnt: DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length }))
+        .sort((a, b) => a.cnt - b.cnt)[0];
+      if (hardestDEF) {
+        const miss = N - hardestDEF.cnt;
+        facts.push({
+          cls: 'blue', emoji: '🎯', title: `Group ${hardestDEF.g} Broke Brains`,
+          body: `${teamFlag(leaders[hardestDEF.g])} <strong>${teamName(leaders[hardestDEF.g])}</strong> in Group ${hardestDEF.g} cooked the pool: <strong>${miss}/${N}</strong> missed that winner call (${Math.round(miss / N * 100)}%).`
+        });
+      }
+    }
+
+    FINALIZED_GROUPS_LIST.forEach(g => {
       if (!leaders[g]) return;
       const leader = leaders[g];
       const tally = {};

@@ -119,9 +119,9 @@
 
       <!-- Status Disclaimer -->
       <div class="alert alert-success" style="margin-bottom:1.5rem">
-        ✅ <strong>Groups A, B, C are finalized!</strong> We're showing:
+        ✅ <strong>Groups A, B, C, D, E, F are finalized!</strong> We're showing:
         <br>
-        • <strong>Real Leaderboard:</strong> Points earned from finalized groups (A, B, C) — official tournament scoring
+        • <strong>Real Leaderboard:</strong> Points earned from finalized groups (A-F) — official tournament scoring
         <br>
         • <strong>Live Leaderboard:</strong> Bonus points from live predictions on ongoing/future groups
       </div>
@@ -141,11 +141,11 @@
       <div class="card">
         <div class="section-header">
           <div class="card-title" style="margin-bottom:0;border:none;padding:0">
-            🥇 Real Leaderboard (Groups A, B, C ✅)
+            🥇 Real Leaderboard (Groups A-F ✅)
           </div>
         </div>
         <p style="font-size:.83rem;color:var(--gray-500);margin:1rem 0">
-          Definitive standings based on <strong>finalized groups only</strong> (A, B, C). 
+          Definitive standings based on <strong>finalized groups only</strong> (A-F). 
           Each correct group winner = <strong>1 point</strong>.
         </p>
         <div id="realLeaderboardWrap" style="margin-top:1rem"></div>
@@ -361,11 +361,12 @@
     }
 
     // ── Real Leaderboard (Finalized Groups Only) ──
-    // Only count A, B, C (finalized groups)
-    const FINALIZED_GROUPS = ['A', 'B', 'C'];
+    const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
+      ? FINALIZED_GROUPS
+      : ['A', 'B', 'C', 'D', 'E', 'F'];
     const realRows = DATA.map(p => {
       let correct = 0;
-      FINALIZED_GROUPS.forEach(g => { 
+      FINALIZED_GROUPS_LIST.forEach(g => {
         if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; 
       });
       return { alias: p.alias, correct };
@@ -376,7 +377,7 @@
       let realHtml = `
         <div class="table-wrap"><table class="expert-table"><thead><tr>
           <th>#</th><th>Player</th>
-          <th class="right">A, B, C ✓</th>
+          <th class="right">A-F ✓</th>
           <th class="right">Points</th>
         </tr></thead><tbody>`;
       realRows.forEach((r, i) => {
@@ -385,7 +386,7 @@
         realHtml += `<tr>
           <td><span class="rank-badge ${cls}">${rank}</span></td>
           <td><strong>${escHtml(r.alias)}</strong></td>
-          <td class="right">${r.correct}/${FINALIZED_GROUPS.length}</td>
+          <td class="right">${r.correct}/${FINALIZED_GROUPS_LIST.length}</td>
           <td class="right"><strong>${r.correct}</strong></td>
         </tr>`;
       });
@@ -456,32 +457,77 @@
       const allRows = standings
         ? GROUPS.flatMap(g => (standings[g] || []).filter(r => r.P > 0).map(r => ({ ...r, g })))
         : [];
-      // ── NEWEST: Finalized Groups (A, B, C) Fun Facts ──
-      const FINALIZED_GROUPS = ['A', 'B', 'C'];
-      const finalGroupLeaders = FINALIZED_GROUPS.map(g => ({ g, leader: leaders[g] })).filter(x => x.leader);
+      // ── NEWEST: Finalized Groups Fun Facts ──
+      const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
+        ? FINALIZED_GROUPS
+        : ['A', 'B', 'C', 'D', 'E', 'F'];
+      const finalGroupLeaders = FINALIZED_GROUPS_LIST.map(g => ({ g, leader: leaders[g] })).filter(x => x.leader);
+
+      // ── D/E/F Roast Pack (always shown first) ──
+      const ROAST_GROUPS = ['D', 'E', 'F'].filter(g => FINALIZED_GROUPS_LIST.includes(g) && leaders[g]);
+      if (ROAST_GROUPS.length > 0) {
+        const roastRows = DATA.map(p => {
+          let correct = 0;
+          ROAST_GROUPS.forEach(g => {
+            if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
+          });
+          return { alias: p.alias, correct };
+        });
+
+        const roastPerfect = roastRows.filter(r => r.correct === ROAST_GROUPS.length);
+        if (roastPerfect.length > 0) {
+          const names = roastPerfect.slice(0, 4).map(r => `<strong>${escHtml(r.alias)}</strong>`).join(', ');
+          const andMore = roastPerfect.length > 4 ? ` and ${roastPerfect.length - 4} others` : '';
+          facts.push({
+            cls: 'green', emoji: '🔥', title: 'D-E-F Snipers',
+            body: `${names}${andMore} went a clean <strong>${ROAST_GROUPS.length}/${ROAST_GROUPS.length}</strong> on Groups D-E-F. Either elite football IQ or a suspiciously accurate crystal ball. 🔮`
+          });
+        }
+
+        const roastZero = roastRows.filter(r => r.correct === 0);
+        if (roastZero.length > 0) {
+          const names = roastZero.slice(0, 4).map(r => `<strong>${escHtml(r.alias)}</strong>`).join(', ');
+          const andMore = roastZero.length > 4 ? ` and ${roastZero.length - 4} others` : '';
+          facts.push({
+            cls: 'red', emoji: '🪦', title: 'D-E-F Disasterclass',
+            body: `${names}${andMore} managed a heroic <strong>0/${ROAST_GROUPS.length}</strong> in Groups D-E-F. The bracket is fine, the ego needs ice. 🧊`
+          });
+        }
+
+        const hardestDEF = ROAST_GROUPS
+          .map(g => ({ g, cnt: DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length }))
+          .sort((a, b) => a.cnt - b.cnt)[0];
+        if (hardestDEF) {
+          const miss = N - hardestDEF.cnt;
+          facts.push({
+            cls: 'blue', emoji: '🎯', title: `Group ${hardestDEF.g} Broke Brains`,
+            body: `${teamFlag(leaders[hardestDEF.g])} <strong>${teamName(leaders[hardestDEF.g])}</strong> in Group ${hardestDEF.g} cooked the pool: <strong>${miss}/${N}</strong> missed that winner call (${Math.round(miss / N * 100)}%).`
+          });
+        }
+      }
       
       if (finalGroupLeaders.length > 0) {
         // Perfect scorers in finalized groups
         const perfectInABC = DATA.map(p => {
           let correct = 0;
-          FINALIZED_GROUPS.forEach(g => {
+          FINALIZED_GROUPS_LIST.forEach(g => {
             if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
           });
           return { ...p, correctABC: correct };
-        }).filter(p => p.correctABC === FINALIZED_GROUPS.length);
+        }).filter(p => p.correctABC === FINALIZED_GROUPS_LIST.length);
 
         if (perfectInABC.length > 0) {
           const perfectNames = perfectInABC.map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
           facts.push({
-            cls: 'green', emoji: '✨', title: 'Perfect Score (A, B, C)',
-            body: `${perfectNames} got <strong>ALL THREE</strong> finalized groups correct. That is not luck, that is prophecy with a spreadsheet. 🔮`
+            cls: 'green', emoji: '✨', title: 'Perfect Score (Finalized Groups)',
+            body: `${perfectNames} got <strong>all ${FINALIZED_GROUPS_LIST.length}</strong> finalized groups correct. That is not luck, that is prophecy with a spreadsheet. 🔮`
           });
         }
 
         // Predictions that got ZERO finalized groups right
         const zeroInABC = DATA.map(p => {
           let correct = 0;
-          FINALIZED_GROUPS.forEach(g => {
+          FINALIZED_GROUPS_LIST.forEach(g => {
             if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++;
           });
           return { ...p, correctABC: correct };
@@ -492,13 +538,13 @@
           const andMore = zeroInABC.length > 3 ? ` and ${zeroInABC.length - 3} others` : '';
           facts.push({
             cls: 'red', emoji: '💀', title: 'Cold Start',
-            body: `${zeroNames}${andMore} went 0-for-3 in the finalized groups. The algorithm did not lie — just did not help. 🎯➡️❌`
+            body: `${zeroNames}${andMore} went 0-for-${FINALIZED_GROUPS_LIST.length} in the finalized groups. The algorithm did not lie — just did not help. 🎯➡️❌`
           });
         }
 
         // Most shocking correctness
         const perGroupCorrect = {};
-        FINALIZED_GROUPS.forEach(g => {
+        FINALIZED_GROUPS_LIST.forEach(g => {
           if (leaders[g]) {
             const cnt = DATA.filter(p => p.predictions.groupWinners[g] === leaders[g]).length;
             perGroupCorrect[g] = cnt;

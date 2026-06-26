@@ -5,7 +5,7 @@
  *  REAL DATA — sourced from the official FIFA results & standings pages:
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/standings
- *  Snapshot taken on 2026-06-24 (matchday 2 complete for groups A–L).
+ *  Snapshot taken on 2026-06-26 (groups A-F finalized; latest updates applied).
  *
  *  HOW TO UPDATE as the tournament progresses:
  *    1. Open the FIFA scores-fixtures page.
@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-06-24",                 // "information as of" date shown on the page
+  asOf: "2026-06-26",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -28,8 +28,8 @@ const LIVE_INFO = {
 // Each match: { group, date (YYYY-MM-DD), home, away, hs, as }
 //   home / away  = FIFA 3-letter team codes (see TEAMS in data.js)
 //   hs / as      = goals scored by home / away
-// Only include matches that have actually been played. Matchday 3 + knockouts
-// can be appended here later with the same shape.
+// Only include matches that have actually been played. Remaining group matchday
+// updates + knockouts can be appended here later with the same shape.
 const LIVE_MATCHES = [
   // ── Group A ──
   { group: "A", date: "2026-06-11", home: "MEX", away: "RSA", hs: 2, as: 0 },
@@ -54,18 +54,24 @@ const LIVE_MATCHES = [
   { group: "D", date: "2026-06-14", home: "AUS", away: "TUR", hs: 2, as: 0 },
   { group: "D", date: "2026-06-18", home: "USA", away: "AUS", hs: 2, as: 0 },
   { group: "D", date: "2026-06-18", home: "PAR", away: "TUR", hs: 1, as: 0 },
+  { group: "D", date: "2026-06-24", home: "TUR", away: "USA", hs: 3, as: 2 },
+  { group: "D", date: "2026-06-24", home: "PAR", away: "AUS", hs: 0, as: 0 },
 
   // ── Group E ──
   { group: "E", date: "2026-06-14", home: "GER", away: "CUW", hs: 7, as: 1 },
   { group: "E", date: "2026-06-15", home: "CIV", away: "ECU", hs: 1, as: 0 },
   { group: "E", date: "2026-06-19", home: "GER", away: "CIV", hs: 2, as: 1 },
   { group: "E", date: "2026-06-19", home: "ECU", away: "CUW", hs: 0, as: 0 },
+  { group: "E", date: "2026-06-24", home: "CUW", away: "CIV", hs: 0, as: 2 },
+  { group: "E", date: "2026-06-24", home: "ECU", away: "GER", hs: 2, as: 1 },
 
   // ── Group F ──
   { group: "F", date: "2026-06-14", home: "NED", away: "JPN", hs: 2, as: 2 },
   { group: "F", date: "2026-06-15", home: "SWE", away: "TUN", hs: 5, as: 1 },
   { group: "F", date: "2026-06-19", home: "NED", away: "SWE", hs: 5, as: 1 },
   { group: "F", date: "2026-06-19", home: "JPN", away: "TUN", hs: 4, as: 0 },
+  { group: "F", date: "2026-06-24", home: "JPN", away: "SWE", hs: 1, as: 1 },
+  { group: "F", date: "2026-06-24", home: "TUN", away: "NED", hs: 1, as: 3 },
 
   // ── Group G ──
   { group: "G", date: "2026-06-15", home: "BEL", away: "EGY", hs: 1, as: 1 },
@@ -105,7 +111,7 @@ const LIVE_MATCHES = [
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
-// Snapshot from the FIFA standings page on 2026-06-25. Groups A, B, C are now
+// Snapshot from the FIFA standings page on 2026-06-26. Groups A-F are now
 // finalized (all matches played). When teams are level on points/GD/GF, FIFA's 
 // official ranking resolves the tie; we store FIFA's displayed leader explicitly 
 // to stay faithful to the source.
@@ -114,6 +120,27 @@ const OFFICIAL_LEADERS = {
   E: "GER", F: "NED", G: "EGY", H: "ESP",
   I: "FRA", J: "ARG", K: "COL", L: "ENG",
 };
+
+// ─── FINALIZED GROUPS — SINGLE SOURCE OF TRUTH ───────────────────────────────
+// A group is "finalized" once all its matches are played and its winner is
+// locked in. The winners of these groups are FINAL and feed the official points
+// calculation. As each new group finishes, add its letter here (and make sure
+// its winner is correct in OFFICIAL_LEADERS above). Everything downstream —
+// predictions colouring, the All-Cards points, the results page and the
+// scoreboard — recomputes from this automatically. No other file needs editing.
+const FINALIZED_GROUPS = ["A", "B", "C", "D", "E", "F"];
+
+// Feed the finalized group winners into ACTUAL_RESULTS so that calcPoints() in
+// data.js (the ONE scoring function used across every page) produces the real
+// points wherever both data.js and live-data.js are loaded. This keeps "what
+// actually happened" in a single place — ACTUAL_RESULTS — sourced from the live
+// FIFA standings above. Knockout-round results get added to ACTUAL_RESULTS the
+// same way later, and the very same calcPoints() will score them.
+if (typeof ACTUAL_RESULTS !== "undefined" && ACTUAL_RESULTS.groupWinners) {
+  FINALIZED_GROUPS.forEach((g) => {
+    if (OFFICIAL_LEADERS[g]) ACTUAL_RESULTS.groupWinners[g] = OFFICIAL_LEADERS[g];
+  });
+}
 
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────
 // Computes a classic group table (Pts, W/D/L, GF, GA, GD) from LIVE_MATCHES.
