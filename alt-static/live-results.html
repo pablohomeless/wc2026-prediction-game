@@ -212,7 +212,9 @@
     const leaders = getGroupLeaders();
     const played  = getGroupPlayedCounts();
     const standings = computeGroupStandings();
-    const FINALIZED_GROUPS = ['A', 'B', 'C']; // Finalized groups
+    const FINALIZED_GROUPS = (typeof window.FINALIZED_GROUPS !== 'undefined')
+      ? window.FINALIZED_GROUPS
+      : ['A', 'B', 'C', 'D', 'E', 'F'];
 
     // ── Group leaders ──
     let lhtml = '';

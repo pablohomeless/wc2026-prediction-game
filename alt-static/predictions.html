@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* Prediction result colors for finalized groups (A, B, C) */
+    /* Prediction result colors for finalized groups */
     .td-center.correct {
       background: #dcfce7;
       color: #15803d;
@@ -212,7 +212,6 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="live-data.js"></script>
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
@@ -268,17 +267,25 @@
     const gwDone = GROUPS.filter(g => ar.groupWinners && ar.groupWinners[g]).length;
     if (gwDone > 0) {
       document.getElementById('gwLegend').textContent =
-        gwDone + '/12 decided. Green = correct, Orange = wrong.';
+        gwDone + '/12 decided. Green = correct, Red = wrong.';
     }
 
     participants.forEach(p => {
       let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
+        ? FINALIZED_GROUPS
+        : ['A', 'B', 'C', 'D', 'E', 'F'];
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
-        // ar.groupWinners is only populated for finalized groups (see
-        // live-data.js), so colours apply only where the result is final.
-        const actual = ar.groupWinners && ar.groupWinners[g];
-        const cls = actual ? (pred === actual ? 'correct' : 'wrong') : '';
+        const isFinalized = FINALIZED_GROUPS_LIST.includes(g);
+        let cls = '';
+        
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined' && OFFICIAL_LEADERS[g]) {
+          // For finalized groups: always apply color based on OFFICIAL_LEADERS
+          const actual = OFFICIAL_LEADERS[g];
+          cls = pred === actual ? 'correct' : 'wrong';
+        }
+        
         const t = TEAMS[pred];
         row += '<td class="td-center ' + cls + '" style="font-size:.8rem;font-weight:600">' +
                '<span title="' + (t ? t.name : pred) + '">' + teamShort(pred) + '</span></td>';
@@ -350,16 +357,36 @@
 
     // ── All Cards ──
     const allCards = document.getElementById('allCards');
+    const FINALIZED_GROUPS_CARDS = (typeof FINALIZED_GROUPS !== 'undefined')
+      ? FINALIZED_GROUPS
+      : ['A', 'B', 'C', 'D', 'E', 'F'];
     participants.forEach(p => {
       const pts = p.points;
+
+      // Calculate live points for finalized groups
+      let liveGroupPts = 0;
+      if (typeof OFFICIAL_LEADERS !== 'undefined' && p.predictions && p.predictions.groupWinners) {
+        FINALIZED_GROUPS_CARDS.forEach(g => {
+          const pred = p.predictions.groupWinners[g];
+          const actual = OFFICIAL_LEADERS[g];
+          if (pred && actual && pred === actual) {
+            liveGroupPts += 1;
+          }
+        });
+      }
 
       let gwChips = '<div class="group-winners-grid">';
       GROUPS.forEach(g => {
         const code = p.predictions.groupWinners[g] || '?';
-        // Colour finalized groups only: ar.groupWinners is populated solely for
-        // finalized groups (see live-data.js).
-        const actual = ar.groupWinners && ar.groupWinners[g];
-        const cls = actual ? (code === actual ? 'correct' : 'wrong') : '';
+        const isFinalized = FINALIZED_GROUPS_CARDS.includes(g);
+        let cls = '';
+        
+        if (isFinalized && typeof OFFICIAL_LEADERS !== 'undefined' && OFFICIAL_LEADERS[g]) {
+          // For finalized groups: always apply color based on OFFICIAL_LEADERS
+          const actual = OFFICIAL_LEADERS[g];
+          cls = code === actual ? 'correct' : 'wrong';
+        }
+        
         gwChips += '<div class="group-winner-chip ' + cls + '">' +
                    '<div class="grp">Group ' + g + '</div>' +
                    '<div class="team">' + teamShort(code) + '</div></div>';
@@ -389,6 +416,9 @@
       const tsCls = !ar.topScorer ? '' :
         (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
 
+      // Live total (finalized groups only)
+      const liveTotalPts = liveGroupPts;
+
       allCards.innerHTML += '<div class="player-card">' +
         '<div class="player-card-header">👤 ' + escHtml(p.alias) +
         '<span class="pts-badge" style="margin-left:auto">' + pts.total + ' pts</span></div>' +
@@ -403,6 +433,11 @@
             '<div class="special-row"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval ' + tsCls + '">' + escHtml(ts || '—') + '</span></div>' +
           '</div>' +
           '<div class="score-summary">' +
+            '<div class="score-row" style="background: #f0fdf4; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; border-left: 4px solid #10b981;">' +
+                '<div style="font-size: 0.8rem; font-weight: 700; color: #059669; margin-bottom: 0.5rem;">✅ Live Points (Groups A-F Finalized)</div>' +
+                '<div class="sc"><div class="n">' + liveGroupPts + '</div><div class="l">🏅 Groups A-F</div></div>' +
+              '<div class="sc" style="margin-left: auto;"><div class="n" style="color: #10b981; font-size: 1.1rem;">' + liveTotalPts + '</div><div class="l">LIVE TOTAL</div></div>' +
+            '</div>' +
             '<div class="score-row">' +
               '<div class="sc"><div class="n">' + pts.groupWinners + '</div><div class="l">🏅 Groups</div></div>' +
               '<div class="sc"><div class="n">' + pts.semiFinals + '</div><div class="l">🏟️ Semis</div></div>' +
@@ -427,7 +462,7 @@
 
 <style>
   td.correct { background: #dcfce7 !important; color: #166534; }
-  td.wrong   { background: #fed7aa !important; color: #9a3412; }
+  td.wrong   { background: #fee2e2 !important; color: #991b1b; }
   .fi { font-size: 1.15em; vertical-align: -0.1em; border-radius: 2px; }
 </style>
 </body>
