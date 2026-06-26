@@ -755,14 +755,14 @@
 
   // ── Group Winners Grid ────────────────────────────────────────────────────
   const groupGrid = document.getElementById('groupGrid');
-  const FINALIZED_GROUPS = (typeof window.FINALIZED_GROUPS !== 'undefined')
+  const FINALIZED_GROUPS_LOCAL = (typeof window.FINALIZED_GROUPS !== 'undefined')
     ? window.FINALIZED_GROUPS
     : ['A', 'B', 'C', 'D', 'E', 'F'];
   GROUPS.forEach(g => {
     const entries = gwStats[g];
     const top = entries[0];
     const topPct = pct(top[1]);
-    const isFinalized = FINALIZED_GROUPS.includes(g);
+    const isFinalized = FINALIZED_GROUPS_LOCAL.includes(g);
 
     let barsHtml = '<div class="bar-list">';
     entries.forEach(([code, cnt], i) => {

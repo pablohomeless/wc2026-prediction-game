@@ -1,59 +1,63 @@
-# Prompt: Update Prediction Game for Finalized Groups
+﻿# Daily Closed Groups Update Prompt (alt-static)
 
-## Usage
-When groups D, E, F, G, H, I, J, K, L finalize, replace `['A', 'B', 'C']` with the newly finalized groups and run this prompt.
+Please run the Daily Closed Groups Update for my alt-static site.
 
----
+Scope:
+- Work only inside alt-static.
+- Read the FIFA pages I shared in this chat:
+  - Standings page
+  - Scores/fixtures page
+- Detect which groups became finalized since the last update.
 
-## Prompt Template
+Required updates:
+1. Data source of truth
+- Update winners by group in alt-static/live-data.js OFFICIAL_LEADERS.
+- Update FINALIZED_GROUPS to include all newly finalized groups.
+- Keep scoring centralized via ACTUAL_RESULTS and calcPoints (no duplicated scoring logic).
 
-**Update FIFA World Cup 2026 Prediction Game — Finalized Groups [INSERT_GROUPS_HERE]**
+2. Predictions page
+- In alt-static/predictions.html:
+  - Group Winners table: color finalized-group picks green if correct, orange if wrong.
+  - All Cards: keep official points for Group Winners and Total in sync with centralized scoring.
+  - Keep winner chips green/orange for finalized groups.
+  - Do not add separate Live Points block.
 
-Groups [INSERT_GROUPS_HERE] have now finalized. Please update the alt-static site to reflect this:
+3. Results page preview
+- Update alt-static/results.html so it reflects the newly finalized groups (still not linked from other pages unless I ask).
 
-### 1. Update `live-data.js` OFFICIAL_LEADERS
-- Verify the finalized group winners from FIFA
-- Update the `OFFICIAL_LEADERS` object with the confirmed leaders for [INSERT_GROUPS_HERE]
-- Add a comment noting the date and which groups are now finalized
+4. Fun facts for newly closed groups
+- Add short fun facts for each newly finalized group (for example: most-picked winner %, surprise winner, perfect predictors count, toughest group).
+- Keep tone playful but concise.
+- Place fun facts where they are already shown, or add a clearly labeled section in the live/scoreboard experience if needed.
 
-### 2. Color-code predictions in `predictions.html`
-- In the JavaScript section (around line 260-270), modify the Group Winners table generation:
-  - Update `FINALIZED_GROUPS = ['A', 'B', 'C']` to `FINALIZED_GROUPS = [INSERT_GROUPS_HERE]`
-  - This will apply green/orange coloring only to cells for [INSERT_GROUPS_HERE]
-- In the "All Cards" section (around line 290+), do the same FINALIZED_GROUPS update
+5. Validation
+- Run a quick consistency check and report exactly what changed:
+  - finalized groups before vs after
+  - winners changed
+  - files edited
+  - any assumptions or ambiguous standings resolved
+- JS safety check (important):
+  - Do not redeclare top-level const FINALIZED_GROUPS in stats.html (live-data.js already defines it globally).
+  - If a local fallback is needed in stats.html, use a different local name such as FINALIZED_GROUPS_LOCAL.
+  - Confirm stats.html renders and is not blank after edits.
 
-### 3. Highlight finalized groups in `live-results.html`
-- In the JavaScript section (around line 280), update `FINALIZED_GROUPS = ['A', 'B', 'C']` to `FINALIZED_GROUPS = [INSERT_GROUPS_HERE]`
-- This applies green backgrounds and "✅ Finalized" labels to finalized groups
+6. Safe rendering gate (must pass before done)
+- Open and verify these pages render non-empty content:
+  - alt-static/index.html
+  - alt-static/predictions.html
+  - alt-static/stats.html
+  - alt-static/live-results.html
+  - alt-static/results.html
+- For each page, confirm:
+  - no fatal JavaScript error blocks rendering
+  - main content container exists and has visible child content
+  - key data section is populated (table, cards, chart, or tiles)
+- If any page is blank or partially broken:
+  - stop and fix before finalizing
+  - re-run the same checks on all pages
+- In the final report, include a SAFE CHECK result line per page:
+  - PASS or FAIL
+  - one short note on what was verified
 
-### 4. Highlight finalized groups in `stats.html` — Group Winners section
-- In the JavaScript section (around line 780), update `FINALIZED_GROUPS = ['A', 'B', 'C']` to `FINALIZED_GROUPS = [INSERT_GROUPS_HERE]`
-- This applies green styling to group cards for finalized groups
-- Fun facts section will auto-generate commentary for [INSERT_GROUPS_HERE]
-
-### 5. Sort fun stats: Newest First
-- Finalized group commentary should appear at the top of fun-facts grids
-- No additional changes needed — already implemented
-
-### Result
-After these updates, the site will:
-- ✅ Show finalized groups with green styling across all pages
-- ✅ Color-code predictions (green for correct, orange for wrong) for [INSERT_GROUPS_HERE]
-- ✅ Generate contextualized commentary (Textbook Call, Split Decision, Believers Won Big, or Majority Lost) for each finalized group
-- ✅ Display newest updates first in fun stats
-
----
-
-## Quick Reference: Group Letters
-- **Groups A, B, C**: Finalized (2026-06-25)
-- **Groups D, E, F**: Finalize after their matches
-- **Groups G, H, I**: Finalize after their matches
-- **Groups J, K, L**: Finalize after their matches
-
-## Files to Modify
-1. `live-data.js` — Update OFFICIAL_LEADERS constant
-2. `predictions.html` — Update FINALIZED_GROUPS (2 places)
-3. `live-results.html` — Update FINALIZED_GROUPS (1 place)
-4. `stats.html` — Update FINALIZED_GROUPS (1 place)
-
-**Total changes per update: ~5 replacements of the FINALIZED_GROUPS array**
+Optional short trigger you can use with me:
+Run Daily Closed Groups Update now (same rules as last time).
