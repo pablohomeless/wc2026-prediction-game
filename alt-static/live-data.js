@@ -129,7 +129,7 @@ const OFFICIAL_LEADERS = {
 // its winner is correct in OFFICIAL_LEADERS above). Everything downstream —
 // predictions colouring, the All-Cards points, the results page and the
 // scoreboard — recomputes from this automatically. No other file needs editing.
-const FINALIZED_GROUPS = ["A", "B", "C"];
+const FINALIZED_GROUPS = ["A", "B", "C", "D", "E", "F"];
 
 // Feed the finalized group winners into ACTUAL_RESULTS so that calcPoints() in
 // data.js (the ONE scoring function used across every page) produces the real
