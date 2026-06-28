@@ -51,6 +51,7 @@
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
+      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -65,6 +66,7 @@
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
+    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -275,7 +277,7 @@
       let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
       const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
         ? FINALIZED_GROUPS
-        : ['A', 'B', 'C', 'D', 'E', 'F'];
+        : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
       GROUPS.forEach(g => {
         const pred = p.predictions.groupWinners[g] || '?';
         const isFinalized = FINALIZED_GROUPS_LIST.includes(g);
@@ -360,7 +362,7 @@
     const allCards = document.getElementById('allCards');
     const FINALIZED_GROUPS_CARDS = (typeof FINALIZED_GROUPS !== 'undefined')
       ? FINALIZED_GROUPS
-      : ['A', 'B', 'C', 'D', 'E', 'F'];
+      : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
     participants.forEach(p => {
       const pts = p.points;
 

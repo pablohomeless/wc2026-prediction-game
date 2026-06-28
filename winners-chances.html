@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Winners Chances — Porra Mundial 2026 ⚽</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .section-title {
+      font-size: 1.15rem; font-weight: 700; color: var(--darkblue);
+      border-left: 4px solid var(--gold); padding-left: .75rem; margin-bottom: 1rem;
+    }
+    .expert-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .expert-table th { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray-500); padding: .5rem .6rem; border-bottom: 2px solid var(--gray-200); text-align: left; }
+    .expert-table th.right { text-align: right; }
+    .expert-table td { padding: .5rem .6rem; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+    .expert-table tr:last-child td { border-bottom: none; }
+    .expert-table tr:hover td { background: var(--gray-50); }
+    .expert-table td.right { text-align: right; }
+    .rank-badge { display: inline-flex; align-items: center; background: var(--darkblue); color: #fff; border-radius: 5px; font-size: .7rem; font-weight: 800; padding: .1rem .38rem; white-space: nowrap; }
+    .rank-badge.top5  { background: #065f46; }
+    .rank-badge.top10 { background: #1e40af; }
+    .rank-badge.mid   { background: #6b7280; }
+    .insight { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 8px 8px 0; padding: .75rem 1rem; font-size: .85rem; color: #1e3a5f; margin-top: 1rem; }
+    .insight strong { color: #1d4ed8; }
+    .stats-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .stat-mini { flex: 1; min-width: 130px; background: #fff; border-radius: 10px; border: 1px solid var(--gray-100); padding: .8rem 1rem; text-align: center; }
+    .stat-mini .mn { font-size: 1.6rem; font-weight: 800; color: var(--darkblue); }
+    .stat-mini .ml { font-size: .72rem; color: var(--gray-500); margin-top: .15rem; }
+    .messi-tag { display:inline-block; background:#7c3aed; color:#fff; font-size:.66rem; font-weight:800; border-radius:4px; padding:.05rem .3rem; }
+    .lead-tag { display:inline-block; background:#065f46; color:#fff; font-size:.66rem; font-weight:800; border-radius:4px; padding:.05rem .3rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="stats.html">Stats</a></li>
+      <li><a href="live-results.html">Live Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+      <li><a href="winners-chances.html" class="active">Winners Chances</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path id="hamburgerIcon" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="stats.html">Stats</a>
+    <a href="live-results.html">Live Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="how-to-play.html">How to Play</a>
+    <a href="winners-chances.html" class="active">Winners Chances</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <div class="hero wc-header-gradient">
+        <div class="hero-icon">🔮</div>
+        <h1>Who Can Win the Porra</h1>
+        <p>Title odds based on locked group-winner points + the bracket ahead</p>
+      </div>
+
+      <div class="alert alert-info">
+        ⚽ <strong>All 12 group winners are final.</strong> Knockouts decide the rest:
+        semis 2 pts each, finalists 4 pts, 3rd/4th teams 3 pts, champion 10 pts, 3rd-place 2 pts,
+        top scorer 5 pts. We project the maximum points each player can still reach assuming their
+        surviving picks deliver — and we assume <strong>Leo Messi is top scorer</strong>.
+      </div>
+
+      <div class="card">
+        <div class="section-title">📊 The Race</div>
+        <div id="kpis" class="stats-row" style="margin-bottom:1rem"></div>
+        <div id="ceilingWrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">🧠 Read</div>
+        <div id="insight" class="insight"></div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script src="live-data.js"></script>
+<script src="participants-import.js"></script>
+<script>
+  function toggleMenu() {
+    document.getElementById('navMobile').classList.toggle('open');
+  }
+  function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+  (function () {
+    const DATA = (typeof PARTICIPANTS_IMPORT !== 'undefined' && PARTICIPANTS_IMPORT.length) ? PARTICIPANTS_IMPORT : PARTICIPANTS;
+    const N = DATA.length;
+
+    // Qualified teams: top 2 of each group + 8 best 3rd-placed
+    const st = computeGroupStandings();
+    const qualified = new Set(); const thirds = [];
+    GROUPS.forEach(g => { qualified.add(st[g][0].code); qualified.add(st[g][1].code); thirds.push(st[g][2]); });
+    thirds.sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF).slice(0, 8).forEach(t => qualified.add(t.code));
+
+    const rows = DATA.map(p => {
+      const cur = calcPoints(p, ACTUAL_RESULTS);            // group winners are locked
+      let pot = 0;
+      (p.predictions.semiFinals || []).forEach(t => { if (qualified.has(t)) pot += 2; });
+      (p.predictions.finalists || []).forEach(t => { if (qualified.has(t)) pot += 4; });
+      (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (qualified.has(t)) pot += 3; });
+      if (qualified.has(p.predictions.champion)) pot += 10;
+      if (qualified.has(p.predictions.thirdPlace)) pot += 2;
+      const messi = /messi/i.test(p.predictions.topScorer || '');
+      if (messi) pot += 5; // Messi assumed top scorer
+      return {
+        alias: p.alias, gw: cur.groupWinners, cur: cur.total, ceiling: cur.total + pot,
+        champ: p.predictions.champion, champAlive: qualified.has(p.predictions.champion), messi
+      };
+    }).sort((a, b) => b.ceiling - a.ceiling || b.cur - a.cur || a.alias.localeCompare(b.alias));
+
+    const maxCeil = rows[0].ceiling;
+    const topGw = Math.max(...rows.map(r => r.gw));
+    const messiPickers = rows.filter(r => r.messi).length;
+
+    document.getElementById('kpis').innerHTML = `
+      <div class="stat-mini"><div class="mn">${rows.filter(r => r.ceiling === maxCeil).length}</div><div class="ml">tied for top ceiling</div></div>
+      <div class="stat-mini"><div class="mn">${maxCeil}</div><div class="ml">highest reachable pts</div></div>
+      <div class="stat-mini"><div class="mn">${topGw}/12</div><div class="ml">best group score</div></div>
+      <div class="stat-mini"><div class="mn">${messiPickers}</div><div class="ml">picked Messi top scorer</div></div>`;
+
+    let html = `<div class="table-wrap"><table class="expert-table"><thead><tr>
+      <th>#</th><th>Player</th><th class="right">Locked</th><th class="right">Ceiling</th><th>Champion</th><th>Edge</th>
+    </tr></thead><tbody>`;
+    rows.forEach((r, i) => {
+      const rank = i + 1;
+      const cls = rank <= 5 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
+      const tags = [];
+      if (r.gw === topGw) tags.push('<span class="lead-tag">LEADER</span>');
+      if (r.messi) tags.push('<span class="messi-tag">MESSI</span>');
+      html += `<tr>
+        <td><span class="rank-badge ${cls}">${rank}</span></td>
+        <td><strong>${escHtml(r.alias)}</strong></td>
+        <td class="right">${r.cur}</td>
+        <td class="right"><strong>${r.ceiling}</strong></td>
+        <td>${r.champAlive ? '' : '<span style="opacity:.5">❌ </span>'}${flagHtml(r.champ)} ${teamDisplay(r.champ).split(' ').slice(1).join(' ') || r.champ}</td>
+        <td>${tags.join(' ') || '—'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('ceilingWrap').innerHTML = html;
+
+    const leaders = rows.filter(r => r.gw === topGw).map(r => r.alias);
+    document.getElementById('insight').innerHTML =
+      `<strong>${leaders.length}</strong> player${leaders.length === 1 ? '' : 's'} lead on locked group points (<strong>${topGw}/12</strong>): ` +
+      leaders.map(a => escHtml(a)).join(', ') + '. ' +
+      (messiPickers === 0
+        ? 'No one predicted <strong>Messi</strong> as top scorer, so those 5 points are off the table for everyone — Argentina-backers gain only via the bracket. '
+        : `${messiPickers} player(s) pocket the Messi top-scorer bonus. `) +
+      'Spain is the consensus champion, so ESP-backers at the top are the safest favorites; the rest need their Brazil/France/England title pick to come through.';
+  })();
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@
  *  REAL DATA — sourced from the official FIFA results & standings pages:
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures
  *    https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/standings
- *  Snapshot taken on 2026-06-26 (groups A-F finalized; latest updates applied).
+ *  Snapshot taken on 2026-06-29 (all groups finalized; latest updates applied).
  *
  *  HOW TO UPDATE as the tournament progresses:
  *    1. Open the FIFA scores-fixtures page.
@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-06-26",                 // "information as of" date shown on the page
+  asOf: "2026-06-29",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -78,36 +78,48 @@ const LIVE_MATCHES = [
   { group: "G", date: "2026-06-16", home: "IRN", away: "NZL", hs: 2, as: 2 },
   { group: "G", date: "2026-06-20", home: "EGY", away: "NZL", hs: 3, as: 1 },
   { group: "G", date: "2026-06-20", home: "IRN", away: "BEL", hs: 0, as: 0 },
+  { group: "G", date: "2026-06-26", home: "EGY", away: "IRN", hs: 1, as: 1 },
+  { group: "G", date: "2026-06-26", home: "NZL", away: "BEL", hs: 1, as: 5 },
 
   // ── Group H ──
   { group: "H", date: "2026-06-15", home: "ESP", away: "CPV", hs: 0, as: 0 },
   { group: "H", date: "2026-06-16", home: "KSA", away: "URU", hs: 1, as: 1 },
   { group: "H", date: "2026-06-20", home: "ESP", away: "KSA", hs: 4, as: 0 },
   { group: "H", date: "2026-06-20", home: "URU", away: "CPV", hs: 2, as: 2 },
+  { group: "H", date: "2026-06-25", home: "CPV", away: "KSA", hs: 0, as: 0 },
+  { group: "H", date: "2026-06-25", home: "URU", away: "ESP", hs: 0, as: 1 },
 
   // ── Group I ──
   { group: "I", date: "2026-06-16", home: "FRA", away: "SEN", hs: 3, as: 1 },
   { group: "I", date: "2026-06-17", home: "IRQ", away: "NOR", hs: 1, as: 4 },
   { group: "I", date: "2026-06-22", home: "FRA", away: "IRQ", hs: 3, as: 0 },
   { group: "I", date: "2026-06-23", home: "NOR", away: "SEN", hs: 3, as: 2 },
+  { group: "I", date: "2026-06-27", home: "NOR", away: "FRA", hs: 1, as: 4 },
+  { group: "I", date: "2026-06-27", home: "SEN", away: "IRQ", hs: 5, as: 0 },
 
   // ── Group J ──
   { group: "J", date: "2026-06-17", home: "ARG", away: "ALG", hs: 3, as: 0 },
   { group: "J", date: "2026-06-17", home: "AUT", away: "JOR", hs: 3, as: 1 },
   { group: "J", date: "2026-06-22", home: "ARG", away: "AUT", hs: 2, as: 0 },
   { group: "J", date: "2026-06-23", home: "JOR", away: "ALG", hs: 1, as: 2 },
+  { group: "J", date: "2026-06-28", home: "ALG", away: "AUT", hs: 3, as: 3 },
+  { group: "J", date: "2026-06-28", home: "JOR", away: "ARG", hs: 1, as: 3 },
 
   // ── Group K ──
   { group: "K", date: "2026-06-17", home: "POR", away: "COD", hs: 1, as: 1 },
   { group: "K", date: "2026-06-18", home: "UZB", away: "COL", hs: 1, as: 3 },
   { group: "K", date: "2026-06-23", home: "POR", away: "UZB", hs: 5, as: 0 },
   { group: "K", date: "2026-06-24", home: "COL", away: "COD", hs: 1, as: 0 },
+  { group: "K", date: "2026-06-28", home: "COL", away: "POR", hs: 0, as: 0 },
+  { group: "K", date: "2026-06-28", home: "COD", away: "UZB", hs: 3, as: 1 },
 
   // ── Group L ──
   { group: "L", date: "2026-06-17", home: "ENG", away: "CRO", hs: 4, as: 2 },
   { group: "L", date: "2026-06-18", home: "GHA", away: "PAN", hs: 1, as: 0 },
   { group: "L", date: "2026-06-23", home: "ENG", away: "GHA", hs: 0, as: 0 },
   { group: "L", date: "2026-06-24", home: "PAN", away: "CRO", hs: 0, as: 1 },
+  { group: "L", date: "2026-06-28", home: "PAN", away: "ENG", hs: 0, as: 2 },
+  { group: "L", date: "2026-06-28", home: "CRO", away: "GHA", hs: 2, as: 1 },
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
@@ -118,7 +130,7 @@ const LIVE_MATCHES = [
 // to stay faithful to the source.
 const OFFICIAL_LEADERS = {
   A: "MEX", B: "SUI", C: "BRA", D: "USA",
-  E: "GER", F: "NED", G: "EGY", H: "ESP",
+  E: "GER", F: "NED", G: "BEL", H: "ESP",
   I: "FRA", J: "ARG", K: "COL", L: "ENG",
 };
 
@@ -129,7 +141,7 @@ const OFFICIAL_LEADERS = {
 // its winner is correct in OFFICIAL_LEADERS above). Everything downstream —
 // predictions colouring, the All-Cards points, the results page and the
 // scoreboard — recomputes from this automatically. No other file needs editing.
-const FINALIZED_GROUPS = ["A", "B", "C", "D", "E", "F"];
+const FINALIZED_GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
 // Feed the finalized group winners into ACTUAL_RESULTS so that calcPoints() in
 // data.js (the ONE scoring function used across every page) produces the real
