@@ -82,6 +82,7 @@
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
+      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -96,6 +97,7 @@
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
+    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -119,11 +121,8 @@
 
       <!-- Status Disclaimer -->
       <div class="alert alert-success" style="margin-bottom:1.5rem">
-        ✅ <strong>Groups A, B, C, D, E, F are finalized!</strong> We're showing:
-        <br>
-        • <strong>Real Leaderboard:</strong> Points earned from finalized groups (A-F) — official tournament scoring
-        <br>
-        • <strong>Live Leaderboard:</strong> Bonus points from live predictions on ongoing/future groups
+        ✅ <strong>All groups A-L are finalized!</strong> Standings below reflect official
+        group-winner scoring (1 pt each). Knockout, champion and top-scorer points unlock as those rounds complete.
       </div>
 
       <!-- Leaderboard -->
@@ -135,20 +134,6 @@
           <span class="badge" id="participantCount"></span>
         </div>
         <div id="scoreboardWrap" style="margin-top:1rem"></div>
-      </div>
-
-      <!-- Real Leaderboard (Finalized Groups Only) -->
-      <div class="card">
-        <div class="section-header">
-          <div class="card-title" style="margin-bottom:0;border:none;padding:0">
-            🥇 Real Leaderboard (Groups A-F ✅)
-          </div>
-        </div>
-        <p style="font-size:.83rem;color:var(--gray-500);margin:1rem 0">
-          Definitive standings based on <strong>finalized groups only</strong> (A-F). 
-          Each correct group winner = <strong>1 point</strong>.
-        </p>
-        <div id="realLeaderboardWrap" style="margin-top:1rem"></div>
       </div>
 
       <!-- Predictions vs. Live Results -->
@@ -360,40 +345,6 @@
       wrap.innerHTML = bhtml;
     }
 
-    // ── Real Leaderboard (Finalized Groups Only) ──
-    const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
-      ? FINALIZED_GROUPS
-      : ['A', 'B', 'C', 'D', 'E', 'F'];
-    const realRows = DATA.map(p => {
-      let correct = 0;
-      FINALIZED_GROUPS_LIST.forEach(g => {
-        if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; 
-      });
-      return { alias: p.alias, correct };
-    }).sort((a, b) => b.correct - a.correct || a.alias.localeCompare(b.alias));
-
-    const realLeaderboardWrap = document.getElementById('realLeaderboardWrap');
-    if (realLeaderboardWrap) {
-      let realHtml = `
-        <div class="table-wrap"><table class="expert-table"><thead><tr>
-          <th>#</th><th>Player</th>
-          <th class="right">A-F ✓</th>
-          <th class="right">Points</th>
-        </tr></thead><tbody>`;
-      realRows.forEach((r, i) => {
-        const rank = i + 1;
-        const cls = rank <= 3 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
-        realHtml += `<tr>
-          <td><span class="rank-badge ${cls}">${rank}</span></td>
-          <td><strong>${escHtml(r.alias)}</strong></td>
-          <td class="right">${r.correct}/${FINALIZED_GROUPS_LIST.length}</td>
-          <td class="right"><strong>${r.correct}</strong></td>
-        </tr>`;
-      });
-      realHtml += `</tbody></table></div>`;
-      realLeaderboardWrap.innerHTML = realHtml;
-    }
-
     // ── KPI row ──
     document.getElementById('liveKpis').innerHTML = `
       <div class="stat-mini"><div class="mn">${groupsInProg}/12</div><div class="ml">groups in progress</div></div>
@@ -460,7 +411,7 @@
       // ── NEWEST: Finalized Groups Fun Facts ──
       const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
         ? FINALIZED_GROUPS
-        : ['A', 'B', 'C', 'D', 'E', 'F'];
+        : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
       const finalGroupLeaders = FINALIZED_GROUPS_LIST.map(g => ({ g, leader: leaders[g] })).filter(x => x.leader);
 
       // ── D/E/F Roast Pack (always shown first) ──
@@ -594,6 +545,44 @@
           facts.push({
             cls: 'blue', emoji: '🤝', title: 'Draw Dealers',
             body: `${teamFlag(drawBoss.code)} <strong>${teamName(drawBoss.code)}</strong> have already banked <strong>${drawBoss.D}</strong> draw${drawBoss.D === 1 ? '' : 's'} in Group ${drawBoss.g}. Somewhere a coach is framing a 0-0 like modern art. 🖼️`
+          });
+        }
+      }
+
+      // Roast pack: semi-final/champion picks already eliminated in group stage
+      if (standings) {
+        const qualifiedTeams = new Set();
+        GROUPS.forEach(g => {
+          (standings[g] || []).slice(0, 2).forEach(r => {
+            if (r && r.code) qualifiedTeams.add(r.code);
+          });
+        });
+
+        const champOut = DATA.filter(p => {
+          const c = p.predictions.champion;
+          return c && !qualifiedTeams.has(c);
+        });
+        if (champOut.length > 0) {
+          const names = champOut.slice(0, 4).map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          const andMore = champOut.length > 4 ? ` and ${champOut.length - 4} others` : '';
+          facts.push({
+            cls: 'red', emoji: '🧯', title: 'Champion Pick Extinction Event',
+            body: `${names}${andMore} picked a champion already sent home in the groups. Bold strategy: win the porra by selecting teams that are watching from the sofa. 📺`
+          });
+        }
+
+        const semiOutRows = DATA.map(p => {
+          const deadSemis = (p.predictions.semiFinals || []).filter(code => code && !qualifiedTeams.has(code));
+          return { alias: p.alias, deadSemis };
+        }).filter(r => r.deadSemis.length > 0)
+          .sort((a, b) => b.deadSemis.length - a.deadSemis.length || a.alias.localeCompare(b.alias));
+
+        if (semiOutRows.length > 0) {
+          const worst = semiOutRows[0];
+          const deadList = worst.deadSemis.map(code => `${teamFlag(code)} ${teamName(code)}`).join(', ');
+          facts.push({
+            cls: 'red', emoji: '🪦', title: 'Semi-final Slip-and-Fall',
+            body: `<strong>${escHtml(worst.alias)}</strong> already lost <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before knockouts even started. Elite confidence, questionable timing. ⏱️`
           });
         }
       }

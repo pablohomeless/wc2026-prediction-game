@@ -246,6 +246,7 @@
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
+      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -260,6 +261,7 @@
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
+    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -355,7 +357,7 @@
           For each group, how many players picked each team to top their group.
         </p>
         <div class="alert alert-success" style="margin-bottom:1.25rem;font-size:.8rem">
-          ✅ Groups A-F are now <strong>finalized</strong> (highlighted in green). Their standings are definitive!
+          ✅ Groups A-L are now <strong>finalized</strong> (highlighted in green). Their standings are definitive!
         </div>
         <div class="group-grid" id="groupGrid"><!-- filled by JS --></div>
       </div>
@@ -757,7 +759,7 @@
   const groupGrid = document.getElementById('groupGrid');
   const FINALIZED_GROUPS_LOCAL = (typeof window.FINALIZED_GROUPS !== 'undefined')
     ? window.FINALIZED_GROUPS
-    : ['A', 'B', 'C', 'D', 'E', 'F'];
+    : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
   GROUPS.forEach(g => {
     const entries = gwStats[g];
     const top = entries[0];
@@ -1120,7 +1122,7 @@
     // ── NEWEST: Finalized group winners — champagne or tears ──
     const FINALIZED_GROUPS_LIST = (typeof window.FINALIZED_GROUPS !== 'undefined')
       ? window.FINALIZED_GROUPS
-      : ['A', 'B', 'C', 'D', 'E', 'F'];
+      : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
     // ── D/E/F Roast Pack (always shown first) ──
     const ROAST_GROUPS = ['D', 'E', 'F'].filter(g => FINALIZED_GROUPS_LIST.includes(g) && leaders[g]);
@@ -1308,6 +1310,42 @@
       facts.push({
         cls: 'red', emoji: '🚧', title: 'Champion in Roadworks',
         body: `<strong>${Math.round(delayedChamp.cnt / N * 100)}%</strong> of the pool still has ${teamFlag(delayedChamp.code)} <strong>${teamName(delayedChamp.code)}</strong> winning it all, even though they are currently parked behind the Group ${delayedChamp.grp} leader. GPS says: rerouting. 🛣️`
+      });
+    }
+
+    // 7. Roast pack: semi-final/champion picks already eliminated in group stage
+    const qualifiedTeams = new Set();
+    GROUPS.forEach(g => {
+      (standings[g] || []).slice(0, 2).forEach(r => {
+        if (r && r.code) qualifiedTeams.add(r.code);
+      });
+    });
+
+    const champOut = DATA.filter(p => {
+      const c = p.predictions.champion;
+      return c && !qualifiedTeams.has(c);
+    });
+    if (champOut.length > 0) {
+      const names = champOut.slice(0, 4).map(p => `<strong>${esc(p.alias)}</strong>`).join(', ');
+      const andMore = champOut.length > 4 ? ` and ${champOut.length - 4} others` : '';
+      facts.push({
+        cls: 'red', emoji: '🧯', title: 'Champion Pick Extinction Event',
+        body: `${names}${andMore} backed a champion that already booked the early holiday package. Next time maybe pick a team that survives the group stage. 🌴`
+      });
+    }
+
+    const semiOutRows = DATA.map(p => {
+      const deadSemis = (p.predictions.semiFinals || []).filter(code => code && !qualifiedTeams.has(code));
+      return { alias: p.alias, deadSemis };
+    }).filter(r => r.deadSemis.length > 0)
+      .sort((a, b) => b.deadSemis.length - a.deadSemis.length || a.alias.localeCompare(b.alias));
+
+    if (semiOutRows.length > 0) {
+      const worst = semiOutRows[0];
+      const deadList = worst.deadSemis.map(code => `${teamFlag(code)} ${teamName(code)}`).join(', ');
+      facts.push({
+        cls: 'red', emoji: '🪦', title: 'Semi-final Slip-and-Fall',
+        body: `<strong>${esc(worst.alias)}</strong> already dropped <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before the knockout drama even starts. Tough scene. 🎬`
       });
     }
 
