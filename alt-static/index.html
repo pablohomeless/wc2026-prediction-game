@@ -125,6 +125,11 @@
         group-winner scoring (1 pt each). Knockout, champion and top-scorer points unlock as those rounds complete.
       </div>
 
+      <div class="alert alert-warning" id="r32Commentary" style="margin-bottom:1.5rem">
+        🧮 <strong>Round of 32 Forecast Update:</strong> Germany and Netherlands eliminations are now reflected in forecast-only pages.
+        Live standings remain unchanged until official round outcomes are fully final.
+      </div>
+
       <!-- Leaderboard -->
       <div class="card">
         <div class="section-header">
@@ -286,6 +291,36 @@
 
     const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
     const N = DATA.length;
+
+    // Round-of-32 commentary only (no standings mutation)
+    (function buildR32Commentary() {
+      const box = document.getElementById('r32Commentary');
+      if (!box || !DATA.length) return;
+      const ELIM = new Set(['GER', 'NED']);
+      const impacted = DATA.map(p => {
+        let c = 0;
+        if (ELIM.has(p.predictions.champion)) c += 2;
+        (p.predictions.finalists || []).forEach(t => { if (ELIM.has(t)) c += 1; });
+        (p.predictions.semiFinals || []).forEach(t => { if (ELIM.has(t)) c += 1; });
+        return { alias: p.alias, c };
+      }).sort((a, b) => b.c - a.c || a.alias.localeCompare(b.alias));
+
+      const hardestHit = impacted.filter(x => x.c === impacted[0].c && x.c > 0).slice(0, 3);
+      const safe = impacted.filter(x => x.c === 0).slice(0, 3);
+
+      const roast = hardestHit.length
+        ? `${hardestHit.map(x => `<strong>${escHtml(x.alias)}</strong>`).join(', ')} took the biggest bracket hit (${hardestHit[0].c} eliminated knockout pick${hardestHit[0].c > 1 ? 's' : ''}).`
+        : 'No one took a major elimination hit yet.';
+      const cheer = safe.length
+        ? `${safe.map(x => `<strong>${escHtml(x.alias)}</strong>`).join(', ')} kept clean knockout cards so far.`
+        : 'No totally clean knockout cards right now.';
+
+      box.innerHTML = `
+        🧮 <strong>Round of 32 Forecast Update:</strong> Germany and Netherlands eliminations are now reflected in forecast-only pages.
+        Live standings remain unchanged until official round outcomes are fully final.
+        <br>🔥 ${roast}
+        <br>🎉 ${cheer}`;
+    })();
 
     document.getElementById('participantCount').textContent =
       N + ' participant' + (N !== 1 ? 's' : '');

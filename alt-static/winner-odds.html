@@ -179,7 +179,7 @@
       <h1>Who Has The Best Shot Right Now?</h1>
       <p>
         Simulation-based forecast using live group standings + all submitted future picks (semis/finals/champion/3rd place),
-        with Golden Boot forced to either <strong>Leo Messi</strong> or <strong>Kylian Mbappe</strong>.
+        with Golden Boot split between <strong>Leo Messi</strong> and <strong>Kylian Mbappe</strong>, and Round of 32 elimination filtering.
       </p>
       <div class="kpis" id="kpis"></div>
     </section>
@@ -225,9 +225,9 @@
     (function () {
       const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
       const N = DATA.length;
-      const RUNS = 30000;
-      const MESSI_SHARE = 0.80; // 80% Messi, 20% Mbappe in this scenario.
-      const MOMENTUM_POINTS_MAX = 2.5; // Max carry-over points from current live form.
+      const RUNS = 18000;
+      const ELIMINATED_TEAMS = new Set(['GER', 'NED']);
+      const MOMENTUM_POINTS_MAX = 2.5;
 
       const leaders = typeof getGroupLeaders === 'function' ? getGroupLeaders() : null;
       const standings = typeof computeGroupStandings === 'function' ? computeGroupStandings() : null;
@@ -245,6 +245,10 @@
         if (hits > maxLiveHits) maxLiveHits = hits;
       });
       const liveLeaders = Object.keys(liveHitsByAlias).filter(a => liveHitsByAlias[a] === maxLiveHits);
+
+      function escHtml(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
 
       function canonicalScorer(name) {
         const s = String(name || '').toLowerCase().trim();
@@ -278,150 +282,148 @@
         return chosen;
       }
 
-      function countsOf(pathFn) {
-        const c = {};
-        DATA.forEach(p => {
-          const vals = pathFn(p) || [];
-          vals.forEach(v => { if (v) c[v] = (c[v] || 0) + 1; });
-        });
-        return c;
-      }
+      function runScenario(opts) {
+        const excluded = opts.excluded || new Set();
+        const messiShare = opts.messiShare;
 
-      const sfCounts = countsOf(p => p.predictions.semiFinals || []);
-      const finCounts = countsOf(p => p.predictions.finalists || []);
-      const t34Counts = countsOf(p => p.predictions.thirdPlaceParticipants || []);
-      const champCounts = (() => {
-        const c = {};
+        function countsOf(pathFn) {
+          const c = {};
+          DATA.forEach(p => {
+            const vals = pathFn(p) || [];
+            vals.forEach(v => { if (v && !excluded.has(v)) c[v] = (c[v] || 0) + 1; });
+          });
+          return c;
+        }
+
+        const sfCounts = countsOf(p => p.predictions.semiFinals || []);
+        const finCounts = countsOf(p => p.predictions.finalists || []);
+        const t34Counts = countsOf(p => p.predictions.thirdPlaceParticipants || []);
+
+        const champCounts = {};
         DATA.forEach(p => {
           const v = p.predictions.champion;
-          if (v) c[v] = (c[v] || 0) + 1;
+          if (v && !excluded.has(v)) champCounts[v] = (champCounts[v] || 0) + 1;
         });
-        return c;
-      })();
-      const t3Counts = (() => {
-        const c = {};
+
+        const t3Counts = {};
         DATA.forEach(p => {
           const v = p.predictions.thirdPlace;
-          if (v) c[v] = (c[v] || 0) + 1;
-        });
-        return c;
-      })();
-
-      function groupWinnerWeights(group) {
-        const rows = standings[group] || [];
-        const pickShare = {};
-        DATA.forEach(p => {
-          const pick = p.predictions.groupWinners && p.predictions.groupWinners[group];
-          if (pick) pickShare[pick] = (pickShare[pick] || 0) + 1;
+          if (v && !excluded.has(v)) t3Counts[v] = (t3Counts[v] || 0) + 1;
         });
 
-        const leadPts = rows.length ? Math.max.apply(null, rows.map(r => r.Pts)) : 0;
+        function groupWinnerWeights(group) {
+          const rows = standings[group] || [];
+          const pickShare = {};
+          DATA.forEach(p => {
+            const pick = p.predictions.groupWinners && p.predictions.groupWinners[group];
+            if (pick) pickShare[pick] = (pickShare[pick] || 0) + 1;
+          });
 
-        const teams = rows.map(r => r.code);
-        const weights = teams.map(code => {
-          const r = rows.find(x => x.code === code);
-          if (!r) return 0.001;
-
-          const gamesLeft = Math.max(0, 3 - (r.P || 0));
-          const maxPossiblePts = r.Pts + 3 * gamesLeft;
-          if (maxPossiblePts < leadPts) {
-            // Team cannot mathematically top the group anymore.
-            return 0.00001;
-          }
-
-          const crowd = (pickShare[code] || 0) / Math.max(1, N);
-          const leadGap = leadPts - r.Pts;
-          const liveBoost = Math.exp(1.45 * r.Pts + 0.35 * (r.GD || 0) + 0.12 * (r.GF || 0) - 0.95 * leadGap);
-          const crowdBoost = 1 + crowd * 1.15;
-          const leaderBoost = leaders && leaders[group] === code ? 1.8 : 1;
-          const lateStageBoost = gamesLeft <= 1 ? 1.35 : 1;
-          return liveBoost * crowdBoost * leaderBoost * lateStageBoost;
-        });
-
-        return { teams, weights };
-      }
-
-      function simulateOutcome() {
-        const groupWinners = {};
-        GROUPS.forEach(g => {
-          const { teams, weights } = groupWinnerWeights(g);
-          groupWinners[g] = weightedPick(teams, weights);
-        });
-
-        const semiFinals = pickUniqueFromMap(sfCounts, 4);
-        const finalists = pickUniqueFromMap(finCounts, 2, semiFinals);
-
-        let thirdPool = semiFinals.filter(t => !finalists.includes(t));
-        if (thirdPool.length < 2) {
-          const extra = Object.keys(t34Counts).filter(t => !finalists.includes(t));
-          thirdPool = Array.from(new Set(thirdPool.concat(extra))).slice(0, 6);
+          const leadPts = rows.length ? Math.max.apply(null, rows.map(r => r.Pts)) : 0;
+          const teams = rows.map(r => r.code);
+          const weights = teams.map(code => {
+            const r = rows.find(x => x.code === code);
+            if (!r) return 0.001;
+            const gamesLeft = Math.max(0, 3 - (r.P || 0));
+            const maxPossiblePts = r.Pts + 3 * gamesLeft;
+            if (maxPossiblePts < leadPts) return 0.00001;
+            const crowd = (pickShare[code] || 0) / Math.max(1, N);
+            const leadGap = leadPts - r.Pts;
+            const liveBoost = Math.exp(1.45 * r.Pts + 0.35 * (r.GD || 0) + 0.12 * (r.GF || 0) - 0.95 * leadGap);
+            const crowdBoost = 1 + crowd * 1.15;
+            const leaderBoost = leaders && leaders[group] === code ? 1.8 : 1;
+            const lateStageBoost = gamesLeft <= 1 ? 1.35 : 1;
+            return liveBoost * crowdBoost * leaderBoost * lateStageBoost;
+          });
+          return { teams, weights };
         }
-        const thirdPlaceParticipants = pickUniqueFromMap(t34Counts, 2, thirdPool);
 
-        const champion = weightedPick(finalists, finalists.map(t => champCounts[t] || 0.1));
-        const thirdPlace = weightedPick(
-          thirdPlaceParticipants,
-          thirdPlaceParticipants.map(t => t3Counts[t] || 0.1)
-        );
+        function simulateOutcome() {
+          const groupWinners = {};
+          GROUPS.forEach(g => {
+            const gw = groupWinnerWeights(g);
+            groupWinners[g] = weightedPick(gw.teams, gw.weights);
+          });
 
-        const topScorer = Math.random() < MESSI_SHARE ? 'Leo Messi' : 'Kylian Mbappe';
+          const alivePool = Object.keys(TEAMS).filter(t => !excluded.has(t));
+          const semiFinals = pickUniqueFromMap(sfCounts, 4, alivePool);
+          const finalists = pickUniqueFromMap(finCounts, 2, semiFinals);
 
-        return { groupWinners, semiFinals, finalists, thirdPlaceParticipants, champion, thirdPlace, topScorer };
+          let thirdPool = semiFinals.filter(t => !finalists.includes(t));
+          if (thirdPool.length < 2) {
+            const extra = Object.keys(t34Counts).filter(t => !finalists.includes(t));
+            thirdPool = Array.from(new Set(thirdPool.concat(extra))).slice(0, 6);
+          }
+          const thirdPlaceParticipants = pickUniqueFromMap(t34Counts, 2, thirdPool);
+
+          const champion = weightedPick(finalists, finalists.map(t => champCounts[t] || 0.1));
+          const thirdPlace = weightedPick(thirdPlaceParticipants, thirdPlaceParticipants.map(t => t3Counts[t] || 0.1));
+          const topScorer = Math.random() < messiShare ? 'Leo Messi' : 'Kylian Mbappe';
+
+          return { groupWinners, semiFinals, finalists, thirdPlaceParticipants, champion, thirdPlace, topScorer };
+        }
+
+        function scoreParticipant(p, actual) {
+          let s = 0;
+          GROUPS.forEach(g => {
+            if (p.predictions.groupWinners && p.predictions.groupWinners[g] === actual.groupWinners[g]) s += 1;
+          });
+          (p.predictions.semiFinals || []).forEach(t => { if (actual.semiFinals.includes(t)) s += 2; });
+          (p.predictions.finalists || []).forEach(t => { if (actual.finalists.includes(t)) s += 4; });
+          (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (actual.thirdPlaceParticipants.includes(t)) s += 3; });
+          if (p.predictions.champion === actual.champion) s += 10;
+          if (p.predictions.thirdPlace === actual.thirdPlace) s += 2;
+          if (canonicalScorer(p.predictions.topScorer) === canonicalScorer(actual.topScorer)) s += 5;
+          const liveMomentum = (liveHitsByAlias[p.alias] / decidedDenom) * MOMENTUM_POINTS_MAX;
+          return s + liveMomentum;
+        }
+
+        const stats = {};
+        DATA.forEach(p => { stats[p.alias] = { wins: 0, firsts: 0, total: 0, top3: 0 }; });
+
+        for (let i = 0; i < RUNS; i++) {
+          const actual = simulateOutcome();
+          const scored = DATA.map(p => ({ alias: p.alias, score: scoreParticipant(p, actual) }));
+          scored.sort((a, b) => b.score - a.score || a.alias.localeCompare(b.alias));
+          const best = scored[0].score;
+          const winners = scored.filter(r => r.score === best);
+          winners.forEach(w => { stats[w.alias].firsts += 1; stats[w.alias].wins += 1 / winners.length; });
+          scored.slice(0, 3).forEach(r => { stats[r.alias].top3 += 1; });
+          scored.forEach(r => { stats[r.alias].total += r.score; });
+        }
+
+        const ranked = Object.entries(stats)
+          .map(([alias, s]) => ({
+            alias,
+            topPtsPct: (s.firsts / RUNS) * 100,
+            winPct: (s.wins / RUNS) * 100,
+            avgPts: s.total / RUNS,
+            top3Pct: (s.top3 / RUNS) * 100,
+          }))
+          .sort((a, b) => b.topPtsPct - a.topPtsPct || b.avgPts - a.avgPts || b.winPct - a.winPct);
+
+        return ranked;
       }
 
-      function scoreParticipant(p, actual) {
-        let s = 0;
+      const beforeRanked = runScenario({ excluded: new Set(), messiShare: 0.80 });
+      const nowRanked = runScenario({ excluded: ELIMINATED_TEAMS, messiShare: 0.50 });
 
-        GROUPS.forEach(g => {
-          if (p.predictions.groupWinners && p.predictions.groupWinners[g] === actual.groupWinners[g]) s += 1;
-        });
+      const beforeByAlias = {};
+      beforeRanked.forEach(r => { beforeByAlias[r.alias] = r; });
 
-        (p.predictions.semiFinals || []).forEach(t => { if (actual.semiFinals.includes(t)) s += 2; });
-        (p.predictions.finalists || []).forEach(t => { if (actual.finalists.includes(t)) s += 4; });
-        (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (actual.thirdPlaceParticipants.includes(t)) s += 3; });
-
-        if (p.predictions.champion === actual.champion) s += 10;
-        if (p.predictions.thirdPlace === actual.thirdPlace) s += 2;
-
-        if (canonicalScorer(p.predictions.topScorer) === canonicalScorer(actual.topScorer)) s += 5;
-
-        const liveMomentum = (liveHitsByAlias[p.alias] / decidedDenom) * MOMENTUM_POINTS_MAX;
-        return s + liveMomentum;
-      }
-
-      const stats = {};
-      DATA.forEach(p => {
-        stats[p.alias] = { wins: 0, firsts: 0, total: 0, top3: 0 };
-      });
-
-      for (let i = 0; i < RUNS; i++) {
-        const actual = simulateOutcome();
-        const scored = DATA.map(p => ({ alias: p.alias, score: scoreParticipant(p, actual) }));
-        scored.sort((a, b) => b.score - a.score || a.alias.localeCompare(b.alias));
-
-        const best = scored[0].score;
-        const winners = scored.filter(r => r.score === best);
-        winners.forEach(w => { stats[w.alias].firsts += 1; });
-        winners.forEach(w => { stats[w.alias].wins += 1 / winners.length; });
-
-        scored.slice(0, 3).forEach(r => { stats[r.alias].top3 += 1; });
-        scored.forEach(r => { stats[r.alias].total += r.score; });
-      }
-
-      const ranked = Object.entries(stats)
-        .map(([alias, s]) => ({
-          alias,
-          topPtsPct: (s.firsts / RUNS) * 100,
-          winPct: (s.wins / RUNS) * 100,
-          avgPts: s.total / RUNS,
-          top3Pct: (s.top3 / RUNS) * 100,
-        }))
-        .sort((a, b) => b.topPtsPct - a.topPtsPct || b.avgPts - a.avgPts || b.winPct - a.winPct);
+      const ranked = nowRanked.map(r => {
+        const prev = beforeByAlias[r.alias];
+        return {
+          ...r,
+          prevTopPtsPct: prev ? prev.topPtsPct : 0,
+          deltaTopPtsPct: prev ? (r.topPtsPct - prev.topPtsPct) : 0,
+        };
+      }).sort((a, b) => b.topPtsPct - a.topPtsPct || b.avgPts - a.avgPts || b.winPct - a.winPct);
 
       function momentumChip(item) {
-        if (item.top3Pct >= 45) return '<span class="chip up">On fire</span>';
-        if (item.top3Pct >= 25) return '<span class="chip mid">In the hunt</span>';
-        return '<span class="chip down">Needs chaos</span>';
+        if (item.deltaTopPtsPct >= 1.0) return '<span class="chip up">Rising</span>';
+        if (item.deltaTopPtsPct <= -1.0) return '<span class="chip down">Slipping</span>';
+        return '<span class="chip mid">Stable</span>';
       }
 
       const tbody = document.querySelector('#oddsTable tbody');
@@ -429,7 +431,7 @@
         const tr = document.createElement('tr');
         tr.innerHTML = [
           '<td>' + (i + 1) + '</td>',
-          '<td><strong>' + r.alias + '</strong></td>',
+          '<td><strong>' + escHtml(r.alias) + '</strong><div style="font-size:.68rem;color:#64748b">Δ ' + (r.deltaTopPtsPct >= 0 ? '+' : '') + r.deltaTopPtsPct.toFixed(2) + '</div></td>',
           '<td class="num"><strong>' + r.topPtsPct.toFixed(1) + '%</strong></td>',
           '<td class="num">' + r.winPct.toFixed(1) + '%</td>',
           '<td class="num">' + r.avgPts.toFixed(1) + '</td>',
@@ -441,24 +443,24 @@
       const top = ranked[0];
       const second = ranked[1];
       const gap = top && second ? (top.topPtsPct - second.topPtsPct) : 0;
+      const risers = ranked.slice().sort((a, b) => b.deltaTopPtsPct - a.deltaTopPtsPct).slice(0, 2);
+      const fallers = ranked.slice().sort((a, b) => a.deltaTopPtsPct - b.deltaTopPtsPct).slice(0, 2);
 
       document.getElementById('funSummary').innerHTML =
         top
-        ? 'Prediction drumroll: <strong>' + top.alias + '</strong> currently has the best top-points chance (' + top.topPtsPct.toFixed(1) + '%). ' +
-          (second ? 'Next closest is <strong>' + second.alias + '</strong> at ' + second.topPtsPct.toFixed(1) + '%. ' : '') +
-          (gap >= 8
-            ? 'This is a real front-runner moment.'
-            : gap >= 3
-              ? 'This is still a proper title race.'
-              : 'Photo finish vibes: this is extremely open.')
+        ? 'Prediction drumroll: <strong>' + escHtml(top.alias) + '</strong> now leads at ' + top.topPtsPct.toFixed(1) + '%. ' +
+          (second ? 'Next is <strong>' + escHtml(second.alias) + '</strong> at ' + second.topPtsPct.toFixed(1) + '%. ' : '') +
+          'Before vs now: biggest rise <strong>' + escHtml(risers[0].alias) + '</strong> (' + (risers[0].deltaTopPtsPct >= 0 ? '+' : '') + risers[0].deltaTopPtsPct.toFixed(2) + '), ' +
+          'biggest drop <strong>' + escHtml(fallers[0].alias) + '</strong> (' + fallers[0].deltaTopPtsPct.toFixed(2) + '). ' +
+          'Roast: if your bracket still had Germany/Netherlands cruising, your probabilities just hit turbulence. '
         : 'No data.';
 
       document.getElementById('kpis').innerHTML = [
         { n: N, l: 'participants' },
-        { n: RUNS.toLocaleString(), l: 'simulations' },
+        { n: RUNS.toLocaleString(), l: 'runs per scenario' },
         { n: maxLiveHits + '/' + decidedDenom, l: 'best live hits now' },
-        { n: (100 - MESSI_SHARE * 100).toFixed(0) + '/' + (MESSI_SHARE * 100).toFixed(0), l: 'Mbappe/Messi split' },
-        { n: LIVE_INFO && LIVE_INFO.asOf ? LIVE_INFO.asOf : 'n/a', l: 'live data as of' }
+        { n: '50/50', l: 'Mbappe/Messi tie split' },
+        { n: 'GER+NED out', l: 'elimination filter' },
       ].map(k => '<div class="kpi"><div class="n">' + k.n + '</div><div class="l">' + k.l + '</div></div>').join('');
 
       const pieLabels = ranked.slice(0, 6).map(r => r.alias);
@@ -504,7 +506,7 @@
       });
 
       document.getElementById('scenarioNote').textContent =
-        'Model note: this revision gives more carry-over weight to current live leaders and player momentum, while still sampling knockout outcomes from submitted bracket preferences.';
+        'Scenario delta: BEFORE had no R32 elimination filter and used Messi 80% / Mbappe 20%. NOW excludes GER/NED from knockout outcomes and uses a 50/50 top-scorer tie split.';
 
       const entropy = ranked.reduce((e, r) => {
         const p = r.winPct / 100;
@@ -524,6 +526,7 @@
         const leadNames = liveLeaders.slice(0, 3).join(', ') + (liveLeaders.length > 3 ? '...' : '');
         document.getElementById('chaosText').textContent += ' Live leaderboard co-leader(s): ' + leadNames + '.';
       }
+      document.getElementById('chaosText').textContent += ' Cheer squad: ' + escHtml(risers[0].alias) + ' and ' + escHtml(risers[1].alias) + ' gained most from the update.';
     })();
   </script>
 </body>
