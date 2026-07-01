@@ -82,7 +82,8 @@
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
-      <li><a href="winners-chances.html">Winners Chances</a></li>
+      <li><a href="winner-forecast.html">Who Wins Now?</a></li>
+      <li><a href="winner-odds.html">Winner Odds</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -97,7 +98,8 @@
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
-    <a href="winners-chances.html">Winners Chances</a>
+    <a href="winner-forecast.html">Who Wins Now?</a>
+    <a href="winner-odds.html">Winner Odds</a>
   </div>
 </nav>
 
@@ -173,6 +175,16 @@
           <h3>All Predictions</h3>
           <p>See every player's picks side by side</p>
         </a>
+        <a href="winner-forecast.html" class="quick-card">
+          <div class="icon">🔮</div>
+          <h3>Who Wins Now?</h3>
+          <p>Live probability shifts with roast + cheer deltas</p>
+        </a>
+        <a href="winner-odds.html" class="quick-card">
+          <div class="icon">📈</div>
+          <h3>Winner Odds</h3>
+          <p>Simulation odds with before-vs-now comparison</p>
+        </a>
       </div>
 
     </div>
@@ -216,18 +228,8 @@
 
     // Phase notice
     const phaseNotice = document.getElementById('phaseNotice');
-    if (phase === 'pre') {
-      phaseNotice.innerHTML = `
-        <div class="alert alert-info">
-          ⚽ <strong>Group stage under way.</strong> The full points scoreboard unlocks once results
-          are finalised — meanwhile, here's how everyone stacks up against the live group leaders.
-        </div>`;
-    } else if (phase === 'group') {
-      phaseNotice.innerHTML = `
-        <div class="alert alert-warning">
-          ⚽ <strong>Group stage in progress.</strong> Scores update as groups are completed.
-        </div>`;
-    } else if (phase === 'knockout') {
+    phaseNotice.innerHTML = '';
+    if (phase === 'knockout') {
       phaseNotice.innerHTML = `
         <div class="alert alert-warning">
           🏟️ <strong>Knockout stage underway.</strong> Scoreboard is live!
