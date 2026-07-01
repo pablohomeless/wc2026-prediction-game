@@ -321,7 +321,7 @@
       <h1>Crystal Ball Mode: Who Has The Best Shot Right Now?</h1>
       <p>
         Live form (group leaders hit-rate) + knockout picks (semis/final/champion) + the special rule that Golden Boot will be
-        <strong>Messi or Mbappe</strong>.
+        <strong>Messi or Mbappe</strong>. Updated for Round of 32 eliminations (Germany and Netherlands out).
       </p>
       <div class="kpis" id="kpis"></div>
     </section>
@@ -356,6 +356,7 @@
         Notes: This model rewards players whose knockout picks align with stronger crowd consensus while still crediting current live performance.
         For top-scorer, a pick containing Messi or Mbappe gets the special boost under your scenario.
       </p>
+      <div class="foot" id="deltaSummary"></div>
     </section>
   </div>
 </main>
@@ -370,6 +371,10 @@
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function norm(s) {
@@ -387,9 +392,21 @@
     return t.includes('messi') || t.includes('mbappe');
   }
 
+  function scorerBoostBefore(name) {
+    const t = norm(name);
+    if (t.includes('messi')) return 1;
+    if (t.includes('mbappe')) return 0.55;
+    return 0;
+  }
+
+  function scorerBoostNow(name) {
+    return isMessiOrMbappe(name) ? 1 : 0;
+  }
+
   const DATA = (typeof PARTICIPANTS_IMPORT !== 'undefined' && PARTICIPANTS_IMPORT.length)
     ? PARTICIPANTS_IMPORT
     : PARTICIPANTS;
+  const ELIMINATED_TEAMS = new Set(['GER', 'NED']);
 
   const N = DATA.length;
   const GROUP_GAMES = 3;
@@ -431,6 +448,16 @@
     return r.Pts + 3 * (GROUP_GAMES - r.P);
   }
 
+  function knockoutEliminationCount(p) {
+    let c = 0;
+    (p.predictions.semiFinals || []).forEach(t => { if (ELIMINATED_TEAMS.has(t)) c++; });
+    (p.predictions.finalists || []).forEach(t => { if (ELIMINATED_TEAMS.has(t)) c++; });
+    (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (ELIMINATED_TEAMS.has(t)) c++; });
+    if (ELIMINATED_TEAMS.has(p.predictions.champion)) c += 2;
+    if (ELIMINATED_TEAMS.has(p.predictions.thirdPlace)) c += 1;
+    return c;
+  }
+
   const impossibleTeams = new Set();
   GROUPS.forEach(g => {
     const rows = standings[g] || [];
@@ -441,77 +468,93 @@
     });
   });
 
-  const scores = DATA.map(p => {
-    const hit = leaderHits(p);
-    const liveForm = decided ? hit / decided : 0;
+  function computeScenario(mode) {
+    const before = mode === 'before';
+    const list = DATA.map(p => {
+      const hit = leaderHits(p);
+      const liveForm = decided ? hit / decided : 0;
 
-    const sfStrength = avgPopularity(sfCounts, p.predictions.semiFinals || []);
-    const finStrength = avgPopularity(finCounts, p.predictions.finalists || []);
-    const champStrength = popularity(champCounts, p.predictions.champion);
-    const knockoutStrength = (sfStrength * 0.35) + (finStrength * 0.35) + (champStrength * 0.30);
+      const sfStrength = avgPopularity(sfCounts, p.predictions.semiFinals || []);
+      const finStrength = avgPopularity(finCounts, p.predictions.finalists || []);
+      const champStrength = popularity(champCounts, p.predictions.champion);
+      const knockoutStrength = (sfStrength * 0.35) + (finStrength * 0.35) + (champStrength * 0.30);
 
-    const scorerBoost = isMessiOrMbappe(p.predictions.topScorer) ? 1 : 0;
+      const scorerBoost = before ? scorerBoostBefore(p.predictions.topScorer) : scorerBoostNow(p.predictions.topScorer);
+      const deadGroupPicks = GROUPS.reduce((acc, g) => {
+        const t = p.predictions.groupWinners[g];
+        return acc + (impossibleTeams.has(t) ? 1 : 0);
+      }, 0);
+      const elimCount = knockoutEliminationCount(p);
+      const eliminationPenalty = before ? 0 : ((elimCount / 8) * 0.22);
 
-    const deadGroupPicks = GROUPS.reduce((acc, g) => {
-      const t = p.predictions.groupWinners[g];
-      return acc + (impossibleTeams.has(t) ? 1 : 0);
-    }, 0);
+      const modelScore =
+        (liveForm * 0.40) +
+        (knockoutStrength * 0.45) +
+        (scorerBoost * 0.15) -
+        ((deadGroupPicks / 12) * 0.06) -
+        eliminationPenalty;
 
-    const modelScore =
-      (liveForm * 0.40) +
-      (knockoutStrength * 0.45) +
-      (scorerBoost * 0.15) -
-      ((deadGroupPicks / 12) * 0.06);
+      return {
+        alias: p.alias,
+        hit,
+        knockoutStrength,
+        scorerBoost,
+        deadGroupPicks,
+        elimCount,
+        champ: p.predictions.champion,
+        scorer: p.predictions.topScorer,
+        modelScore: Math.max(0.001, modelScore),
+      };
+    });
 
+    const temp = 0.17;
+    const z = list.reduce((acc, r) => acc + Math.exp(r.modelScore / temp), 0);
+    list.forEach(r => {
+      r.winChance = (Math.exp(r.modelScore / temp) / z) * 100;
+    });
+    list.sort((a, b) => b.winChance - a.winChance || b.hit - a.hit || a.alias.localeCompare(b.alias));
+    return list;
+  }
+
+  const beforeScores = computeScenario('before');
+  const nowScores = computeScenario('now');
+  const beforeByAlias = {};
+  beforeScores.forEach(r => { beforeByAlias[r.alias] = r; });
+
+  const scores = nowScores.map(r => {
+    const prev = beforeByAlias[r.alias];
     return {
-      alias: p.alias,
-      hit,
-      liveForm,
-      sfStrength,
-      finStrength,
-      champStrength,
-      knockoutStrength,
-      scorerBoost,
-      deadGroupPicks,
-      modelScore: Math.max(0.001, modelScore),
-      champ: p.predictions.champion,
-      scorer: p.predictions.topScorer,
+      ...r,
+      prevChance: prev ? prev.winChance : 0,
+      deltaChance: prev ? (r.winChance - prev.winChance) : 0,
     };
-  });
-
-  // Softmax for relative win chances.
-  const temp = 0.17;
-  const z = scores.reduce((acc, r) => acc + Math.exp(r.modelScore / temp), 0);
-  scores.forEach(r => {
-    r.winChance = (Math.exp(r.modelScore / temp) / z) * 100;
-  });
-
-  scores.sort((a, b) => b.winChance - a.winChance || b.hit - a.hit || a.alias.localeCompare(b.alias));
+  }).sort((a, b) => b.winChance - a.winChance || b.hit - a.hit || a.alias.localeCompare(b.alias));
 
   const top10 = scores.slice(0, 10);
   const top5 = scores.slice(0, 5);
+  const risers = scores.slice().sort((a, b) => b.deltaChance - a.deltaChance).slice(0, 3);
+  const fallers = scores.slice().sort((a, b) => a.deltaChance - b.deltaChance).slice(0, 3);
 
   document.getElementById('kpis').innerHTML = [
     { n: N, l: 'Participants' },
     { n: decided + '/12', l: 'Groups with leader' },
     { n: top10[0] ? top10[0].alias : '-', l: 'Current model leader' },
     { n: top10[0] ? top10[0].winChance.toFixed(1) + '%' : '-', l: 'Leader win chance' },
+    { n: 'GER, NED', l: 'R32 eliminated filter' },
   ].map(k => `<div class="kpi"><div class="n">${k.n}</div><div class="l">${k.l}</div></div>`).join('');
 
-  // Bars
   const maxChance = top10[0] ? top10[0].winChance : 1;
   document.getElementById('topBars').innerHTML = top10.map((r, i) => {
     const w = Math.max(3, (r.winChance / maxChance) * 100);
     const cls = i === 0 ? 'top1' : (i === 1 ? 'top2' : (i === 2 ? 'top3' : ''));
     return `
       <div class="bar-item">
-        <div class="bar-label">${i + 1}. ${r.alias}</div>
+        <div class="bar-label">${i + 1}. ${escHtml(r.alias)}</div>
         <div class="bar-track"><div class="bar-fill ${cls}" style="width:${w}%"></div></div>
-        <div class="bar-pct">${r.winChance.toFixed(1)}%<span class="tiny">live ${r.hit}/${decided || 12}</span></div>
+        <div class="bar-pct">${r.winChance.toFixed(1)}%<span class="tiny">${r.deltaChance >= 0 ? '+' : ''}${r.deltaChance.toFixed(2)} vs before</span></div>
       </div>`;
   }).join('');
 
-  // Donut of top5 + field
   const donutParts = top5.map(r => r.winChance);
   const field = Math.max(0, 100 - donutParts.reduce((a, b) => a + b, 0));
   const colors = ['#f59e0b', '#14b8a6', '#8b5cf6', '#0ea5e9', '#f43f5e', '#cbd5e1'];
@@ -525,10 +568,10 @@
   });
   document.getElementById('donut').style.background = `conic-gradient(${slices.join(', ')})`;
 
-  const legendHtml = top5.map((r, i) => `
+  document.getElementById('legend').innerHTML = top5.map((r, i) => `
       <div class="legend-item">
         <span class="sw" style="background:${colors[i]}"></span>
-        <span>${r.alias}</span>
+        <span>${escHtml(r.alias)}</span>
         <strong>${r.winChance.toFixed(1)}%</strong>
       </div>`).join('') + `
       <div class="legend-item">
@@ -536,9 +579,7 @@
         <span>All others</span>
         <strong>${field.toFixed(1)}%</strong>
       </div>`;
-  document.getElementById('legend').innerHTML = legendHtml;
 
-  // Table
   const board = document.getElementById('board');
   board.innerHTML = `
     <thead>
@@ -546,6 +587,7 @@
         <th>#</th>
         <th>Player</th>
         <th>Win %</th>
+        <th>Delta</th>
         <th>Live Hits</th>
         <th>Knockout Strength</th>
         <th>Champion Pick</th>
@@ -556,22 +598,33 @@
       ${top10.map((r, i) => `
         <tr>
           <td><span class="rank r${i + 1 <= 3 ? i + 1 : ''}">${i + 1}</span></td>
-          <td><strong>${r.alias}</strong>${r.deadGroupPicks ? `<span class="tiny">${r.deadGroupPicks} dead group pick${r.deadGroupPicks > 1 ? 's' : ''}</span>` : ''}</td>
+          <td><strong>${escHtml(r.alias)}</strong>${r.elimCount ? `<span class="tiny">${r.elimCount} eliminated knockout pick${r.elimCount > 1 ? 's' : ''}</span>` : ''}</td>
           <td><strong>${r.winChance.toFixed(2)}%</strong></td>
+          <td><strong style="color:${r.deltaChance >= 0 ? '#166534' : '#991b1b'}">${r.deltaChance >= 0 ? '+' : ''}${r.deltaChance.toFixed(2)}</strong></td>
           <td>${r.hit}/${decided || 12}</td>
           <td>${(r.knockoutStrength * 100).toFixed(1)}%</td>
           <td>${r.champ || '-'}</td>
-          <td>${r.scorer || '-'} ${r.scorerBoost ? '✓' : ''}</td>
+          <td>${escHtml(r.scorer || '-')} ${r.scorerBoost ? '✓' : ''}</td>
         </tr>`).join('')}
     </tbody>`;
 
   const lead = scores[0];
   const second = scores[1];
   const messiMbappeCount = scores.filter(s => s.scorerBoost).length;
+  const roastTarget = fallers[0];
+  const cheerTarget = risers[0];
   document.getElementById('insight').innerHTML =
-    `<strong>${lead.alias}</strong> currently leads the model at <strong>${lead.winChance.toFixed(1)}%</strong>. ` +
-    `${second ? `Gap to #2 (<strong>${second.alias}</strong>) is <strong>${(lead.winChance - second.winChance).toFixed(1)} points</strong>. ` : ''}` +
-    `<strong>${messiMbappeCount}/${N}</strong> players get the Messi/Mbappe scorer bonus in this scenario.`;
+    `<strong>${escHtml(lead.alias)}</strong> currently leads the model at <strong>${lead.winChance.toFixed(1)}%</strong>. ` +
+    `${second ? `Gap to #2 (<strong>${escHtml(second.alias)}</strong>) is <strong>${(lead.winChance - second.winChance).toFixed(1)} points</strong>. ` : ''}` +
+    `<strong>${messiMbappeCount}/${N}</strong> players get the Messi/Mbappe scorer boost in the tie scenario. ` +
+    `${roastTarget ? `Roast corner: <strong>${escHtml(roastTarget.alias)}</strong> dropped <strong>${roastTarget.deltaChance.toFixed(2)}</strong> after elimination filtering. ` : ''}` +
+    `${cheerTarget ? `Cheer corner: <strong>${escHtml(cheerTarget.alias)}</strong> rises <strong>+${cheerTarget.deltaChance.toFixed(2)}</strong> with surviving picks.` : ''}`;
+
+  document.getElementById('deltaSummary').innerHTML =
+    `<strong>Before vs now:</strong> the previous baseline used no R32 elimination penalty and favored Messi over Mbappe. ` +
+    `Now we exclude eliminated teams (GER/NED) from knockout viability and treat Messi-Mbappe as tied. ` +
+    `Top risers: ${risers.map(r => `<strong>${escHtml(r.alias)}</strong> (${r.deltaChance >= 0 ? '+' : ''}${r.deltaChance.toFixed(2)})`).join(', ')}. ` +
+    `Top fallers: ${fallers.map(r => `<strong>${escHtml(r.alias)}</strong> (${r.deltaChance.toFixed(2)})`).join(', ')}.`;
 </script>
 </body>
 </html>
