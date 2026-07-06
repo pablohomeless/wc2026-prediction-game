@@ -30,6 +30,24 @@
       background: #fed7aa;
       border-color: #fdba74;
     }
+
+    /* Round of 16 extra-point pills (All cards) */
+    .epill {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      border-radius: 999px;
+      padding: .18rem .55rem;
+      font-size: .78rem;
+      font-weight: 700;
+      margin: .2rem .25rem 0 0;
+      border: 1px solid transparent;
+    }
+    .epill .fi { border-radius: 2px; }
+    .epill.s2 { background: #15803d; color: #fff; }              /* both: strong green */
+    .epill.s1 { background: #dcfce7; color: #15803d; border-color: #86efac; } /* one: light green */
+    .epill.s0 { background: #fed7aa; color: #9a3412; border-color: #fdba74; } /* none: orange */
+    .epill.na { background: var(--gray-100); color: var(--gray-500); border-color: var(--gray-200); }
   </style>
 </head>
 <body>
@@ -50,6 +68,7 @@
       <li><a href="stats.html">Stats</a></li>
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
       <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
@@ -65,6 +84,7 @@
     <a href="stats.html">Stats</a>
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
+    <a href="extra-points-r16.html">Extra Points</a>
     <a href="how-to-play.html">How to Play</a>
     <a href="winners-chances.html">Winners Chances</a>
   </div>
@@ -87,6 +107,7 @@
         <button class="tab-btn"         onclick="showTab('the-final',     this)">The Final</button>
         <button class="tab-btn"         onclick="showTab('third-fourth',  this)">3rd/4th Place</button>
         <button class="tab-btn"         onclick="showTab('top-scorer',    this)">👟 Top Scorer</button>
+        <button class="tab-btn"         onclick="showTab('extra-r16',     this)">🎁 Extra Points (R16)</button>
         <button class="tab-btn"         onclick="showTab('all-cards',     this)">All (cards)</button>
       </div>
 
@@ -199,6 +220,34 @@
         </div>
       </div>
 
+      <!-- ── Tab: Extra Points (Round of 16) ── -->
+      <div class="tab-panel" id="tab-extra-r16">
+        <div class="card">
+          <div class="card-title">🎁 Round of 16 — Extra Points</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Bonus mini-game: <strong>Brazil–Norway</strong> &amp; <strong>Mexico–England</strong>.
+            Correct game winner = <strong>2 pts</strong>, exact 90-minute result = <strong>3 pts</strong>.
+            <span id="r16TabLegend"></span>
+            <a href="extra-points-r16.html">Full Extra Points page →</a>
+          </p>
+          <div class="table-wrap">
+            <table id="r16PredTable">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Player</th>
+                  <th>🇧🇷 BRA–NOR 🇳🇴<br>winner</th>
+                  <th>90' result</th>
+                  <th>🇲🇽 MEX–ENG 🏴<br>winner</th>
+                  <th>90' result</th>
+                  <th>Extra pts</th>
+                </tr>
+              </thead>
+              <tbody id="r16PredBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Tab: All Cards ── -->
       <div class="tab-panel" id="tab-all-cards">
         <div class="player-grid" id="allCards"></div>
@@ -215,6 +264,7 @@
 
 <script src="data.js"></script>
 <script src="live-data.js"></script>
+<script src="roundof16-data.js"></script>
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
@@ -253,7 +303,9 @@
   }
 
   (function () {
-    const participants = getComputedParticipants();
+    const participants = getComputedParticipants().slice().sort((a, b) =>
+      a.alias.localeCompare(b.alias, undefined, { sensitivity: 'base' })
+    );
     document.getElementById('participantCount').textContent =
       participants.length + ' participant' + (participants.length !== 1 ? 's' : '');
 
@@ -407,6 +459,30 @@
       const tsCls = !ar.topScorer ? '' :
         (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
 
+      // Round of 16 Extra Points
+      const r16HasRes = (typeof r16HasResults === 'function') && r16HasResults();
+      const r16 = (typeof r16PointsFor === 'function')
+        ? r16PointsFor(p.alias)
+        : { played: false, total: 0, braNor: {}, mexEng: {} };
+      let r16Pills;
+      if (!r16.played) {
+        r16Pills = '<span class="team-pill" style="opacity:.55;font-style:italic">Didn\'t play</span>';
+      } else {
+        const rp = R16_PREDICTIONS.find(x => x.alias === p.alias);
+        // Per game: strong green = winner + exact, light green = one of them, orange = neither
+        const gamePill = (mp, code, hs, as, label) => {
+          let cls = 'epill na';
+          if (r16HasRes) {
+            const n = (mp.winner ? 1 : 0) + (mp.exact ? 1 : 0); // 0..2 correct
+            cls = 'epill s' + n;
+          }
+          return '<span class="' + cls + '" title="' + label + '">' + teamShort(code) + ' ' + hs + '–' + as + '</span>';
+        };
+        r16Pills =
+          gamePill(r16.braNor, rp.braNor.winner, rp.braNor.home, rp.braNor.away, 'Brazil–Norway') +
+          gamePill(r16.mexEng, rp.mexEng.winner, rp.mexEng.home, rp.mexEng.away, 'Mexico–England');
+      }
+
       allCards.innerHTML += '<div class="player-card">' +
         '<div class="player-card-header">👤 ' + escHtml(p.alias) +
         '<span class="pts-badge" style="margin-left:auto">' + pts.total + ' pts</span></div>' +
@@ -420,6 +496,7 @@
             '<div class="special-row"><span class="slabel">🥉 3rd Place winner (2pt)</span><span class="sval ' + thirdCls + '">' + teamDisp(third) + '</span></div>' +
             '<div class="special-row"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval ' + tsCls + '">' + escHtml(ts || '—') + '</span></div>' +
           '</div>' +
+          '<div class="pred-section"><div class="pred-label">🎁 Round of 16 Extra (' + (r16.total || 0) + 'pt)</div><div>' + r16Pills + '</div></div>' +
           '<div class="score-summary">' +
             '<div class="score-row">' +
               '<div class="sc"><div class="n">' + pts.groupWinners + '</div><div class="l">🏅 Groups</div></div>' +
@@ -431,6 +508,7 @@
               '<div class="sc"><div class="n">' + pts.champion + '</div><div class="l">🏆 Champion</div></div>' +
               '<div class="sc"><div class="n">' + pts.thirdPlace + '</div><div class="l">🥉 3rd Place</div></div>' +
               '<div class="sc"><div class="n">' + pts.topScorer + '</div><div class="l">👟 Scorer</div></div>' +
+              '<div class="sc"><div class="n">' + (pts.extraR16 || 0) + '</div><div class="l">🎁 R16</div></div>' +
               '<div class="score-total"><div class="n">' + pts.total + '</div><div class="l">TOTAL</div></div>' +
             '</div>' +
           '</div>' +
@@ -439,6 +517,40 @@
 
     if (participants.length === 0) {
       allCards.innerHTML = '<div class="empty-state"><div class="icon">🎯</div><p>No participants yet</p></div>';
+    }
+
+    // ── Extra Points (Round of 16) tab ──
+    const r16Body = document.getElementById('r16PredBody');
+    if (r16Body && typeof r16PointsFor === 'function') {
+      const hasRes = (typeof r16HasResults === 'function') && r16HasResults();
+      let played = 0;
+      r16Body.innerHTML = participants.map(p => {
+        const info = r16PointsFor(p.alias);
+        if (!info.played) {
+          return '<tr style="background:var(--gray-50);color:var(--gray-400)">' +
+            '<td class="td-alias" style="font-style:italic">' + escHtml(p.alias) + '</td>' +
+            '<td class="td-center" colspan="4">— didn\'t play —</td>' +
+            '<td class="td-total">—</td></tr>';
+        }
+        played++;
+        const rp = R16_PREDICTIONS.find(x => x.alias === p.alias);
+        const bnW = hasRes ? (info.braNor.winner ? 'correct' : 'wrong') : '';
+        const bnS = hasRes ? (info.braNor.exact ? 'correct' : 'wrong') : '';
+        const meW = hasRes ? (info.mexEng.winner ? 'correct' : 'wrong') : '';
+        const meS = hasRes ? (info.mexEng.exact ? 'correct' : 'wrong') : '';
+        return '<tr>' +
+          '<td class="td-alias">' + escHtml(p.alias) + '</td>' +
+          '<td class="td-center ' + bnW + '" style="font-weight:600">' + teamShort(rp.braNor.winner) + '</td>' +
+          '<td class="td-center ' + bnS + '">' + rp.braNor.home + '–' + rp.braNor.away + '</td>' +
+          '<td class="td-center ' + meW + '" style="font-weight:600">' + teamShort(rp.mexEng.winner) + '</td>' +
+          '<td class="td-center ' + meS + '">' + rp.mexEng.home + '–' + rp.mexEng.away + '</td>' +
+          '<td class="td-total">' + info.total + '</td></tr>';
+      }).join('');
+      const legend = document.getElementById('r16TabLegend');
+      if (legend) {
+        legend.innerHTML = played + '/' + participants.length + ' played. ' +
+          (hasRes ? 'Green = correct, orange = missed. ' : '');
+      }
     }
   })();
 </script>

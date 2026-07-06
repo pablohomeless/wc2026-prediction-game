@@ -50,6 +50,7 @@
       <li><a href="stats.html">Stats</a></li>
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
       <li><a href="winners-chances.html" class="active">Winners Chances</a></li>
     </ul>
@@ -65,6 +66,7 @@
     <a href="stats.html">Stats</a>
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
+    <a href="extra-points-r16.html">Extra Points</a>
     <a href="how-to-play.html">How to Play</a>
     <a href="winners-chances.html" class="active">Winners Chances</a>
   </div>
@@ -78,14 +80,16 @@
       <div class="hero wc-header-gradient">
         <div class="hero-icon">🔮</div>
         <h1>Who Can Win the Porra</h1>
-        <p>Title odds based on locked group-winner points + the bracket ahead</p>
+        <p>Title odds from locked points (incl. Round of 16 extra) + who's still alive in the bracket</p>
       </div>
 
       <div class="alert alert-info">
-        ⚽ <strong>All 12 group winners are final.</strong> Knockouts decide the rest:
-        semis 2 pts each, finalists 4 pts, 3rd/4th teams 3 pts, champion 10 pts, 3rd-place 2 pts,
-        top scorer 5 pts. We project the maximum points each player can still reach assuming their
-        surviving picks deliver — and we assume <strong>Leo Messi is top scorer</strong>.
+        ⚽ <strong>Group winners locked + Round of 32 finalized · Round of 16 in progress.</strong>
+        Locked totals now include the <strong>Round of 16 Extra Points</strong>. Knockout scoring still to come:
+        semis 2 pts each, finalists 4 pts, 3rd/4th teams 3 pts, champion 10 pts, 3rd-place 2 pts, top scorer 5 pts.
+        A pick only counts toward a player's <strong>ceiling</strong> if that team is <strong>still in the tournament</strong> —
+        teams already knocked out (in the Round of 32 or Round of 16) score nothing. We still assume
+        <strong>Leo Messi is top scorer</strong>.
       </div>
 
       <div class="card">
@@ -111,6 +115,7 @@
 <script src="data.js"></script>
 <script src="live-data.js"></script>
 <script src="participants-import.js"></script>
+<script src="roundof16-data.js"></script>
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
@@ -121,25 +126,43 @@
     const DATA = (typeof PARTICIPANTS_IMPORT !== 'undefined' && PARTICIPANTS_IMPORT.length) ? PARTICIPANTS_IMPORT : PARTICIPANTS;
     const N = DATA.length;
 
+    // Teams already knocked out of the tournament (Round of 32 + Round of 16 losers).
+    // These can no longer win, reach the final, semis or the 3rd-place game, so any
+    // prediction on them is now worth 0 toward a player's ceiling.
+    const ELIMINATED = new Set([
+      // Round of 32 losers
+      'RSA', 'GER', 'NED', 'JPN', 'SWE', 'CIV', 'ECU', 'COD', 'BIH', 'SEN',
+      'CRO', 'AUT', 'ALG', 'CPV', 'GHA', 'AUS',
+      // Round of 16 losers (so far)
+      'PAR', 'CAN', 'BRA', 'MEX',
+    ]);
+
     // Qualified teams: top 2 of each group + 8 best 3rd-placed
     const st = computeGroupStandings();
     const qualified = new Set(); const thirds = [];
     GROUPS.forEach(g => { qualified.add(st[g][0].code); qualified.add(st[g][1].code); thirds.push(st[g][2]); });
     thirds.sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF).slice(0, 8).forEach(t => qualified.add(t.code));
 
+    // Still alive = qualified for the knockouts AND not yet eliminated.
+    const alive = code => code && qualified.has(code) && !ELIMINATED.has(code);
+
+    const r16Extra = alias => (typeof r16PointsFor === 'function') ? r16PointsFor(alias).total : 0;
+
     const rows = DATA.map(p => {
       const cur = calcPoints(p, ACTUAL_RESULTS);            // group winners are locked
+      const extra = r16Extra(p.alias);                       // Round of 16 extra points (locked)
+      const lockedTotal = cur.total + extra;
       let pot = 0;
-      (p.predictions.semiFinals || []).forEach(t => { if (qualified.has(t)) pot += 2; });
-      (p.predictions.finalists || []).forEach(t => { if (qualified.has(t)) pot += 4; });
-      (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (qualified.has(t)) pot += 3; });
-      if (qualified.has(p.predictions.champion)) pot += 10;
-      if (qualified.has(p.predictions.thirdPlace)) pot += 2;
+      (p.predictions.semiFinals || []).forEach(t => { if (alive(t)) pot += 2; });
+      (p.predictions.finalists || []).forEach(t => { if (alive(t)) pot += 4; });
+      (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (alive(t)) pot += 3; });
+      if (alive(p.predictions.champion)) pot += 10;
+      if (alive(p.predictions.thirdPlace)) pot += 2;
       const messi = /messi/i.test(p.predictions.topScorer || '');
       if (messi) pot += 5; // Messi assumed top scorer
       return {
-        alias: p.alias, gw: cur.groupWinners, cur: cur.total, ceiling: cur.total + pot,
-        champ: p.predictions.champion, champAlive: qualified.has(p.predictions.champion), messi
+        alias: p.alias, gw: cur.groupWinners, extra, cur: lockedTotal, ceiling: lockedTotal + pot,
+        champ: p.predictions.champion, champAlive: alive(p.predictions.champion), messi
       };
     }).sort((a, b) => b.ceiling - a.ceiling || b.cur - a.cur || a.alias.localeCompare(b.alias));
 
@@ -147,14 +170,19 @@
     const topGw = Math.max(...rows.map(r => r.gw));
     const messiPickers = rows.filter(r => r.messi).length;
 
+    // Title race: you can still win only if your ceiling can reach the best locked total.
+    const maxLocked = Math.max(...rows.map(r => r.cur));
+    rows.forEach(r => { r.inRace = r.ceiling >= maxLocked; });
+    const contenders = rows.filter(r => r.inRace).length;
+
     document.getElementById('kpis').innerHTML = `
-      <div class="stat-mini"><div class="mn">${rows.filter(r => r.ceiling === maxCeil).length}</div><div class="ml">tied for top ceiling</div></div>
+      <div class="stat-mini"><div class="mn">${contenders}</div><div class="ml">still in the title race</div></div>
       <div class="stat-mini"><div class="mn">${maxCeil}</div><div class="ml">highest reachable pts</div></div>
-      <div class="stat-mini"><div class="mn">${topGw}/12</div><div class="ml">best group score</div></div>
-      <div class="stat-mini"><div class="mn">${messiPickers}</div><div class="ml">picked Messi top scorer</div></div>`;
+      <div class="stat-mini"><div class="mn">${maxLocked}</div><div class="ml">best locked total</div></div>
+      <div class="stat-mini"><div class="mn">${rows.filter(r => r.ceiling === maxCeil).length}</div><div class="ml">tied for top ceiling</div></div>`;
 
     let html = `<div class="table-wrap"><table class="expert-table"><thead><tr>
-      <th>#</th><th>Player</th><th class="right">Locked</th><th class="right">Ceiling</th><th>Champion</th><th>Edge</th>
+      <th>#</th><th>Player</th><th class="right">Locked</th><th class="right">🎁 R16</th><th class="right">Ceiling</th><th>Champion</th><th>Status</th>
     </tr></thead><tbody>`;
     rows.forEach((r, i) => {
       const rank = i + 1;
@@ -162,12 +190,14 @@
       const tags = [];
       if (r.gw === topGw) tags.push('<span class="lead-tag">LEADER</span>');
       if (r.messi) tags.push('<span class="messi-tag">MESSI</span>');
-      html += `<tr>
+      if (!r.inRace) tags.push('<span style="display:inline-block;background:#9a3412;color:#fff;font-size:.66rem;font-weight:800;border-radius:4px;padding:.05rem .3rem">OUT OF RACE</span>');
+      html += `<tr${r.inRace ? '' : ' style="opacity:.6"'}>
         <td><span class="rank-badge ${cls}">${rank}</span></td>
         <td><strong>${escHtml(r.alias)}</strong></td>
         <td class="right">${r.cur}</td>
+        <td class="right">${r.extra ? '+' + r.extra : '0'}</td>
         <td class="right"><strong>${r.ceiling}</strong></td>
-        <td>${r.champAlive ? '' : '<span style="opacity:.5">❌ </span>'}${flagHtml(r.champ)} ${teamDisplay(r.champ).split(' ').slice(1).join(' ') || r.champ}</td>
+        <td>${r.champAlive ? '' : '<span style="opacity:.5" title="Champion pick eliminated">❌ </span>'}${flagHtml(r.champ)} ${teamDisplay(r.champ).split(' ').slice(1).join(' ') || r.champ}</td>
         <td>${tags.join(' ') || '—'}</td>
       </tr>`;
     });
@@ -175,13 +205,18 @@
     document.getElementById('ceilingWrap').innerHTML = html;
 
     const leaders = rows.filter(r => r.gw === topGw).map(r => r.alias);
+    const deadChamp = rows.filter(r => !r.champAlive).length;
     document.getElementById('insight').innerHTML =
-      `<strong>${leaders.length}</strong> player${leaders.length === 1 ? '' : 's'} lead on locked group points (<strong>${topGw}/12</strong>): ` +
+      `<strong>${contenders}</strong> of ${N} player${N === 1 ? '' : 's'} can still mathematically finish first ` +
+      `(ceiling ≥ the best locked total of <strong>${maxLocked}</strong>). ` +
+      `On locked group points, <strong>${leaders.length}</strong> lead with <strong>${topGw}/12</strong>: ` +
       leaders.map(a => escHtml(a)).join(', ') + '. ' +
+      `<strong>${deadChamp}</strong> player${deadChamp === 1 ? '' : 's'} have already lost their champion pick ` +
+      `(champions like Brazil, Netherlands and Croatia are already out; Norway and England march on). ` +
       (messiPickers === 0
-        ? 'No one predicted <strong>Messi</strong> as top scorer, so those 5 points are off the table for everyone — Argentina-backers gain only via the bracket. '
-        : `${messiPickers} player(s) pocket the Messi top-scorer bonus. `) +
-      'Spain is the consensus champion, so ESP-backers at the top are the safest favorites; the rest need their Brazil/France/England title pick to come through.';
+        ? 'Nobody tipped <strong>Messi</strong> for the Golden Boot, so those 5 points are off the table for everyone. '
+        : `${messiPickers} player(s) still bank the Messi top-scorer bonus. `) +
+      'The Round of 16 extra points have already reshuffled the ceilings — every surviving Spain, France, England, Argentina or Portugal backer is still very much alive.';
   })();
 </script>
 </body>
