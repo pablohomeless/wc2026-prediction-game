@@ -24,6 +24,7 @@
       <li><a href="predictions.html">Predictions</a></li>
       <li><a href="results.html" class="active">Results</a></li>
       <li><a href="rules.html">Rules</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
       <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
@@ -38,6 +39,7 @@
     <a href="predictions.html">Predictions</a>
     <a href="results.html" class="active">Results</a>
     <a href="rules.html">Rules</a>
+    <a href="extra-points-r16.html">Extra Points</a>
     <a href="how-to-play.html">How to Play</a>
     <a href="winners-chances.html">Winners Chances</a>
   </div>
@@ -68,6 +70,7 @@
 
 <script src="data.js"></script>
 <script src="live-data.js"></script>
+<script src="roundof16-data.js"></script>
 <script>
   function toggleMenu() {
     document.getElementById('navMobile').classList.toggle('open');
@@ -91,6 +94,38 @@
     const ar = ACTUAL_RESULTS;
     const root = document.getElementById('resultsRoot');
     let html = '';
+
+    // ── Round of 16 Extra Points (bonus mini-game) ──
+    if (typeof r16HasResults === 'function' && r16HasResults()) {
+      const games = Object.values(R16_MATCHES).map(m => {
+        const a = R16_ACTUAL[m.key];
+        return `
+          <div class="matchup-card">
+            <div class="matchup-label">${escHtml(m.title)}</div>
+            <div class="matchup-teams">
+              <div class="matchup-team">${teamDisp(m.home)} <strong>${a.home}</strong></div>
+              <div class="matchup-vs">90'</div>
+              <div class="matchup-team"><strong>${a.away}</strong> ${teamDisp(m.away)}</div>
+            </div>
+            <div class="matchup-winner">🏆 ${teamDisp(a.winner)} advanced (after ET / penalties)</div>
+          </div>`;
+      }).join('');
+      const nonPlayers = (typeof R16_PREDICTIONS !== 'undefined')
+        ? PARTICIPANTS.map(p => p.alias).filter(al => !R16_PREDICTIONS.some(r => r.alias === al))
+        : [];
+      const avg = (typeof r16AveragePlayed === 'function') ? r16AveragePlayed().toFixed(1) : '0';
+      html += `
+        <div class="card">
+          <div class="card-title">🎁 Round of 16 — Extra Points</div>
+          <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+            Bonus mini-game — correct game winner = <strong>2 pts</strong>, exact 90-minute result = <strong>3 pts</strong>.
+            These points are included in the <a href="index.html">overall leaderboard</a>.
+          </p>
+          ${games}
+          ${nonPlayers.length ? `<div class="alert alert-info" style="margin-top:1rem;font-size:.82rem">⏳ ${nonPlayers.length} player${nonPlayers.length === 1 ? '' : 's'} didn't submit a Round of 16 prediction (${nonPlayers.map(escHtml).join(', ')}). Their extra points are <strong>pending a decision</strong> (suggested: field average of ${avg} pts).</div>` : ''}
+          <p style="margin-top:1rem;font-size:.85rem"><a href="extra-points-r16.html">See everyone's Extra Points →</a></p>
+        </div>`;
+    }
 
     // ── Group Winners Summary ──
     const gwDone = GROUPS.filter(g => ar.groupWinners && ar.groupWinners[g]).length;

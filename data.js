@@ -589,6 +589,13 @@ function calcPoints(p, actual) {
 function getComputedParticipants() {
   return PARTICIPANTS.map(p => {
     const pts = calcPoints(p, ACTUAL_RESULTS);
+    // Round of 16 "Extra Points" mini-game (only if roundof16-data.js is loaded)
+    let extraR16 = 0;
+    if (typeof r16PointsFor === "function") {
+      extraR16 = r16PointsFor(p.alias).total;
+    }
+    pts.extraR16 = extraR16;
+    pts.total += extraR16;
     return { ...p, points: pts };
   }).sort((a, b) => b.points.total - a.points.total);
 }

@@ -245,6 +245,7 @@
       <li><a href="stats.html" class="active">Stats</a></li>
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
       <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
@@ -260,6 +261,7 @@
     <a href="stats.html" class="active">Stats</a>
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
+    <a href="extra-points-r16.html">Extra Points</a>
     <a href="how-to-play.html">How to Play</a>
     <a href="winners-chances.html">Winners Chances</a>
   </div>
@@ -280,42 +282,6 @@
 
       <div class="alert alert-warning" id="knockoutRoast" style="margin-bottom:1.25rem">
         🔥 <strong>Knockout Roast Desk:</strong> updating elimination banter...
-      </div>
-
-      <!-- ── Predictions vs. Live Results ── -->
-      <div class="card" style="padding:1.5rem">
-        <div class="section-title">🔴 Predictions vs. Live Results</div>
-        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
-          How the crowd's predictions are holding up against the <strong>real tournament</strong> so far
-          <span id="liveAsOf"></span>. Based on the current group leaders. Only group-stage points
-          (<strong>1 pt</strong> per correct group winner) are available while the groups are still being
-          played — knockout points unlock later.
-        </p>
-        <div class="alert alert-info" id="liveSampleNote" style="display:none;font-size:.8rem">
-          ⚠️ Live results are sample data — edit <code>live-data.js</code> with official FIFA scores.
-        </div>
-        <div class="stats-row" id="liveKpis" style="margin-bottom:1.25rem"></div>
-        <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:1.5rem" class="live-cols">
-          <div>
-            <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🏆 Live Leaderboard <span style="font-weight:400;color:var(--gray-400)">(provisional)</span></div>
-            <div id="liveBoard"></div>
-          </div>
-          <div>
-            <div style="font-size:.82rem;font-weight:700;margin-bottom:.75rem;color:var(--gray-700)">🎯 Group-Winner Hit Rate</div>
-            <div id="liveGroupAcc"></div>
-          </div>
-        </div>
-        <div class="insight" id="liveInsight"></div>
-      </div>
-
-      <!-- ── Reality Check / Impossibility tiles ── -->
-      <div class="card" style="padding:1.5rem">
-        <div class="section-title">💥 Reality Check — Picks the Results Already Killed</div>
-        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1.25rem">
-          The fun (or brutal) part: which predictions have the real results made
-          <strong>mathematically impossible</strong>, and which crowd favourites are already flopping?
-        </p>
-        <div class="fun-grid" id="funFacts"><!-- filled by JS --></div>
       </div>
 
       <!-- ── Consensus Bracket ── -->
@@ -1024,6 +990,7 @@
 
   // ── Predictions vs. Live Results ──────────────────────────────────────────
   (function () {
+    if (!document.getElementById('liveKpis')) return; // section removed
     if (typeof LIVE_MATCHES === 'undefined' || typeof getGroupLeaders !== 'function') return;
     const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 

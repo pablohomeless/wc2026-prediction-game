@@ -80,6 +80,7 @@
       <li><a href="predictions.html">Predictions</a></li>
       <li><a href="stats.html">Stats</a></li>
       <li><a href="live-results.html">Live Results</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
       <li><a href="winner-forecast.html">Who Wins Now?</a></li>
@@ -96,6 +97,7 @@
     <a href="predictions.html">Predictions</a>
     <a href="stats.html">Stats</a>
     <a href="live-results.html">Live Results</a>
+    <a href="extra-points-r16.html">Extra Points</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
     <a href="winner-forecast.html">Who Wins Now?</a>
@@ -128,8 +130,22 @@
       </div>
 
       <div class="alert alert-warning" id="r32Commentary" style="margin-bottom:1.5rem">
-        🧮 <strong>Round of 32 Forecast Update:</strong> Germany and Netherlands eliminations are now reflected in forecast-only pages.
-        Live standings remain unchanged until official round outcomes are fully final.
+        🏁 <strong>Round of 32 is finalized.</strong> All 16 first-knockout-round games are done.
+        🔵 <strong>Round of 16 is in progress</strong> — Norway, England, France and Morocco are already
+        through to the quarter-finals; the remaining ties are being played now.
+      </div>
+
+      <!-- R16 Extra Points note -->
+      <div class="alert alert-info" id="r16Note" style="display:none;margin-bottom:1.5rem"></div>
+
+      <!-- R16 Extra Points fun shake-up -->
+      <div class="card" id="r16FunWrap" style="display:none">
+        <div class="section-title">� Round of 16 — Bonus-Round Highlights</div>
+        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
+          The best and coldest cards from the two bonus games (based only on the Round of 16 results).
+          <a href="extra-points-r16.html">See all Extra Points →</a>
+        </p>
+        <div class="fun-grid" id="r16FunStat"></div>
       </div>
 
       <!-- Leaderboard -->
@@ -200,6 +216,7 @@
 <script src="data.js"></script>
 <script src="live-data.js"></script>
 <script src="participants-import.js"></script>
+<script src="roundof16-data.js"></script>
 <script>
   // ── Hamburger ──
   function toggleMenu() {
@@ -247,6 +264,35 @@
     const computed = getComputedParticipants();
     const officialHasData = phase !== 'pre' && computed.some(p => p.points && p.points.total > 0);
 
+    // ── Round of 16 Extra Points: note + fun shake-up ──
+    if (typeof r16HasResults === 'function' && r16HasResults()) {
+      const nonPlayers = (typeof R16_PREDICTIONS !== 'undefined')
+        ? PARTICIPANTS.map(p => p.alias).filter(a => !R16_PREDICTIONS.some(r => r.alias === a))
+        : [];
+      const avg = (typeof r16AveragePlayed === 'function') ? r16AveragePlayed() : 0;
+      const note = document.getElementById('r16Note');
+      if (note) {
+        note.style.display = '';
+        note.innerHTML =
+          '🎁 <strong>Totals now include the Round of 16 Extra Points</strong> ' +
+          '(Brazil–Norway &amp; Mexico–England). ' +
+          (nonPlayers.length
+            ? '<strong>' + nonPlayers.length + ' player' + (nonPlayers.length === 1 ? '' : 's') +
+              '</strong> didn\'t submit a prediction (' + nonPlayers.map(escHtml).join(', ') + ') — ' +
+              'their extra points are <strong>pending a decision</strong> (suggested: field average of ' +
+              avg.toFixed(1) + ' pts). '
+            : '') +
+          '<a href="extra-points-r16.html">Open the Extra Points page →</a>';
+      }
+      if (typeof r16FunStatHtml === 'function') {
+        const html = r16FunStatHtml();
+        if (html) {
+          document.getElementById('r16FunWrap').style.display = '';
+          document.getElementById('r16FunStat').innerHTML = html;
+        }
+      }
+    }
+
     if (officialHasData) {
       const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
       const rowClass = r => r === 1 ? 'row-gold' : r === 2 ? 'row-silver' : r === 3 ? 'row-bronze' : '';
@@ -264,6 +310,7 @@
             <td class="td-center">${pts.champion}</td>
             <td class="td-center">${pts.thirdPlace}</td>
             <td class="td-center">${pts.topScorer}</td>
+            <td class="td-center" title="Round of 16 extra points">${pts.extraR16 ? '+' + pts.extraR16 : (typeof r16HasResults === 'function' && r16HasResults() ? '0' : '—')}</td>
             <td class="td-total">${pts.total}</td>
           </tr>`;
       });
@@ -273,7 +320,7 @@
             <th>#</th><th style="text-align:left">Player</th>
             <th>Group<br>Winners</th><th>Semi-<br>finals</th><th>Finalists</th>
             <th>3rd/4th<br>Teams</th><th>Champion</th><th>3rd Place</th>
-            <th>Top Scorer</th><th>TOTAL</th>
+            <th>Top Scorer</th><th>🎁 R16<br>Extra</th><th>TOTAL</th>
           </tr></thead>
           <tbody>${orows}</tbody>
         </table></div>`;
@@ -293,36 +340,6 @@
 
     const DATA = typeof PARTICIPANTS_IMPORT !== 'undefined' ? PARTICIPANTS_IMPORT : PARTICIPANTS;
     const N = DATA.length;
-
-    // Round-of-32 commentary only (no standings mutation)
-    (function buildR32Commentary() {
-      const box = document.getElementById('r32Commentary');
-      if (!box || !DATA.length) return;
-      const ELIM = new Set(['GER', 'NED']);
-      const impacted = DATA.map(p => {
-        let c = 0;
-        if (ELIM.has(p.predictions.champion)) c += 2;
-        (p.predictions.finalists || []).forEach(t => { if (ELIM.has(t)) c += 1; });
-        (p.predictions.semiFinals || []).forEach(t => { if (ELIM.has(t)) c += 1; });
-        return { alias: p.alias, c };
-      }).sort((a, b) => b.c - a.c || a.alias.localeCompare(b.alias));
-
-      const hardestHit = impacted.filter(x => x.c === impacted[0].c && x.c > 0).slice(0, 3);
-      const safe = impacted.filter(x => x.c === 0).slice(0, 3);
-
-      const roast = hardestHit.length
-        ? `${hardestHit.map(x => `<strong>${escHtml(x.alias)}</strong>`).join(', ')} took the biggest bracket hit (${hardestHit[0].c} eliminated knockout pick${hardestHit[0].c > 1 ? 's' : ''}).`
-        : 'No one took a major elimination hit yet.';
-      const cheer = safe.length
-        ? `${safe.map(x => `<strong>${escHtml(x.alias)}</strong>`).join(', ')} kept clean knockout cards so far.`
-        : 'No totally clean knockout cards right now.';
-
-      box.innerHTML = `
-        🧮 <strong>Round of 32 Forecast Update:</strong> Germany and Netherlands eliminations are now reflected in forecast-only pages.
-        Live standings remain unchanged until official round outcomes are fully final.
-        <br>🔥 ${roast}
-        <br>🎉 ${cheer}`;
-    })();
 
     document.getElementById('participantCount').textContent =
       N + ' participant' + (N !== 1 ? 's' : '');
@@ -344,11 +361,13 @@
     if (LIVE_INFO && LIVE_INFO.isSampleData) document.getElementById('liveSampleNote').style.display = '';
 
     // Per-participant live points: group winners vs current leaders (1 pt each)
+    const r16On = (typeof r16HasResults === 'function' && r16HasResults());
     const rows = DATA.map(p => {
       let correct = 0;
       GROUPS.forEach(g => { if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; });
-      return { alias: p.alias, correct };
-    }).sort((a, b) => b.correct - a.correct || a.alias.localeCompare(b.alias));
+      const extra = (typeof r16PointsFor === 'function') ? r16PointsFor(p.alias).total : 0;
+      return { alias: p.alias, correct, extra, livePts: correct + extra };
+    }).sort((a, b) => b.livePts - a.livePts || a.alias.localeCompare(b.alias));
 
     const totalCorrect = rows.reduce((s, r) => s + r.correct, 0);
     const avgCorrect   = N ? totalCorrect / N : 0;
@@ -361,11 +380,13 @@
       let bhtml = `
         <p style="font-size:.83rem;color:var(--gray-500);margin:0 0 1rem">
           Provisional standings based on the current group leaders — <strong>1 pt</strong> per correct
-          group winner. Knockout points unlock later.
+          group winner${r16On ? ' — plus the <strong>Round of 16 Extra Points</strong> (bonus games)' : ''}.
+          Knockout points unlock later.
         </p>
         <div class="table-wrap"><table class="expert-table"><thead><tr>
           <th>#</th><th>Player</th>
           <th class="right">Leaders ✓</th>
+          ${r16On ? '<th class="right">🎁 R16</th>' : ''}
           <th class="right">Live pts</th>
         </tr></thead><tbody>`;
       rows.forEach((r, i) => {
@@ -375,7 +396,8 @@
           <td><span class="rank-badge ${cls}">${rank}</span></td>
           <td><strong>${escHtml(r.alias)}</strong></td>
           <td class="right">${r.correct}/${denom}</td>
-          <td class="right"><strong>${r.correct}</strong></td>
+          ${r16On ? `<td class="right">${r.extra ? '+' + r.extra : '0'}</td>` : ''}
+          <td class="right"><strong>${r.livePts}</strong></td>
         </tr>`;
       });
       bhtml += `</tbody></table></div>`;
@@ -646,6 +668,37 @@
         facts.push({
           cls: 'red', emoji: '🛂', title: 'Trophy Detour',
           body: `<strong>${Math.round(delayedChamp.cnt / N * 100)}%</strong> of the field still has ${teamFlag(delayedChamp.code)} <strong>${teamName(delayedChamp.code)}</strong> lifting the trophy, even though they are not top of Group ${delayedChamp.grp} right now. Scenic route to immortality. 🗺️`
+        });
+      }
+
+      // ── Round of 16 extra-points context: no-shows + eliminated-semis roast ──
+      // Teams still alive in the tournament after R32 + the 4 played R16 ties.
+      const R16_ALIVE = new Set(['FRA', 'MAR', 'NOR', 'ENG', 'POR', 'ESP', 'USA', 'BEL', 'ARG', 'EGY', 'SUI', 'COL']);
+
+      if (typeof R16_PREDICTIONS !== 'undefined' && typeof r16AveragePlayed === 'function' && r16HasResults()) {
+        const played = new Set(R16_PREDICTIONS.map(p => p.alias));
+        const nonPlayers = DATA.filter(p => !played.has(p.alias));
+        const avg = r16AveragePlayed();
+        if (nonPlayers.length) {
+          const deadSemiNoShows = nonPlayers.filter(p =>
+            (p.predictions.semiFinals || []).some(c => c && !R16_ALIVE.has(c))
+          ).length;
+          facts.push({
+            cls: 'blue', emoji: '😴', title: 'The Bonus-Round No-Shows',
+            body: `The <strong>${nonPlayers.length}</strong> players who skipped the Round of 16 bonus barely dented the table — it paid out only <strong>~${avg.toFixed(0)} pts</strong> per player on average. And <strong>${deadSemiNoShows}</strong> of them already had Brazil, Netherlands or Germany in their semi-final picks (all long gone), so even the suggested <strong>+2 pts</strong> consolation wouldn't move the needle. We'll probably just hand everyone the 2 and call it fair. 🤝`
+          });
+        }
+      }
+
+      // Roast: 2+ semi-final picks already knocked out of the tournament (no names).
+      const twoPlusDeadSemis = DATA.filter(p => {
+        const dead = (p.predictions.semiFinals || []).filter(c => c && !R16_ALIVE.has(c));
+        return dead.length >= 2;
+      }).length;
+      if (twoPlusDeadSemis > 0) {
+        facts.push({
+          cls: 'red', emoji: '🤖', title: 'Should Have Asked the AI',
+          body: `<strong>${twoPlusDeadSemis}</strong> player${twoPlusDeadSemis === 1 ? '' : 's'} already have <strong>2 or more</strong> of their four semi-final picks eliminated from the tournament. That's not a cold streak — that's a football-knowledge budget of zero. Next time, maybe let the AI fill in the bracket. 🧠⚽`
         });
       }
 

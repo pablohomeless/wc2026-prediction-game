@@ -13,6 +13,10 @@
 			"/^Test-Path \"C:\\\\Program Files\\\\nodejs\\\\node\\.exe\"; Test-Path \"\\$env:AppData\\\\npm\\\\node\\.exe\"$/": {
 				"approve": true,
 				"matchCommandLine": true
+			},
+			"/^cd alt-static; Add-Type -AssemblyName System\\.IO\\.Compression\\.FileSystem; \\$zip = \\[System\\.IO\\.Compression\\.ZipFile\\]::OpenRead\\(\\(Resolve-Path 'ExtraPoints-Roundof16-Partial\\.xlsx'\\)\\); \\$zip\\.Entries \\| Select-Object FullName$/": {
+				"approve": true,
+				"matchCommandLine": true
 			}
 		}
 	}
