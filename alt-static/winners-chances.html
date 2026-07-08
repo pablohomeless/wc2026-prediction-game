@@ -118,6 +118,14 @@
         <div id="insight" class="insight"></div>
       </div>
 
+      <div class="card">
+        <div class="section-title">🧀 Quarter-Final Flavour Clash — Just for Fun</div>
+        <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:1rem">
+          Forget xG — here's how the eight survivors stack up on the only metrics that really matter. 🍷😋
+        </p>
+        <div id="funClash"></div>
+      </div>
+
     </div>
   </div>
 </main>
@@ -344,6 +352,35 @@
       `Only <strong>${bootCount}</strong> player${bootCount === 1 ? '' : 's'} can still bank the top-scorer bonus ` +
       `(they picked Mbappé — now a three-way toss-up with Messi and Haaland). ` +
       `Everything hinges on the eight survivors: France, Morocco, Spain, Belgium, Norway, England, Argentina and Switzerland.`;
+
+    // ── QF Flavour Clash (just for fun) ──
+    const CLASH = [
+      {
+        a: 'FRA', b: 'MAR', title: '🍷 Fine wine  vs  🍵 Mint tea',
+        line: 'Baguettes, Bordeaux and Zidane nostalgia against tagine, the Atlas Lions and the party-crashers who stunned everyone in 2022.'
+      },
+      {
+        a: 'ESP', b: 'BEL', title: '🥘 Paella  vs  🍟 Fries &amp; waffles',
+        line: 'Tiki-taka and a glass of Rioja meet the land of 1,000 beers, moules-frites and a golden generation chasing one last dance.'
+      },
+      {
+        a: 'NOR', b: 'ENG', title: '🐟 Salmon &amp; fjords  vs  🍟 Fish &amp; chips',
+        line: 'Brown cheese, midnight sun and a rampaging Haaland versus a nice cup of tea, the Three Lions and the eternal “it’s coming home”.'
+      },
+      {
+        a: 'ARG', b: 'SUI', title: '🥩 Asado  vs  🍫 Chocolate &amp; fondue',
+        line: 'Malbec, tango and the little maestro Messi against punctual trains, alpine cheese and the most stubborn defence this side of the Alps.'
+      },
+    ];
+    document.getElementById('funClash').innerHTML = CLASH.map(c => `
+      <div style="border:1px solid var(--gray-100);border-radius:10px;padding:.7rem .85rem;margin-bottom:.6rem">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-weight:700;font-size:.9rem;margin-bottom:.35rem">
+          ${flagHtml(c.a)} ${escHtml(shortName(c.a))}
+          <span style="color:var(--gold);font-weight:800;font-size:.8rem">${c.title}</span>
+          ${flagHtml(c.b)} ${escHtml(shortName(c.b))}
+        </div>
+        <div style="font-size:.83rem;color:var(--gray-600);line-height:1.4">${c.line}</div>
+      </div>`).join('');
   })();
 </script>
 </body>
