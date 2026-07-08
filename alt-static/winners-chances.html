@@ -80,22 +80,37 @@
       <div class="hero wc-header-gradient">
         <div class="hero-icon">🔮</div>
         <h1>Who Can Win the Porra</h1>
-        <p>Title odds from locked points (incl. Round of 16 extra) + who's still alive in the bracket</p>
+        <p>One page, one question: which <strong>player</strong> can still win the game — driven by the real quarter-final bracket</p>
       </div>
 
       <div class="alert alert-info">
-        ⚽ <strong>Group winners locked + Round of 32 finalized · Round of 16 in progress.</strong>
-        Locked totals now include the <strong>Round of 16 Extra Points</strong>. Knockout scoring still to come:
-        semis 2 pts each, finalists 4 pts, 3rd/4th teams 3 pts, champion 10 pts, 3rd-place 2 pts, top scorer 5 pts.
-        A pick only counts toward a player's <strong>ceiling</strong> if that team is <strong>still in the tournament</strong> —
-        teams already knocked out (in the Round of 32 or Round of 16) score nothing. We still assume
-        <strong>Leo Messi is top scorer</strong>.
+        ⚽ <strong>Quarter-finals are set.</strong> We take each player's <strong>locked points</strong>
+        (group winners + 🎁 Round of 16 extra) and add every point they could still earn, using the
+        <strong>real bracket</strong>: semis 2 pts each, finalists 4, 3rd/4th teams 3, champion 10, 3rd-place 2, top scorer 5.
+        Every quarter-finalist gets an <strong>equal chance</strong> to advance — except two teams who
+        <strong>meet in the same quarter-final</strong>, where only one can reach the semis. The Golden Boot is a
+        coin-flip between <strong>Mbappé, Messi &amp; Haaland</strong>. Knocked-out teams (Germany, Netherlands,
+        Brazil, Portugal, USA, Colombia…) score nothing.
       </div>
 
       <div class="card">
-        <div class="section-title">📊 The Race</div>
+        <div class="section-title">🗺️ The Road Ahead — Quarter-finals</div>
+        <div id="bracketWrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">🏆 Who Can Win the Porra</div>
         <div id="kpis" class="stats-row" style="margin-bottom:1rem"></div>
         <div id="ceilingWrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">📊 Title Odds</div>
+        <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:1rem">
+          Share of all <strong id="outcomeCount"></strong> equally-likely bracket completions in which each player
+          finishes top of the Porra (ties are split).
+        </p>
+        <div id="oddsBars"></div>
       </div>
 
       <div class="card">
@@ -126,97 +141,209 @@
     const DATA = (typeof PARTICIPANTS_IMPORT !== 'undefined' && PARTICIPANTS_IMPORT.length) ? PARTICIPANTS_IMPORT : PARTICIPANTS;
     const N = DATA.length;
 
-    // Teams already knocked out of the tournament (Round of 32 + Round of 16 losers).
-    // These can no longer win, reach the final, semis or the 3rd-place game, so any
-    // prediction on them is now worth 0 toward a player's ceiling.
-    const ELIMINATED = new Set([
-      // Round of 32 losers
-      'RSA', 'GER', 'NED', 'JPN', 'SWE', 'CIV', 'ECU', 'COD', 'BIH', 'SEN',
-      'CRO', 'AUT', 'ALG', 'CPV', 'GHA', 'AUS',
-      // Round of 16 losers (so far)
-      'PAR', 'CAN', 'BRA', 'MEX',
-    ]);
+    // ── Quarter-final bracket (FIFA standings, snapshot 2026-07-09) ──────────
+    // Each pair meets in a quarter-final; only ONE team can advance to the semis.
+    // Pairs 0 & 1 = TOP half (feed semi-final A → Finalist A);
+    // Pairs 2 & 3 = BOTTOM half (feed semi-final B → Finalist B).
+    const QF_PAIRS = [
+      ['FRA', 'MAR'],   // M97
+      ['ESP', 'BEL'],   // M98
+      ['NOR', 'ENG'],   // M99
+      ['ARG', 'SUI'],   // M100
+    ];
+    const QF = new Set(QF_PAIRS.flat());                 // the 8 teams still alive
+    const TOP_SCORERS = ['mbappe', 'messi', 'haaland'];  // equal Golden Boot chances
 
-    // Qualified teams: top 2 of each group + 8 best 3rd-placed
-    const st = computeGroupStandings();
-    const qualified = new Set(); const thirds = [];
-    GROUPS.forEach(g => { qualified.add(st[g][0].code); qualified.add(st[g][1].code); thirds.push(st[g][2]); });
-    thirds.sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF).slice(0, 8).forEach(t => qualified.add(t.code));
+    function canonScorer(name) {
+      const s = String(name || '').toLowerCase();
+      if (s.includes('mbapp')) return 'mbappe';
+      if (s.includes('messi')) return 'messi';
+      if (s.includes('haaland') || s.includes('haland') || s.includes('håland')) return 'haaland';
+      return 'other';
+    }
+    function shortName(code) {
+      const d = teamDisplay(code);
+      return d.split(' ').slice(1).join(' ') || code || '—';
+    }
+    function qfRow(pair) {
+      return `<div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .65rem;background:var(--gray-50);border-radius:8px;margin-bottom:.45rem;font-size:.86rem;font-weight:600">
+        ${flagHtml(pair[0])} ${escHtml(shortName(pair[0]))}
+        <span style="color:var(--gray-400);font-weight:800;font-size:.72rem">vs</span>
+        ${flagHtml(pair[1])} ${escHtml(shortName(pair[1]))}
+      </div>`;
+    }
 
-    // Still alive = qualified for the knockouts AND not yet eliminated.
-    const alive = code => code && qualified.has(code) && !ELIMINATED.has(code);
-
+    // ── Locked points (group winners + Round of 16 extra) ──
     const r16Extra = alias => (typeof r16PointsFor === 'function') ? r16PointsFor(alias).total : 0;
 
-    const rows = DATA.map(p => {
-      const cur = calcPoints(p, ACTUAL_RESULTS);            // group winners are locked
-      const extra = r16Extra(p.alias);                       // Round of 16 extra points (locked)
-      const lockedTotal = cur.total + extra;
-      let pot = 0;
-      (p.predictions.semiFinals || []).forEach(t => { if (alive(t)) pot += 2; });
-      (p.predictions.finalists || []).forEach(t => { if (alive(t)) pot += 4; });
-      (p.predictions.thirdPlaceParticipants || []).forEach(t => { if (alive(t)) pot += 3; });
-      if (alive(p.predictions.champion)) pot += 10;
-      if (alive(p.predictions.thirdPlace)) pot += 2;
-      const messi = /messi/i.test(p.predictions.topScorer || '');
-      if (messi) pot += 5; // Messi assumed top scorer
+    const players = DATA.map(p => {
+      const cur = calcPoints(p, ACTUAL_RESULTS);
+      const extra = r16Extra(p.alias);
+      const locked = cur.total + extra;
       return {
-        alias: p.alias, gw: cur.groupWinners, extra, cur: lockedTotal, ceiling: lockedTotal + pot,
-        champ: p.predictions.champion, champAlive: alive(p.predictions.champion), messi
+        alias: p.alias, gw: cur.groupWinners, extra, locked,
+        sf: (p.predictions.semiFinals || []).filter(t => QF.has(t)),
+        fin: (p.predictions.finalists || []).filter(t => QF.has(t)),
+        t34: (p.predictions.thirdPlaceParticipants || []).filter(t => QF.has(t)),
+        champ: QF.has(p.predictions.champion) ? p.predictions.champion : null,
+        champPick: p.predictions.champion,
+        champAlive: QF.has(p.predictions.champion),
+        third: QF.has(p.predictions.thirdPlace) ? p.predictions.thirdPlace : null,
+        ts: canonScorer(p.predictions.topScorer),
       };
-    }).sort((a, b) => b.ceiling - a.ceiling || b.cur - a.cur || a.alias.localeCompare(b.alias));
+    });
 
-    const maxCeil = rows[0].ceiling;
-    const topGw = Math.max(...rows.map(r => r.gw));
-    const messiPickers = rows.filter(r => r.messi).length;
+    // ── Enumerate EVERY valid completion of the bracket ──
+    // 16 QF combos × 2 (semi A) × 2 (semi B) × 2 (champion) × 2 (3rd place) × 3 (top scorer) = 768.
+    // All are treated as equally likely. For each we score every player, find the Porra winner
+    // (ties split), and track win-share, ceiling (max reachable) and floor (guaranteed) per player.
+    const S = players.map(p => ({ win: 0, ceil: p.locked, floor: Infinity, sum: 0 }));
+    let outcomes = 0;
 
-    // Title race: you can still win only if your ceiling can reach the best locked total.
-    const maxLocked = Math.max(...rows.map(r => r.cur));
-    rows.forEach(r => { r.inRace = r.ceiling >= maxLocked; });
-    const contenders = rows.filter(r => r.inRace).length;
+    for (let q = 0; q < 16; q++) {
+      const w = QF_PAIRS.map((pair, i) => pair[(q >> i) & 1]);   // winner of each quarter-final
+      const semi = new Set(w);                                    // the 4 semi-finalists
+      for (let a = 0; a < 2; a++) {                               // semi-final A winner (top half)
+        const finA = w[a], loseA = w[1 - a];
+        for (let b = 0; b < 2; b++) {                             // semi-final B winner (bottom half)
+          const finB = w[2 + b], loseB = w[2 + (1 - b)];
+          const fin = new Set([finA, finB]);                      // the 2 finalists
+          const t34 = new Set([loseA, loseB]);                    // the 2 third-place participants
+          for (const champ of [finA, finB]) {
+            for (const third of [loseA, loseB]) {
+              for (const ts of TOP_SCORERS) {
+                outcomes++;
+                let best = -Infinity;
+                const sc = new Array(players.length);
+                for (let i = 0; i < players.length; i++) {
+                  const p = players[i];
+                  let s = p.locked;
+                  for (const t of p.sf) if (semi.has(t)) s += 2;
+                  for (const t of p.fin) if (fin.has(t)) s += 4;
+                  for (const t of p.t34) if (t34.has(t)) s += 3;
+                  if (p.champ === champ) s += 10;
+                  if (p.third === third) s += 2;
+                  if (p.ts === ts) s += 5;
+                  sc[i] = s;
+                  const st = S[i];
+                  st.sum += s;
+                  if (s > st.ceil) st.ceil = s;
+                  if (s < st.floor) st.floor = s;
+                  if (s > best) best = s;
+                }
+                let cnt = 0;
+                for (let i = 0; i < sc.length; i++) if (sc[i] === best) cnt++;
+                for (let i = 0; i < sc.length; i++) if (sc[i] === best) S[i].win += 1 / cnt;
+              }
+            }
+          }
+        }
+      }
+    }
 
+    players.forEach((p, i) => {
+      p.winPct = S[i].win / outcomes * 100;
+      p.ceiling = S[i].ceil;
+      p.floor = S[i].floor;
+      p.avg = S[i].sum / outcomes;
+    });
+
+    players.sort((a, b) =>
+      b.winPct - a.winPct || b.ceiling - a.ceiling || b.avg - a.avg || a.alias.localeCompare(b.alias));
+
+    const topGw = Math.max(...players.map(p => p.gw));
+    const maxCeil = Math.max(...players.map(p => p.ceiling));
+    const bestLocked = Math.max(...players.map(p => p.locked));
+    const contenders = players.filter(p => p.winPct > 0).length;
+    const fav = players[0];
+    const fmtPct = v => v >= 0.05 ? v.toFixed(1) : (v > 0 ? '<0.1' : '0');
+
+    // ── KPIs ──
     document.getElementById('kpis').innerHTML = `
-      <div class="stat-mini"><div class="mn">${contenders}</div><div class="ml">still in the title race</div></div>
+      <div class="stat-mini"><div class="mn">${contenders}</div><div class="ml">can still win the Porra</div></div>
+      <div class="stat-mini"><div class="mn">${fmtPct(fav.winPct)}%</div><div class="ml">top odds · ${escHtml(fav.alias)}</div></div>
       <div class="stat-mini"><div class="mn">${maxCeil}</div><div class="ml">highest reachable pts</div></div>
-      <div class="stat-mini"><div class="mn">${maxLocked}</div><div class="ml">best locked total</div></div>
-      <div class="stat-mini"><div class="mn">${rows.filter(r => r.ceiling === maxCeil).length}</div><div class="ml">tied for top ceiling</div></div>`;
+      <div class="stat-mini"><div class="mn">${bestLocked}</div><div class="ml">best locked total</div></div>`;
 
+    document.getElementById('outcomeCount').textContent = outcomes.toLocaleString();
+
+    // ── Bracket digest ──
+    document.getElementById('bracketWrap').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);margin-bottom:.5rem">Top half → Finalist A</div>
+          ${[0, 1].map(i => qfRow(QF_PAIRS[i])).join('')}
+        </div>
+        <div>
+          <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);margin-bottom:.5rem">Bottom half → Finalist B</div>
+          ${[2, 3].map(i => qfRow(QF_PAIRS[i])).join('')}
+        </div>
+      </div>
+      <div class="insight" style="margin-top:1rem">
+        One team from <strong>each pair</strong> reaches the semis; one from the top half and one from the bottom half
+        reach the <strong>final</strong>. That's <strong>16 possible finals</strong> — any of
+        ${QF_PAIRS.slice(0, 2).flat().map(shortName).join(', ')} versus any of
+        ${QF_PAIRS.slice(2).flat().map(shortName).join(', ')}.
+      </div>`;
+
+    // ── Main race table ──
     let html = `<div class="table-wrap"><table class="expert-table"><thead><tr>
-      <th>#</th><th>Player</th><th class="right">Locked</th><th class="right">🎁 R16</th><th class="right">Ceiling</th><th>Champion</th><th>Status</th>
+      <th>#</th><th>Player</th><th class="right">Win %</th><th class="right">Locked</th><th class="right">🎁 R16</th>
+      <th class="right">Ceiling</th><th class="right">Floor</th><th>Champion</th><th>Status</th>
     </tr></thead><tbody>`;
-    rows.forEach((r, i) => {
+    players.forEach((p, i) => {
       const rank = i + 1;
       const cls = rank <= 5 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
       const tags = [];
-      if (r.gw === topGw) tags.push('<span class="lead-tag">LEADER</span>');
-      if (r.messi) tags.push('<span class="messi-tag">MESSI</span>');
-      if (!r.inRace) tags.push('<span style="display:inline-block;background:#9a3412;color:#fff;font-size:.66rem;font-weight:800;border-radius:4px;padding:.05rem .3rem">OUT OF RACE</span>');
-      html += `<tr${r.inRace ? '' : ' style="opacity:.6"'}>
+      if (rank === 1 && p.winPct > 0) tags.push('<span style="display:inline-block;background:#b45309;color:#fff;font-size:.66rem;font-weight:800;border-radius:4px;padding:.05rem .3rem">FAVOURITE</span>');
+      if (p.gw === topGw) tags.push('<span class="lead-tag">LEADER</span>');
+      if (p.ts === 'mbappe') tags.push('<span class="messi-tag">SCORER</span>');
+      if (p.winPct === 0) tags.push('<span style="display:inline-block;background:#9a3412;color:#fff;font-size:.66rem;font-weight:800;border-radius:4px;padding:.05rem .3rem">OUT OF RACE</span>');
+      html += `<tr${p.winPct > 0 ? '' : ' style="opacity:.55"'}>
         <td><span class="rank-badge ${cls}">${rank}</span></td>
-        <td><strong>${escHtml(r.alias)}</strong></td>
-        <td class="right">${r.cur}</td>
-        <td class="right">${r.extra ? '+' + r.extra : '0'}</td>
-        <td class="right"><strong>${r.ceiling}</strong></td>
-        <td>${r.champAlive ? '' : '<span style="opacity:.5" title="Champion pick eliminated">❌ </span>'}${flagHtml(r.champ)} ${teamDisplay(r.champ).split(' ').slice(1).join(' ') || r.champ}</td>
+        <td><strong>${escHtml(p.alias)}</strong></td>
+        <td class="right"><strong>${fmtPct(p.winPct)}%</strong></td>
+        <td class="right">${p.locked}</td>
+        <td class="right">${p.extra ? '+' + p.extra : '0'}</td>
+        <td class="right"><strong>${p.ceiling}</strong></td>
+        <td class="right">${p.floor}</td>
+        <td>${p.champAlive ? '' : '<span style="opacity:.5" title="Champion pick eliminated">❌ </span>'}${flagHtml(p.champPick)} ${escHtml(shortName(p.champPick))}</td>
         <td>${tags.join(' ') || '—'}</td>
       </tr>`;
     });
     html += '</tbody></table></div>';
     document.getElementById('ceilingWrap').innerHTML = html;
 
-    const leaders = rows.filter(r => r.gw === topGw).map(r => r.alias);
-    const deadChamp = rows.filter(r => !r.champAlive).length;
+    // ── Title-odds bars (top 12 live contenders) ──
+    const barPlayers = players.filter(p => p.winPct > 0).slice(0, 12);
+    const maxWin = barPlayers.length ? barPlayers[0].winPct : 1;
+    document.getElementById('oddsBars').innerHTML = barPlayers.map((p, i) => {
+      const w = Math.max(2, p.winPct / maxWin * 100);
+      const color = i === 0 ? '#b45309' : i < 3 ? '#065f46' : i < 6 ? '#1e40af' : '#6b7280';
+      return `<div style="display:grid;grid-template-columns:150px 1fr 54px;align-items:center;gap:.6rem;margin-bottom:.5rem">
+        <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.alias)}</div>
+        <div style="height:18px;border-radius:999px;background:var(--gray-100);overflow:hidden"><div style="height:100%;width:${w}%;background:${color};border-radius:999px;transition:width .5s"></div></div>
+        <div style="text-align:right;font-size:.8rem;font-weight:800">${fmtPct(p.winPct)}%</div>
+      </div>`;
+    }).join('') || '<p style="color:var(--gray-500);font-size:.85rem">No contenders — something went wrong.</p>';
+
+    // ── Read ──
+    const leaders = players.filter(p => p.gw === topGw).map(p => p.alias);
+    const deadChamp = players.filter(p => !p.champAlive).length;
+    const bootCount = players.filter(p => p.ts === 'mbappe').length;
+    const t3 = players.slice(0, 3);
     document.getElementById('insight').innerHTML =
-      `<strong>${contenders}</strong> of ${N} player${N === 1 ? '' : 's'} can still mathematically finish first ` +
-      `(ceiling ≥ the best locked total of <strong>${maxLocked}</strong>). ` +
+      `Across all <strong>${outcomes.toLocaleString()}</strong> equally-likely ways the bracket can play out, ` +
+      `<strong>${contenders}</strong> of ${N} players can still finish top of the Porra. ` +
+      `The favourite is <strong>${escHtml(t3[0].alias)}</strong> ` +
+      `(<strong>${fmtPct(t3[0].winPct)}%</strong> title odds, ceiling ${t3[0].ceiling})` +
+      (t3.length > 2 ? `, chased by <strong>${escHtml(t3[1].alias)}</strong> and <strong>${escHtml(t3[2].alias)}</strong>` : '') + '. ' +
       `On locked group points, <strong>${leaders.length}</strong> lead with <strong>${topGw}/12</strong>: ` +
-      leaders.map(a => escHtml(a)).join(', ') + '. ' +
-      `<strong>${deadChamp}</strong> player${deadChamp === 1 ? '' : 's'} have already lost their champion pick ` +
-      `(champions like Brazil, Netherlands and Croatia are already out; Norway and England march on). ` +
-      (messiPickers === 0
-        ? 'Nobody tipped <strong>Messi</strong> for the Golden Boot, so those 5 points are off the table for everyone. '
-        : `${messiPickers} player(s) still bank the Messi top-scorer bonus. `) +
-      'The Round of 16 extra points have already reshuffled the ceilings — every surviving Spain, France, England, Argentina or Portugal backer is still very much alive.';
+      leaders.map(escHtml).join(', ') + '. ' +
+      `<strong>${deadChamp}</strong> player${deadChamp === 1 ? '' : 's'} have already lost their champion pick. ` +
+      `Only <strong>${bootCount}</strong> player${bootCount === 1 ? '' : 's'} can still bank the top-scorer bonus ` +
+      `(they picked Mbappé — now a three-way toss-up with Messi and Haaland). ` +
+      `Everything hinges on the eight survivors: France, Morocco, Spain, Belgium, Norway, England, Argentina and Switzerland.`;
   })();
 </script>
 </body>
