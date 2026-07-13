@@ -187,7 +187,9 @@
     const players = DATA.map(p => {
       const cur = calcPoints(p, ACTUAL_RESULTS);
       const extra = r16Extra(p.alias);
-      const locked = cur.total + extra;
+      // Semi-finalists are decided during the enumeration below, so exclude them
+      // from "locked" to avoid double-counting them here and in the projection.
+      const locked = cur.total - cur.semiFinals + extra;
       return {
         alias: p.alias, gw: cur.groupWinners, extra, locked,
         sf: (p.predictions.semiFinals || []).filter(t => QF.has(t)),

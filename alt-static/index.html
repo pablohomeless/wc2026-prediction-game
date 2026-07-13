@@ -355,11 +355,19 @@
 
     // Per-participant live points: group winners vs current leaders (1 pt each)
     const r16On = (typeof r16HasResults === 'function' && r16HasResults());
+    // Semi-finalists (2 pt each correct) — from ACTUAL_RESULTS.semiFinals (live-data.js)
+    const actualSemis = (typeof ACTUAL_RESULTS !== 'undefined' && ACTUAL_RESULTS.semiFinals)
+      ? ACTUAL_RESULTS.semiFinals : null;
+    const semiOn = !!actualSemis;
     const rows = DATA.map(p => {
       let correct = 0;
       GROUPS.forEach(g => { if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; });
       const extra = (typeof r16PointsFor === 'function') ? r16PointsFor(p.alias).total : 0;
-      return { alias: p.alias, correct, extra, livePts: correct + extra };
+      let semi = 0;
+      if (actualSemis && p.predictions.semiFinals) {
+        p.predictions.semiFinals.forEach(t => { if (actualSemis.includes(t)) semi += 2; });
+      }
+      return { alias: p.alias, correct, extra, semi, livePts: correct + extra + semi };
     }).sort((a, b) => b.livePts - a.livePts || a.alias.localeCompare(b.alias));
 
     const totalCorrect = rows.reduce((s, r) => s + r.correct, 0);
@@ -373,13 +381,14 @@
       let bhtml = `
         <p style="font-size:.83rem;color:var(--gray-500);margin:0 0 1rem">
           Provisional standings based on the current group leaders — <strong>1 pt</strong> per correct
-          group winner${r16On ? ' — plus the <strong>Round of 16 Extra Points</strong> (bonus games)' : ''}.
+          group winner${r16On ? ' — plus the <strong>Round of 16 Extra Points</strong> (bonus games)' : ''}${semiOn ? ' — plus the <strong>Semi-finalists</strong> round (<strong>2 pts</strong> per correct pick)' : ''}.
           Knockout points unlock later.
         </p>
         <div class="table-wrap"><table class="expert-table"><thead><tr>
           <th>#</th><th>Player</th>
           <th class="right">Leaders ✓</th>
           ${r16On ? '<th class="right">🎁 R16</th>' : ''}
+          ${semiOn ? '<th class="right">🏟️ Semis</th>' : ''}
           <th class="right">Live pts</th>
         </tr></thead><tbody>`;
       rows.forEach((r, i) => {
@@ -390,6 +399,7 @@
           <td><strong>${escHtml(r.alias)}</strong></td>
           <td class="right">${r.correct}/${denom}</td>
           ${r16On ? `<td class="right">${r.extra ? '+' + r.extra : '0'}</td>` : ''}
+          ${semiOn ? `<td class="right">${r.semi ? '+' + r.semi : '0'}</td>` : ''}
           <td class="right"><strong>${r.livePts}</strong></td>
         </tr>`;
       });

@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-06-29",                 // "information as of" date shown on the page
+  asOf: "2026-07-13",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -153,6 +153,16 @@ if (typeof ACTUAL_RESULTS !== "undefined" && ACTUAL_RESULTS.groupWinners) {
   FINALIZED_GROUPS.forEach((g) => {
     if (OFFICIAL_LEADERS[g]) ACTUAL_RESULTS.groupWinners[g] = OFFICIAL_LEADERS[g];
   });
+}
+
+// ─── ACTUAL SEMI-FINALISTS — SINGLE SOURCE OF TRUTH ──────────────────────────
+// The 4 teams that reached the semi-finals (FIFA bracket, as of 2026-07-13).
+// Feeding these into ACTUAL_RESULTS.semiFinals lets the ONE scoring function
+// calcPoints() (data.js) award 2 pts per correct pick everywhere both files are
+// loaded — predictions colouring/points, All-Cards, the results page, etc.
+const ACTUAL_SEMIFINALISTS = ["FRA", "ENG", "ARG", "ESP"];
+if (typeof ACTUAL_RESULTS !== "undefined") {
+  ACTUAL_RESULTS.semiFinals = ACTUAL_SEMIFINALISTS.slice();
 }
 
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────
