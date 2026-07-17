@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R16 Bonus — What the No-Shows Would Have Picked · Porra Mundial 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .proj-hero {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff; border-radius: 16px; padding: 1.5rem 1.75rem; margin-bottom: 1.5rem;
+    }
+    .proj-hero h1 { margin: 0 0 .4rem; font-size: 1.5rem; }
+    .proj-hero p { margin: 0; color: #cbd5e1; font-size: .9rem; line-height: 1.5; }
+
+    .actual-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1.5rem; }
+    .actual-chip {
+      flex: 1 1 240px; background: #fff; border: 1px solid var(--gray-200);
+      border-left: 4px solid #16a34a; border-radius: 10px; padding: .7rem .9rem;
+    }
+    .actual-chip .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--gray-500); font-weight: 700; }
+    .actual-chip .res { font-size: .95rem; font-weight: 700; margin-top: .2rem; }
+    .actual-chip .won { font-size: .78rem; color: #15803d; font-weight: 600; margin-top: .15rem; }
+
+    .proj-card { border: 1px solid var(--gray-200); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1rem; background: #fff; }
+    .proj-card .pc-head { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .proj-card .pc-name { font-weight: 800; font-size: 1.02rem; }
+    .proj-card .pc-total { margin-left: auto; background: #0f172a; color: #fff; border-radius: 999px; padding: .2rem .7rem; font-size: .82rem; font-weight: 700; }
+    .proj-card .pc-signals { font-size: .8rem; color: var(--gray-600); background: var(--gray-50); border-radius: 8px; padding: .5rem .65rem; margin-bottom: .75rem; }
+
+    .game-row { display: grid; grid-template-columns: 1fr; gap: .55rem; }
+    @media (min-width: 640px) { .game-row { grid-template-columns: 1fr 1fr; } }
+    .game-box { border: 1px solid var(--gray-200); border-radius: 10px; padding: .65rem .75rem; }
+    .game-box .gb-title { font-size: .75rem; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .03em; margin-bottom: .35rem; }
+    .game-box .gb-pick { font-size: .95rem; font-weight: 700; display: flex; align-items: center; gap: .35rem; }
+    .game-box .gb-meta { display: flex; align-items: center; gap: .5rem; margin: .4rem 0; flex-wrap: wrap; }
+    .conf-pill { font-size: .72rem; font-weight: 800; border-radius: 999px; padding: .1rem .5rem; background: #e0f2fe; color: #075985; }
+    .pts-pill { font-size: .72rem; font-weight: 800; border-radius: 999px; padding: .1rem .5rem; }
+    .pts-pill.hit { background: #dcfce7; color: #166534; }
+    .pts-pill.miss { background: #fed7aa; color: #9a3412; }
+    .ev-pill { font-size: .7rem; font-weight: 700; border-radius: 999px; padding: .1rem .5rem; background: var(--gray-100); color: var(--gray-600); }
+    .game-box .gb-reason { font-size: .8rem; color: var(--gray-700); line-height: 1.45; margin-top: .35rem; }
+
+    .conf-track { height: 6px; border-radius: 999px; background: var(--gray-100); overflow: hidden; margin-top: .25rem; }
+    .conf-fill { height: 100%; border-radius: 999px; background: #0ea5e9; }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar (this page is intentionally NOT in the menus) ── -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <span style="font-size:1.6rem">⚽</span>
+      <div>
+        <div class="nav-logo-title">Porra Mundial 2026</div>
+        <div class="nav-logo-sub">USA / Mexico / Canada</div>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Scoreboard</a></li>
+      <li><a href="predictions.html">Predictions</a></li>
+      <li><a href="stats.html">Stats</a></li>
+      <li><a href="live-results.html">Live Results</a></li>
+      <li><a href="rules.html">Rules</a></li>
+      <li><a href="extra-points-r16.html">Extra Points</a></li>
+      <li><a href="how-to-play.html">How to Play</a></li>
+      <li><a href="winners-chances.html">Winners Chances</a></li>
+    </ul>
+    <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+  </div>
+  <div class="nav-mobile" id="navMobile">
+    <a href="index.html">Scoreboard</a>
+    <a href="predictions.html">Predictions</a>
+    <a href="stats.html">Stats</a>
+    <a href="live-results.html">Live Results</a>
+    <a href="rules.html">Rules</a>
+    <a href="extra-points-r16.html">Extra Points</a>
+    <a href="how-to-play.html">How to Play</a>
+    <a href="winners-chances.html">Winners Chances</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+  <div class="container">
+    <div class="space-y">
+
+      <div class="proj-hero">
+        <h1>🔮 The R16 Bonus No-Shows — What Would They Have Picked?</h1>
+        <p>
+          Six players never submitted a Round of 16 bonus prediction. Using the rest of their bracket
+          (their group winners, semi-finalists, finalists, champion and 3rd/4th picks) we infer the
+          pick they would <em>most naturally</em> have made for each game, with a confidence estimate,
+          and score it against the real results using the
+          <a href="rules.html" style="color:#93c5fd">Round of 16 bonus rules</a>
+          (correct game winner = <strong>2 pts</strong>, exact 90′ result = <strong>3 pts</strong>).
+        </p>
+      </div>
+
+      <div class="actual-row" id="actualRow"></div>
+
+      <div class="alert alert-info" style="font-size:.84rem" id="methodNote"></div>
+
+      <div id="summaryWrap"></div>
+
+      <h2 style="font-size:1.15rem;margin:1.5rem 0 .75rem">Player-by-player reasoning</h2>
+      <div id="cardsWrap"></div>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  ⚽ Porra Mundial 2026 — FIFA World Cup USA/MEX/CAN &nbsp;|&nbsp;
+  <a href="rules.html">Rules</a>
+</footer>
+
+<script src="data.js"></script>
+<script src="live-data.js"></script>
+<script src="roundof16-data.js"></script>
+<script>
+  function toggleMenu() { document.getElementById('navMobile').classList.toggle('open'); }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function tHtml(code) { return (typeof flagHtml === 'function' ? flagHtml(code) : '') + ' ' + esc((TEAMS[code] && TEAMS[code].name) || code); }
+
+  // ── Inferred "natural" picks for the six players who skipped the R16 bonus. ──
+  // Each pick is the team we believe they'd most likely have backed, given the
+  // rest of their bracket, with a confidence % and a short reasoning.
+  const NONPLAYER_PROJECTIONS = [
+    {
+      alias: "Fernando Cima",
+      signals: "Brazil = his CHAMPION (also group C winner, semi-finalist & finalist) · Mexico = group A winner · England = group L winner",
+      braNor: { pick: "BRA", conf: 93, reason: "Brazil is his outright champion pick — the strongest Brazil signal possible. He'd back Brazil without hesitation." },
+      mexEng: { pick: "ENG", conf: 74, reason: "Both are his group winners (Mexico in A, England in L); between them he'd lean to the bigger side, England." },
+    },
+    {
+      alias: "PS",
+      signals: "Brazil = group C winner (his champion is Netherlands; semis ARG/FRA/GER/NED) · Mexico = group A winner · England = group L winner",
+      braNor: { pick: "BRA", conf: 82, reason: "He named Brazil to top group C and has Norway nowhere in his bracket — a comfortable Brazil pick, even if Brazil isn't his deep-run team." },
+      mexEng: { pick: "ENG", conf: 74, reason: "England tops his group L and Mexico his group A; he'd default to England as the favourite." },
+    },
+    {
+      alias: "ParagonSpectre",
+      signals: "Brazil = semi-finalist & 3rd/4th team · Mexico = group A winner · England demoted (he picked Croatia to win group L)",
+      braNor: { pick: "BRA", conf: 90, reason: "Brazil reaches his semi-finals — a strong Brazil lean." },
+      mexEng: { pick: "MEX", conf: 55, reason: "He rated England below Croatia in group L yet backed Mexico to win group A, so the signals point (narrowly) to Mexico — but it's close to a coin-flip." },
+    },
+    {
+      alias: "jtienda",
+      signals: "Brazil = group C winner (his champion is Spain) · Mexico = group A winner · England = group L winner",
+      braNor: { pick: "BRA", conf: 82, reason: "Brazil is his group C winner and outranks Norway everywhere in his bracket — a clear Brazil lean." },
+      mexEng: { pick: "ENG", conf: 74, reason: "England (group L) and Mexico (group A) are both his group winners; he'd lean England." },
+    },
+    {
+      alias: "arthub",
+      signals: "Brazil = semi-finalist & 3rd/4th team · Mexico = group A winner · England demoted (he picked Croatia to win group L)",
+      braNor: { pick: "BRA", conf: 90, reason: "Brazil is in his semi-finals — a strong Brazil lean." },
+      mexEng: { pick: "MEX", conf: 55, reason: "Croatia over England in group L but Mexico atop group A — the bracket narrowly leans Mexico." },
+    },
+    {
+      alias: "Max Family",
+      signals: "Brazil = his CHAMPION (also finalist & semi-finalist) · Norway = his group I winner (!) · Mexico demoted (Czech won his group A) · England demoted (Croatia won his group L)",
+      braNor: { pick: "BRA", conf: 85, reason: "Brazil is his champion, so he'd back it — with a caveat: he rated Norway highly enough to top group I, which shaves a little confidence." },
+      mexEng: { pick: "ENG", conf: 60, reason: "Neither team is his group winner (he picked Czech and Croatia), so with no bracket signal he'd default to the favourite, England." },
+    },
+  ];
+
+  (function () {
+    const A = R16_ACTUAL;
+
+    // ── Actual results header ──
+    document.getElementById('actualRow').innerHTML = `
+      <div class="actual-chip">
+        <div class="lbl">🇧🇷 Brazil vs Norway 🇳🇴</div>
+        <div class="res">Brazil ${A.braNor.home} – ${A.braNor.away} Norway <span style="color:var(--gray-400);font-weight:500">(90′)</span></div>
+        <div class="won">✅ ${tHtml(A.braNor.winner)} advanced</div>
+      </div>
+      <div class="actual-chip">
+        <div class="lbl">🇲🇽 Mexico vs England 🏴</div>
+        <div class="res">Mexico ${A.mexEng.home} – ${A.mexEng.away} England <span style="color:var(--gray-400);font-weight:500">(90′)</span></div>
+        <div class="won">✅ ${tHtml(A.mexEng.winner)} advanced</div>
+      </div>`;
+
+    // Winner-only points for a projected pick (we don't project an exact 90′ scoreline).
+    const winPts = (pick, actual) => (pick === actual.winner ? R16_POINTS_WINNER : 0);
+    // Home/away team codes per actual match object (braNor: BRA/NOR, mexEng: MEX/ENG)
+    const matchTeams = (actual) => (actual === A.braNor)
+      ? { home: R16_MATCHES.braNor.home, away: R16_MATCHES.braNor.away }
+      : { home: R16_MATCHES.mexEng.home, away: R16_MATCHES.mexEng.away };
+    // Probability-weighted expected points (pick vs the only other team in the tie).
+    const evPts = (pick, conf, actual) => {
+      const pPick = conf / 100;
+      const teams = matchTeams(actual);
+      const alt = (pick === teams.home) ? teams.away : teams.home;
+      return pPick * winPts(pick, actual) + (1 - pPick) * winPts(alt, actual);
+    };
+
+    // Compute per-player results
+    const rows = NONPLAYER_PROJECTIONS.map(p => {
+      const bn = winPts(p.braNor.pick, A.braNor);
+      const me = winPts(p.mexEng.pick, A.mexEng);
+      const bnEv = evPts(p.braNor.pick, p.braNor.conf, A.braNor);
+      const meEv = evPts(p.mexEng.pick, p.mexEng.conf, A.mexEng);
+      return { ...p, bn, me, total: bn + me, ev: bnEv + meEv };
+    });
+
+    const avgPlayed = (typeof r16AveragePlayed === 'function') ? r16AveragePlayed() : 0;
+    const suggestedAvg = rows.reduce((s, r) => s + r.total, 0) / rows.length;
+
+    document.getElementById('methodNote').innerHTML =
+      `🧮 <strong>How to read this.</strong> The projected points below count the <strong>game winner only</strong> ` +
+      `(2 pts) — we don't invent an exact 90′ scoreline, so the 3-pt exact bonus is never assumed. ` +
+      `For context, the players who <em>did</em> submit averaged <strong>${avgPlayed.toFixed(2)} pts</strong>; ` +
+      `these six projections average <strong>${suggestedAvg.toFixed(2)} pts</strong>. ` +
+      `Brazil losing to Norway is the big leveller — <strong>22 of 23</strong> submitted entries backed Brazil and scored ` +
+      `<strong>0</strong> on that game, so the no-shows' near-certain Brazil picks land the same way.`;
+
+    // ── Summary table ──
+    let sHtml = `
+      <div class="card">
+        <div class="card-title">📊 Suggested points summary</div>
+        <div class="table-wrap"><table>
+          <thead><tr>
+            <th style="text-align:left">Player</th>
+            <th>🇧🇷 BRA–NOR 🇳🇴<br>likely pick</th>
+            <th>🇲🇽 MEX–ENG 🏴<br>likely pick</th>
+            <th>Suggested<br>pts</th>
+            <th title="Probability-weighted expected points">Exp.<br>pts</th>
+          </tr></thead><tbody>`;
+    rows.slice().sort((a, b) => b.total - a.total || b.ev - a.ev).forEach(r => {
+      const cell = (g, actual) => {
+        const hit = g.pick === actual.winner;
+        return `<td class="td-center" style="font-size:.82rem">
+            <div style="font-weight:700">${tHtml(g.pick)}</div>
+            <span class="conf-pill">${g.conf}%</span>
+            <span class="pts-pill ${hit ? 'hit' : 'miss'}">${hit ? '+' + R16_POINTS_WINNER : '0'} pt${hit ? 's' : ''}</span>
+          </td>`;
+      };
+      sHtml += `<tr>
+        <td class="td-alias">${esc(aliasLabel(r.alias))}</td>
+        ${cell(r.braNor, A.braNor)}
+        ${cell(r.mexEng, A.mexEng)}
+        <td class="td-total">${r.total}</td>
+        <td class="td-center" style="color:var(--gray-500);font-weight:600">${r.ev.toFixed(2)}</td>
+      </tr>`;
+    });
+    sHtml += `</tbody></table></div>
+      <p style="font-size:.8rem;color:var(--gray-500);margin-top:.75rem">
+        <strong>Suggested pts</strong> = points the most-likely pick earns against the real results.
+        <strong>Exp. pts</strong> = those points weighted by the confidence % (accounts for the chance they'd have picked the other team).
+      </p></div>`;
+    document.getElementById('summaryWrap').innerHTML = sHtml;
+
+    // ── Per-player cards ──
+    let cHtml = '';
+    rows.forEach(r => {
+      const gameBox = (title, g, actual) => {
+        const hit = g.pick === actual.winner;
+        return `
+          <div class="game-box">
+            <div class="gb-title">${title}</div>
+            <div class="gb-pick">${tHtml(g.pick)}</div>
+            <div class="conf-track"><div class="conf-fill" style="width:${g.conf}%"></div></div>
+            <div class="gb-meta">
+              <span class="conf-pill">${g.conf}% likely</span>
+              <span class="pts-pill ${hit ? 'hit' : 'miss'}">${hit ? '+' + R16_POINTS_WINNER + ' pts (winner ✓)' : '0 pts (winner ✗)'}</span>
+            </div>
+            <div class="gb-reason">${esc(g.reason)}</div>
+          </div>`;
+      };
+      cHtml += `
+        <div class="proj-card">
+          <div class="pc-head">
+            <span class="pc-name">👤 ${esc(aliasLabel(r.alias))}</span>
+            <span class="pc-total">${r.total} pts suggested</span>
+          </div>
+          <div class="pc-signals">🧭 <strong>Bracket signals:</strong> ${esc(r.signals)}</div>
+          <div class="game-row">
+            ${gameBox('🇧🇷 Brazil vs Norway 🇳🇴', r.braNor, A.braNor)}
+            ${gameBox('🇲🇽 Mexico vs England 🏴', r.mexEng, A.mexEng)}
+          </div>
+        </div>`;
+    });
+    document.getElementById('cardsWrap').innerHTML = cHtml;
+  })();
+</script>
+
+</body>
+</html>

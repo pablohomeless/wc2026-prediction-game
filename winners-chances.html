@@ -187,9 +187,10 @@
     const players = DATA.map(p => {
       const cur = calcPoints(p, ACTUAL_RESULTS);
       const extra = r16Extra(p.alias);
-      // Semi-finalists are decided during the enumeration below, so exclude them
-      // from "locked" to avoid double-counting them here and in the projection.
-      const locked = cur.total - cur.semiFinals + extra;
+      // Semi-finalists, finalists and 3rd/4th teams are decided during the
+      // enumeration below, so exclude them from "locked" to avoid double-counting
+      // them here and in the projection.
+      const locked = cur.total - cur.semiFinals - cur.finalists - cur.thirdPlaceParticipants + extra;
       return {
         alias: p.alias, gw: cur.groupWinners, extra, locked,
         sf: (p.predictions.semiFinals || []).filter(t => QF.has(t)),
@@ -271,7 +272,7 @@
     // ── KPIs ──
     document.getElementById('kpis').innerHTML = `
       <div class="stat-mini"><div class="mn">${contenders}</div><div class="ml">can still win the Porra</div></div>
-      <div class="stat-mini"><div class="mn">${fmtPct(fav.winPct)}%</div><div class="ml">top odds · ${escHtml(fav.alias)}</div></div>
+      <div class="stat-mini"><div class="mn">${fmtPct(fav.winPct)}%</div><div class="ml">top odds · ${escHtml(aliasLabel(fav.alias))}</div></div>
       <div class="stat-mini"><div class="mn">${maxCeil}</div><div class="ml">highest reachable pts</div></div>
       <div class="stat-mini"><div class="mn">${bestLocked}</div><div class="ml">best locked total</div></div>`;
 
@@ -311,7 +312,7 @@
       if (p.winPct === 0) tags.push('<span style="display:inline-block;background:#9a3412;color:#fff;font-size:.66rem;font-weight:800;border-radius:4px;padding:.05rem .3rem">OUT OF RACE</span>');
       html += `<tr${p.winPct > 0 ? '' : ' style="opacity:.55"'}>
         <td><span class="rank-badge ${cls}">${rank}</span></td>
-        <td><strong>${escHtml(p.alias)}</strong></td>
+        <td><strong>${escHtml(aliasLabel(p.alias))}</strong></td>
         <td class="right"><strong>${fmtPct(p.winPct)}%</strong></td>
         <td class="right">${p.locked}</td>
         <td class="right">${p.extra ? '+' + p.extra : '0'}</td>
@@ -331,7 +332,7 @@
       const w = Math.max(2, p.winPct / maxWin * 100);
       const color = i === 0 ? '#b45309' : i < 3 ? '#065f46' : i < 6 ? '#1e40af' : '#6b7280';
       return `<div style="display:grid;grid-template-columns:150px 1fr 54px;align-items:center;gap:.6rem;margin-bottom:.5rem">
-        <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(p.alias)}</div>
+        <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(aliasLabel(p.alias))}</div>
         <div style="height:18px;border-radius:999px;background:var(--gray-100);overflow:hidden"><div style="height:100%;width:${w}%;background:${color};border-radius:999px;transition:width .5s"></div></div>
         <div style="text-align:right;font-size:.8rem;font-weight:800">${fmtPct(p.winPct)}%</div>
       </div>`;
@@ -345,11 +346,11 @@
     document.getElementById('insight').innerHTML =
       `Across all <strong>${outcomes.toLocaleString()}</strong> equally-likely ways the bracket can play out, ` +
       `<strong>${contenders}</strong> of ${N} players can still finish top of the Porra. ` +
-      `The favourite is <strong>${escHtml(t3[0].alias)}</strong> ` +
+      `The favourite is <strong>${escHtml(aliasLabel(t3[0].alias))}</strong> ` +
       `(<strong>${fmtPct(t3[0].winPct)}%</strong> title odds, ceiling ${t3[0].ceiling})` +
-      (t3.length > 2 ? `, chased by <strong>${escHtml(t3[1].alias)}</strong> and <strong>${escHtml(t3[2].alias)}</strong>` : '') + '. ' +
+      (t3.length > 2 ? `, chased by <strong>${escHtml(aliasLabel(t3[1].alias))}</strong> and <strong>${escHtml(aliasLabel(t3[2].alias))}</strong>` : '') + '. ' +
       `On locked group points, <strong>${leaders.length}</strong> lead with <strong>${topGw}/12</strong>: ` +
-      leaders.map(escHtml).join(', ') + '. ' +
+      leaders.map(a => escHtml(aliasLabel(a))).join(', ') + '. ' +
       `<strong>${deadChamp}</strong> player${deadChamp === 1 ? '' : 's'} have already lost their champion pick. ` +
       `Only <strong>${bootCount}</strong> player${bootCount === 1 ? '' : 's'} can still bank the top-scorer bonus ` +
       `(they picked Mbappé — now a three-way toss-up with Messi and Haaland). ` +

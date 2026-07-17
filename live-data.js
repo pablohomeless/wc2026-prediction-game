@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-07-13",                 // "information as of" date shown on the page
+  asOf: "2026-07-16",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -163,6 +163,19 @@ if (typeof ACTUAL_RESULTS !== "undefined" && ACTUAL_RESULTS.groupWinners) {
 const ACTUAL_SEMIFINALISTS = ["FRA", "ENG", "ARG", "ESP"];
 if (typeof ACTUAL_RESULTS !== "undefined") {
   ACTUAL_RESULTS.semiFinals = ACTUAL_SEMIFINALISTS.slice();
+}
+
+// ─── ACTUAL FINALISTS & 3rd/4th-PLACE TEAMS — SINGLE SOURCE OF TRUTH ──────────
+// The 2 teams that reached the final and the 2 teams that play the 3rd/4th-place
+// match (FIFA bracket, as of 2026-07-16). Fed into ACTUAL_RESULTS so calcPoints()
+// (data.js) awards 4 pts per correct finalist and 3 pts per correct 3rd/4th team
+// everywhere both files are loaded. Champion + 3rd-place winner stay null until
+// those matches are played.
+const ACTUAL_FINALISTS = ["ESP", "ARG"];
+const ACTUAL_THIRD_FOURTH = ["ENG", "FRA"];
+if (typeof ACTUAL_RESULTS !== "undefined") {
+  ACTUAL_RESULTS.finalists = ACTUAL_FINALISTS.slice();
+  ACTUAL_RESULTS.thirdPlaceParticipants = ACTUAL_THIRD_FOURTH.slice();
 }
 
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────

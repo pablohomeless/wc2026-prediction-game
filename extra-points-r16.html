@@ -442,7 +442,7 @@
           : `<td class="pts">—</td>`;
         return `
           <tr>
-            <td class="player">${escapeHtml(p.alias)}</td>
+            <td class="player">${escapeHtml(aliasLabel(p.alias))}</td>
             <td class="pick ${winCls}"><span class="pick-chip">${teamInline(pick.winner)}</span></td>
             <td class="score ${scoreCls}">
               ${flagHtml(match.home)} <strong>${pick.home}</strong>
@@ -456,7 +456,7 @@
     // Non-players: grey rows, empty winner + result
     const greyRows = nonPlayers.slice().sort(sortAlpha).map(alias => `
         <tr class="didnt-play">
-          <td class="player">${escapeHtml(alias)}</td>
+          <td class="player">${escapeHtml(aliasLabel(alias))}</td>
           <td class="pick">—</td>
           <td class="score">—</td>
           <td class="pts">—</td>
