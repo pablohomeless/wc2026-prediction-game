@@ -122,7 +122,7 @@
             These points are included in the <a href="index.html">overall leaderboard</a>.
           </p>
           ${games}
-          ${nonPlayers.length ? `<div class="alert alert-info" style="margin-top:1rem;font-size:.82rem">⏳ ${nonPlayers.length} player${nonPlayers.length === 1 ? '' : 's'} didn't submit a Round of 16 prediction (${nonPlayers.map(escHtml).join(', ')}). Their extra points are <strong>pending a decision</strong> (suggested: field average of ${avg} pts).</div>` : ''}
+          ${nonPlayers.length ? `<div class="alert alert-info" style="margin-top:1rem;font-size:.82rem">⏳ ${nonPlayers.length} player${nonPlayers.length === 1 ? '' : 's'} didn't submit a Round of 16 prediction (${nonPlayers.map(a => escHtml(aliasLabel(a))).join(', ')}). Their extra points are <strong>pending a decision</strong> (suggested: field average of ${avg} pts).</div>` : ''}
           <p style="margin-top:1rem;font-size:.85rem"><a href="extra-points-r16.html">See everyone's Extra Points →</a></p>
         </div>`;
     }

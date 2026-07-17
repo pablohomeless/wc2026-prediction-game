@@ -411,6 +411,50 @@ const PARTICIPANTS = [
   // },
 ];
 
+// ─── REVEALED REAL NAMES (alias → real name) ─────────────────────────────────
+// Names revealed at the end of the game. Displayed next to the alias everywhere
+// as "alias - Name" via aliasLabel(). When the real name equals the alias, only
+// the alias is shown (no duplication).
+const PARTICIPANT_NAMES = {
+  "FreeCopilot": "Pablo Sanchez",
+  "Fernando Cima": "Fernando Cima",
+  "coguiu": "Constantin Catalin Guiu",
+  "Baihas": "Baihas Issa",
+  "Maya": "Meriem Jlassi",
+  "Grandma": "Irena Topalovic",
+  "PS": "Patrick Strijkers",
+  "Kunal Parmar": "Kunal Parmar",
+  "Zamankar": "Joseph Sayegh",
+  "NotAFan": "Mauricio Tamayo Ortega",
+  "ParagonSpectre": "Mashoq Ahmad",
+  "Josunefo": "Jordi Sune Fontanals",
+  "Ohad Demri": "Ohad Demri",
+  "jtienda": "Joaquin Tienda Cruz",
+  "rutrac": "Rui Tracanas",
+  "Heinpe": "Heinrich Peters",
+  "Mo Abdelaziz": "Mohammad Abdelaziz",
+  "chverstr": "Chris Verstreken",
+  "Agentic": "Alexander Zagranichnov",
+  "Alfred": "Alfred Daudey",
+  "Dominique Dusabeyezu": "Dominique Dusabeyezu",
+  "Patriot": "Sanchu Sankar",
+  "arthub": "Arthur Berkowicz",
+  "Manuel Neuer Versuch": "Daniel Niehus",
+  "Laurence Evans / levans": "Laurence Evans",
+  "Alberto": "Alberto Lopez Diez-Madroñero",
+  "Wrong shaped ball": "Jo Gardner",
+  "Santi (snunez)": "Santiago Nuñez Martinez",
+  "Max Family": "Massimo Agrelli",
+};
+
+// Returns "alias - Real Name" (or just the alias when no distinct name exists).
+// Trims the lookup key so trailing-space alias variants still resolve.
+function aliasLabel(alias) {
+  const key = (alias == null ? "" : String(alias)).trim();
+  const name = PARTICIPANT_NAMES[key];
+  return name && name !== key ? alias + " - " + name : alias;
+}
+
 // ─── 2. ACTUAL RESULTS (fill in as tournament progresses) ─────────────────────
 
 const ACTUAL_RESULTS = {

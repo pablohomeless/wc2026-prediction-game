@@ -271,7 +271,7 @@
           '(Brazil–Norway &amp; Mexico–England). ' +
           (nonPlayers.length
             ? '<strong>' + nonPlayers.length + ' player' + (nonPlayers.length === 1 ? '' : 's') +
-              '</strong> didn\'t submit a prediction (' + nonPlayers.map(escHtml).join(', ') + ') — ' +
+              '</strong> didn\'t submit a prediction (' + nonPlayers.map(a => escHtml(aliasLabel(a))).join(', ') + ') — ' +
               'their extra points are <strong>pending a decision</strong> (suggested: field average of ' +
               avg.toFixed(1) + ' pts). '
             : '') +
@@ -295,7 +295,7 @@
         orows += `
           <tr class="${rowClass(rank)}">
             <td class="td-rank">${medal(rank)}</td>
-            <td class="td-alias">${escHtml(p.alias)}</td>
+            <td class="td-alias">${escHtml(aliasLabel(p.alias))}</td>
             <td class="td-center">${pts.groupWinners}</td>
             <td class="td-center">${pts.semiFinals}</td>
             <td class="td-center">${pts.finalists}</td>
@@ -359,6 +359,13 @@
     const actualSemis = (typeof ACTUAL_RESULTS !== 'undefined' && ACTUAL_RESULTS.semiFinals)
       ? ACTUAL_RESULTS.semiFinals : null;
     const semiOn = !!actualSemis;
+    // Finalists (4 pt each) & 3rd/4th-place teams (3 pt each) — from ACTUAL_RESULTS
+    const actualFinalists = (typeof ACTUAL_RESULTS !== 'undefined' && ACTUAL_RESULTS.finalists)
+      ? ACTUAL_RESULTS.finalists : null;
+    const finOn = !!actualFinalists;
+    const actualT34 = (typeof ACTUAL_RESULTS !== 'undefined' && ACTUAL_RESULTS.thirdPlaceParticipants)
+      ? ACTUAL_RESULTS.thirdPlaceParticipants : null;
+    const t34On = !!actualT34;
     const rows = DATA.map(p => {
       let correct = 0;
       GROUPS.forEach(g => { if (leaders[g] && p.predictions.groupWinners[g] === leaders[g]) correct++; });
@@ -367,7 +374,15 @@
       if (actualSemis && p.predictions.semiFinals) {
         p.predictions.semiFinals.forEach(t => { if (actualSemis.includes(t)) semi += 2; });
       }
-      return { alias: p.alias, correct, extra, semi, livePts: correct + extra + semi };
+      let fin = 0;
+      if (actualFinalists && p.predictions.finalists) {
+        p.predictions.finalists.forEach(t => { if (actualFinalists.includes(t)) fin += 4; });
+      }
+      let t34 = 0;
+      if (actualT34 && p.predictions.thirdPlaceParticipants) {
+        p.predictions.thirdPlaceParticipants.forEach(t => { if (actualT34.includes(t)) t34 += 3; });
+      }
+      return { alias: p.alias, correct, extra, semi, fin, t34, livePts: correct + extra + semi + fin + t34 };
     }).sort((a, b) => b.livePts - a.livePts || a.alias.localeCompare(b.alias));
 
     const totalCorrect = rows.reduce((s, r) => s + r.correct, 0);
@@ -381,7 +396,7 @@
       let bhtml = `
         <p style="font-size:.83rem;color:var(--gray-500);margin:0 0 1rem">
           Provisional standings based on the current group leaders — <strong>1 pt</strong> per correct
-          group winner${r16On ? ' — plus the <strong>Round of 16 Extra Points</strong> (bonus games)' : ''}${semiOn ? ' — plus the <strong>Semi-finalists</strong> round (<strong>2 pts</strong> per correct pick)' : ''}.
+          group winner${r16On ? ' — plus the <strong>Round of 16 Extra Points</strong> (bonus games)' : ''}${semiOn ? ' — plus the <strong>Semi-finalists</strong> round (<strong>2 pts</strong> per correct pick)' : ''}${finOn ? ' — plus the <strong>Finalists</strong> (<strong>4 pts</strong> each) and <strong>3rd/4th-place teams</strong> (<strong>3 pts</strong> each)' : ''}.
           Knockout points unlock later.
         </p>
         <div class="table-wrap"><table class="expert-table"><thead><tr>
@@ -389,6 +404,8 @@
           <th class="right">Leaders ✓</th>
           ${r16On ? '<th class="right">🎁 R16</th>' : ''}
           ${semiOn ? '<th class="right">🏟️ Semis</th>' : ''}
+          ${finOn ? '<th class="right">⚔️ Finalists</th>' : ''}
+          ${t34On ? '<th class="right">🎖️ 3rd/4th</th>' : ''}
           <th class="right">Live pts</th>
         </tr></thead><tbody>`;
       rows.forEach((r, i) => {
@@ -396,10 +413,12 @@
         const cls = rank <= 3 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
         bhtml += `<tr>
           <td><span class="rank-badge ${cls}">${rank}</span></td>
-          <td><strong>${escHtml(r.alias)}</strong></td>
+          <td><strong>${escHtml(aliasLabel(r.alias))}</strong></td>
           <td class="right">${r.correct}/${denom}</td>
           ${r16On ? `<td class="right">${r.extra ? '+' + r.extra : '0'}</td>` : ''}
           ${semiOn ? `<td class="right">${r.semi ? '+' + r.semi : '0'}</td>` : ''}
+          ${finOn ? `<td class="right">${r.fin ? '+' + r.fin : '0'}</td>` : ''}
+          ${t34On ? `<td class="right">${r.t34 ? '+' + r.t34 : '0'}</td>` : ''}
           <td class="right"><strong>${r.livePts}</strong></td>
         </tr>`;
       });
@@ -489,7 +508,7 @@
 
         const roastPerfect = roastRows.filter(r => r.correct === ROAST_GROUPS.length);
         if (roastPerfect.length > 0) {
-          const names = roastPerfect.slice(0, 4).map(r => `<strong>${escHtml(r.alias)}</strong>`).join(', ');
+          const names = roastPerfect.slice(0, 4).map(r => `<strong>${escHtml(aliasLabel(r.alias))}</strong>`).join(', ');
           const andMore = roastPerfect.length > 4 ? ` and ${roastPerfect.length - 4} others` : '';
           facts.push({
             cls: 'green', emoji: '🔥', title: 'D-E-F Snipers',
@@ -499,7 +518,7 @@
 
         const roastZero = roastRows.filter(r => r.correct === 0);
         if (roastZero.length > 0) {
-          const names = roastZero.slice(0, 4).map(r => `<strong>${escHtml(r.alias)}</strong>`).join(', ');
+          const names = roastZero.slice(0, 4).map(r => `<strong>${escHtml(aliasLabel(r.alias))}</strong>`).join(', ');
           const andMore = roastZero.length > 4 ? ` and ${roastZero.length - 4} others` : '';
           facts.push({
             cls: 'red', emoji: '🪦', title: 'D-E-F Disasterclass',
@@ -530,7 +549,7 @@
         }).filter(p => p.correctABC === FINALIZED_GROUPS_LIST.length);
 
         if (perfectInABC.length > 0) {
-          const perfectNames = perfectInABC.map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          const perfectNames = perfectInABC.map(p => `<strong>${escHtml(aliasLabel(p.alias))}</strong>`).join(', ');
           facts.push({
             cls: 'green', emoji: '✨', title: 'Perfect Score (Finalized Groups)',
             body: `${perfectNames} got <strong>all ${FINALIZED_GROUPS_LIST.length}</strong> finalized groups correct. That is not luck, that is prophecy with a spreadsheet. 🔮`
@@ -547,7 +566,7 @@
         }).filter(p => p.correctABC === 0);
 
         if (zeroInABC.length > 0) {
-          const zeroNames = zeroInABC.slice(0, 3).map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          const zeroNames = zeroInABC.slice(0, 3).map(p => `<strong>${escHtml(aliasLabel(p.alias))}</strong>`).join(', ');
           const andMore = zeroInABC.length > 3 ? ` and ${zeroInABC.length - 3} others` : '';
           facts.push({
             cls: 'red', emoji: '💀', title: 'Cold Start',
@@ -576,7 +595,7 @@
       if (rows.length && topScore > 0) {
         const leadersNow = rows.filter(r => r.correct === topScore);
         const who = leadersNow.length === 1
-          ? `<strong>${escHtml(leadersNow[0].alias)}</strong>`
+          ? `<strong>${escHtml(aliasLabel(leadersNow[0].alias))}</strong>`
           : `<strong>${leadersNow.length} players</strong>`;
         facts.push({
           cls: 'green', emoji: '🎯', title: 'Ten-Hit Wonder',
@@ -625,7 +644,7 @@
           return c && !qualifiedTeams.has(c);
         });
         if (champOut.length > 0) {
-          const names = champOut.slice(0, 4).map(p => `<strong>${escHtml(p.alias)}</strong>`).join(', ');
+          const names = champOut.slice(0, 4).map(p => `<strong>${escHtml(aliasLabel(p.alias))}</strong>`).join(', ');
           const andMore = champOut.length > 4 ? ` and ${champOut.length - 4} others` : '';
           facts.push({
             cls: 'red', emoji: '🧯', title: 'Champion Pick Extinction Event',
@@ -644,7 +663,7 @@
           const deadList = worst.deadSemis.map(code => `${teamFlag(code)} ${teamName(code)}`).join(', ');
           facts.push({
             cls: 'red', emoji: '🪦', title: 'Semi-final Slip-and-Fall',
-            body: `<strong>${escHtml(worst.alias)}</strong> already lost <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before knockouts even started. Elite confidence, questionable timing. ⏱️`
+            body: `<strong>${escHtml(aliasLabel(worst.alias))}</strong> already lost <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before knockouts even started. Elite confidence, questionable timing. ⏱️`
           });
         }
       }

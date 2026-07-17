@@ -326,7 +326,7 @@
     }
 
     participants.forEach(p => {
-      let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      let row = '<tr><td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>';
       const FINALIZED_GROUPS_LIST = (typeof FINALIZED_GROUPS !== 'undefined')
         ? FINALIZED_GROUPS
         : ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
@@ -353,7 +353,7 @@
     const sfBody = document.getElementById('sfBody');
     participants.forEach(p => {
       const sf = p.predictions.semiFinals || [];
-      let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      let row = '<tr><td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>';
       for (let i = 0; i < 4; i++) {
         const code = sf[i] || '?';
         const cls = resultClassArr(code, ar.semiFinals);
@@ -369,7 +369,7 @@
       const fin = p.predictions.finalists || [];
       const champ = p.predictions.champion;
       const champCls = resultClass(champ, ar.champion);
-      let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      let row = '<tr><td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>';
       for (let i = 0; i < 2; i++) {
         const code = fin[i] || '?';
         const cls = resultClassArr(code, ar.finalists);
@@ -386,7 +386,7 @@
       const t34 = p.predictions.thirdPlaceParticipants || [];
       const winner = p.predictions.thirdPlace;
       const winnerCls = resultClass(winner, ar.thirdPlace);
-      let row = '<tr><td class="td-alias">' + escHtml(p.alias) + '</td>';
+      let row = '<tr><td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>';
       for (let i = 0; i < 2; i++) {
         const code = t34[i] || '?';
         const cls = resultClassArr(code, ar.thirdPlaceParticipants);
@@ -404,7 +404,7 @@
       const cls = !ar.topScorer ? '' :
         (ts && ts.toLowerCase().trim() === ar.topScorer.toLowerCase().trim() ? 'correct' : 'wrong');
       tsBody.innerHTML += '<tr>' +
-        '<td class="td-alias">' + escHtml(p.alias) + '</td>' +
+        '<td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>' +
         '<td class="' + cls + '" style="padding:.5rem 1rem">' + escHtml(ts || '—') + '</td>' +
         '<td class="td-total">' + p.points.topScorer + '</td>' +
         '</tr>';
@@ -484,7 +484,7 @@
       }
 
       allCards.innerHTML += '<div class="player-card">' +
-        '<div class="player-card-header">👤 ' + escHtml(p.alias) +
+        '<div class="player-card-header">👤 ' + escHtml(aliasLabel(p.alias)) +
         '<span class="pts-badge" style="margin-left:auto">' + pts.total + ' pts</span></div>' +
         '<div class="player-card-body">' +
           '<div class="pred-section"><div class="pred-label">Group Winners (1pt each)</div>' + gwChips + '</div>' +
@@ -528,7 +528,7 @@
         const info = r16PointsFor(p.alias);
         if (!info.played) {
           return '<tr style="background:var(--gray-50);color:var(--gray-400)">' +
-            '<td class="td-alias" style="font-style:italic">' + escHtml(p.alias) + '</td>' +
+            '<td class="td-alias" style="font-style:italic">' + escHtml(aliasLabel(p.alias)) + '</td>' +
             '<td class="td-center" colspan="4">— didn\'t play —</td>' +
             '<td class="td-total">—</td></tr>';
         }
@@ -539,7 +539,7 @@
         const meW = hasRes ? (info.mexEng.winner ? 'correct' : 'wrong') : '';
         const meS = hasRes ? (info.mexEng.exact ? 'correct' : 'wrong') : '';
         return '<tr>' +
-          '<td class="td-alias">' + escHtml(p.alias) + '</td>' +
+          '<td class="td-alias">' + escHtml(aliasLabel(p.alias)) + '</td>' +
           '<td class="td-center ' + bnW + '" style="font-weight:600">' + teamShort(rp.braNor.winner) + '</td>' +
           '<td class="td-center ' + bnS + '">' + rp.braNor.home + '–' + rp.braNor.away + '</td>' +
           '<td class="td-center ' + meW + '" style="font-weight:600">' + teamShort(rp.mexEng.winner) + '</td>' +

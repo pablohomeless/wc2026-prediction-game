@@ -424,10 +424,10 @@
     const safest = impacted.filter(x => x.c === 0).slice(0, 3);
 
     const roast = hardest.length
-      ? `${hardest.map(x => `<strong>${esc(x.alias)}</strong>`).join(', ')} got hit hardest with ${hardest[0].c} eliminated knockout pick${hardest[0].c > 1 ? 's' : ''}.`
+      ? `${hardest.map(x => `<strong>${esc(aliasLabel(x.alias))}</strong>`).join(', ')} got hit hardest with ${hardest[0].c} eliminated knockout pick${hardest[0].c > 1 ? 's' : ''}.`
       : 'No major bracket casualties yet.';
     const cheer = safest.length
-      ? `${safest.map(x => `<strong>${esc(x.alias)}</strong>`).join(', ')} kept spotless knockout cards so far.`
+      ? `${safest.map(x => `<strong>${esc(aliasLabel(x.alias))}</strong>`).join(', ')} kept spotless knockout cards so far.`
       : 'No fully clean knockout cards right now.';
 
     box.innerHTML = `
@@ -1042,7 +1042,7 @@
       const cls = rank <= 3 ? 'top5' : rank <= 10 ? 'top10' : 'mid';
       bhtml += `<tr>
         <td><span class="rank-badge ${cls}">${rank}</span></td>
-        <td><strong>${esc(r.alias)}</strong></td>
+        <td><strong>${esc(aliasLabel(r.alias))}</strong></td>
         <td class="right">${r.correct}/${denom}</td>
         <td class="right"><strong>${r.correct}</strong></td>
       </tr>`;
@@ -1139,7 +1139,7 @@
 
       const roastPerfect = roastRows.filter(r => r.correct === ROAST_GROUPS.length);
       if (roastPerfect.length > 0) {
-        const names = roastPerfect.slice(0, 4).map(r => `<strong>${esc(r.alias)}</strong>`).join(', ');
+        const names = roastPerfect.slice(0, 4).map(r => `<strong>${esc(aliasLabel(r.alias))}</strong>`).join(', ');
         const andMore = roastPerfect.length > 4 ? ` and ${roastPerfect.length - 4} others` : '';
         facts.push({
           cls: 'green', emoji: '🔥', title: 'D-E-F Snipers',
@@ -1149,7 +1149,7 @@
 
       const roastZero = roastRows.filter(r => r.correct === 0);
       if (roastZero.length > 0) {
-        const names = roastZero.slice(0, 4).map(r => `<strong>${esc(r.alias)}</strong>`).join(', ');
+        const names = roastZero.slice(0, 4).map(r => `<strong>${esc(aliasLabel(r.alias))}</strong>`).join(', ');
         const andMore = roastZero.length > 4 ? ` and ${roastZero.length - 4} others` : '';
         facts.push({
           cls: 'red', emoji: '🪦', title: 'D-E-F Disasterclass',
@@ -1294,7 +1294,7 @@
       const ord = pos === 1 ? '1st' : pos === 2 ? '2nd' : pos === 3 ? '3rd' : pos + 'th';
       facts.push({
         cls: 'blue', emoji: '👢', title: 'Golden Boot Headwind',
-        body: `<strong>${esc(bootAlias)}</strong> tipped <strong>${esc(bootScorer)}</strong> for the Golden Boot — but ${teamFlag(bootCode)} <strong>${teamName(bootCode)}</strong> have managed just <strong>${bootGF} goal${bootGF === 1 ? '' : 's'}</strong> and sit ${ord} in Group ${grp}. The boot stays in airport security. 🧦`
+        body: `<strong>${esc(aliasLabel(bootAlias))}</strong> tipped <strong>${esc(bootScorer)}</strong> for the Golden Boot — but ${teamFlag(bootCode)} <strong>${teamName(bootCode)}</strong> have managed just <strong>${bootGF} goal${bootGF === 1 ? '' : 's'}</strong> and sit ${ord} in Group ${grp}. The boot stays in airport security. 🧦`
       });
     }
 
@@ -1328,7 +1328,7 @@
       return c && !qualifiedTeams.has(c);
     });
     if (champOut.length > 0) {
-      const names = champOut.slice(0, 4).map(p => `<strong>${esc(p.alias)}</strong>`).join(', ');
+      const names = champOut.slice(0, 4).map(p => `<strong>${esc(aliasLabel(p.alias))}</strong>`).join(', ');
       const andMore = champOut.length > 4 ? ` and ${champOut.length - 4} others` : '';
       facts.push({
         cls: 'red', emoji: '🧯', title: 'Champion Pick Extinction Event',
@@ -1347,7 +1347,7 @@
       const deadList = worst.deadSemis.map(code => `${teamFlag(code)} ${teamName(code)}`).join(', ');
       facts.push({
         cls: 'red', emoji: '🪦', title: 'Semi-final Slip-and-Fall',
-        body: `<strong>${esc(worst.alias)}</strong> already dropped <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before the knockout drama even starts. Tough scene. 🎬`
+        body: `<strong>${esc(aliasLabel(worst.alias))}</strong> already dropped <strong>${worst.deadSemis.length}/4</strong> semi-final picks (${deadList}) before the knockout drama even starts. Tough scene. 🎬`
       });
     }
 
