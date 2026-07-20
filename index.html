@@ -126,6 +126,7 @@
       flex-wrap: wrap;
       justify-content: center;
       margin-bottom: 1rem;
+      min-height: 280px;
     }
     .podium-spot {
       background: #fff;
@@ -136,18 +137,36 @@
       flex: 1 1 120px;
       min-width: 100px;
       max-width: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
     .podium-spot.gold {
       border-color: #fbbf24;
       box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
       transform: scale(1.05);
       flex-basis: 150px;
+      min-height: 260px;
     }
     .podium-spot.silver {
       border-color: #d1d5db;
+      min-height: 200px;
+      font-size: 0.95rem;
+    }
+    .podium-spot.silver .medal {
+      font-size: 2rem;
     }
     .podium-spot.bronze {
       border-color: #cd7f32;
+      height: 140px;
+      font-size: 0.85rem;
+      overflow: hidden;
+    }
+    .podium-spot.bronze .medal {
+      font-size: 1.8rem;
+    }
+    .podium-spot.bronze .podium-pts {
+      font-size: 1.2rem;
     }
     .medal {
       font-size: 2.5rem;
@@ -171,6 +190,19 @@
       font-weight: 800;
       font-size: 1.5rem;
       color: #059669;
+    }
+    /* ── Confetti Animation ── */
+    @keyframes confetti-fall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      pointer-events: none;
+      animation: confetti-fall linear forwards;
+      z-index: 10;
     }
   </style>
 </head>
@@ -250,19 +282,6 @@
         We ran a projection of what they would likely have picked based on their full bracket —
         <a href="r16-nonplayers-projection.html" style="color:#0284c7;font-weight:700">see the R16 No-Shows analysis →</a>
         <span style="color:#64748b"> · This was purely informational and did not affect the final standings.</span>
-      </div>
-
-      <!-- R16 Extra Points note -->
-      <div class="alert alert-info" id="r16Note" style="display:none;margin-bottom:1.5rem"></div>
-
-      <!-- R16 Extra Points fun shake-up -->
-      <div class="card" id="r16FunWrap" style="display:none">
-        <div class="section-title">� Round of 16 — Bonus-Round Highlights</div>
-        <p style="font-size:.83rem;color:var(--gray-500);margin-bottom:1rem">
-          The best and coldest cards from the two bonus games (based only on the Round of 16 results).
-          <a href="extra-points-r16.html">See all Extra Points →</a>
-        </p>
-        <div class="fun-grid" id="r16FunStat"></div>
       </div>
 
       <!-- Leaderboard -->
@@ -406,6 +425,21 @@
       bronzePlayers.forEach(p => { podium += makeSpot('bronze', '🥉', '🥉 3RD', p); });
 
       podiumGrid.innerHTML = podium;
+      
+      // Confetti animation (red and yellow)
+      const colors = ['#EF4444', '#FBBF24']; // red and yellow
+      for (let i = 0; i < 50; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.animationDelay = Math.random() * 0.5 + 's';
+        piece.style.width = (5 + Math.random() * 8) + 'px';
+        piece.style.height = piece.style.width;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4500);
+      }
     }
 
     // ── Round of 16 Extra Points: note + fun shake-up ──
@@ -431,8 +465,7 @@
       if (typeof r16FunStatHtml === 'function') {
         const html = r16FunStatHtml();
         if (html) {
-          document.getElementById('r16FunWrap').style.display = '';
-          document.getElementById('r16FunStat').innerHTML = html;
+          // r16FunWrap removed from index.html
         }
       }
     }
