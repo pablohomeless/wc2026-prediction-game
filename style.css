@@ -367,8 +367,13 @@ tbody td { padding: .65rem .75rem; }
 .special-row:last-child { border-bottom: none; }
 .special-row .slabel { color: var(--gray-500); font-size: .78rem; }
 .special-row .sval { font-weight: 600; }
-.special-row .sval.correct { color: #166534; }
-.special-row .sval.wrong   { color: #991b1b; }
+/* Row-level background highlight for champion / 3rd place / top scorer */
+.special-row.correct { background: #dcfce7; border-radius: 6px; padding: .3rem .5rem; }
+.special-row.correct .slabel { color: #15803d; }
+.special-row.correct .sval   { color: #14532d; }
+.special-row.wrong   { background: #fed7aa; border-radius: 6px; padding: .3rem .5rem; }
+.special-row.wrong   .slabel { color: #9a3412; }
+.special-row.wrong   .sval   { color: #7c2d12; }
 
 .pts-badge {
   display: inline-block;

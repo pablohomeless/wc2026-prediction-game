@@ -69,8 +69,8 @@
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="extra-points-r16.html">Extra Points</a></li>
+      <li><a href="r16-nonplayers-projection.html">R16 No-Shows</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
-      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -85,8 +85,8 @@
     <a href="live-results.html">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="extra-points-r16.html">Extra Points</a>
+    <a href="r16-nonplayers-projection.html">R16 No-Shows</a>
     <a href="how-to-play.html">How to Play</a>
-    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -492,9 +492,9 @@
           '<div class="pred-section"><div class="pred-label">Finalists (4pt each)</div><div>' + (finPills || '—') + '</div></div>' +
           '<div class="pred-section"><div class="pred-label">3rd/4th Place teams (3pt each)</div><div>' + (t34Pills || '—') + '</div></div>' +
           '<div class="pred-section">' +
-            '<div class="special-row"><span class="slabel">🏆 Champion (10pt)</span><span class="sval ' + champCls + '">' + teamDisp(champ) + '</span></div>' +
-            '<div class="special-row"><span class="slabel">🥉 3rd Place winner (2pt)</span><span class="sval ' + thirdCls + '">' + teamDisp(third) + '</span></div>' +
-            '<div class="special-row"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval ' + tsCls + '">' + escHtml(ts || '—') + '</span></div>' +
+            '<div class="special-row ' + champCls + '"><span class="slabel">🏆 Champion (10pt)</span><span class="sval">' + teamDisp(champ) + '</span></div>' +
+            '<div class="special-row ' + thirdCls + '"><span class="slabel">🥉 3rd Place winner (2pt)</span><span class="sval">' + teamDisp(third) + '</span></div>' +
+            '<div class="special-row ' + tsCls + '"><span class="slabel">👟 Top Scorer (5pt)</span><span class="sval">' + escHtml(ts || '—') + '</span></div>' +
           '</div>' +
           '<div class="pred-section"><div class="pred-label">🎁 Round of 16 Extra (' + (r16.total || 0) + 'pt)</div><div>' + r16Pills + '</div></div>' +
           '<div class="score-summary">' +

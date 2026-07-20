@@ -19,7 +19,7 @@
  */
 
 const LIVE_INFO = {
-  asOf: "2026-07-16",                 // "information as of" date shown on the page
+  asOf: "2026-07-20",                 // "information as of" date shown on the page
   isSampleData: false,                // real FIFA data
   source: "Official FIFA results — fifa.com",
 };
@@ -120,6 +120,17 @@ const LIVE_MATCHES = [
   { group: "L", date: "2026-06-24", home: "PAN", away: "CRO", hs: 0, as: 1 },
   { group: "L", date: "2026-06-28", home: "PAN", away: "ENG", hs: 0, as: 2 },
   { group: "L", date: "2026-06-28", home: "CRO", away: "GHA", hs: 2, as: 1 },
+
+  // ── Knockout Stage ──
+  // Semi-finals (2026-07-10 and 2026-07-11)
+  { round: "semi-final", date: "2026-07-10", home: "FRA", away: "ESP", hs: 0, as: 2 },
+  { round: "semi-final", date: "2026-07-11", home: "ENG", away: "ARG", hs: 1, as: 2 },
+  
+  // 3rd place / Bronze Final (2026-07-16)
+  { round: "3rd-place", date: "2026-07-16", home: "FRA", away: "ENG", hs: 4, as: 6 },
+  
+  // Final (2026-07-20)
+  { round: "final", date: "2026-07-20", home: "ESP", away: "ARG", hs: 1, as: 0 },
 ];
 
 // ─── OFFICIAL GROUP LEADERS (per FIFA standings page, position 1) ─────────────
@@ -176,6 +187,26 @@ const ACTUAL_THIRD_FOURTH = ["ENG", "FRA"];
 if (typeof ACTUAL_RESULTS !== "undefined") {
   ACTUAL_RESULTS.finalists = ACTUAL_FINALISTS.slice();
   ACTUAL_RESULTS.thirdPlaceParticipants = ACTUAL_THIRD_FOURTH.slice();
+}
+
+// ─── CHAMPION & 3RD PLACE WINNER — SINGLE SOURCE OF TRUTH ──────────────────────
+// Final match results (as of 2026-07-20): Spain defeated Argentina 1-0 in the
+// final to become 2026 FIFA World Cup champion. England defeated France 6-4 in
+// the 3rd place match. Fed into ACTUAL_RESULTS so calcPoints() awards 5 pts for
+// correct champion prediction and 3 pts for correct 3rd-place prediction.
+const ACTUAL_CHAMPION = "ESP";
+const ACTUAL_THIRD_PLACE = "ENG";
+if (typeof ACTUAL_RESULTS !== "undefined") {
+  ACTUAL_RESULTS.champion = ACTUAL_CHAMPION;
+  ACTUAL_RESULTS.thirdPlace = ACTUAL_THIRD_PLACE;
+}
+
+// ─── TOP SCORER — SINGLE SOURCE OF TRUTH ──────────────────────────────────────
+// Tournament top scorer (as of 2026-07-20): Kylian Mbappe. Fed into ACTUAL_RESULTS
+// so calcPoints() awards 2 pts per correct top-scorer prediction.
+const ACTUAL_TOP_SCORER = "Kylian Mbappe";
+if (typeof ACTUAL_RESULTS !== "undefined") {
+  ACTUAL_RESULTS.topScorer = ACTUAL_TOP_SCORER;
 }
 
 // ─── STANDINGS LOGIC (do not edit) ───────────────────────────────────────────

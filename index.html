@@ -61,6 +61,117 @@
     .fun-tile.red   { border-left-color: #ef4444; }
     .fun-tile.green { border-left-color: #10b981; }
     .fun-tile.blue  { border-left-color: #3b82f6; }
+
+    /* ── Victory banner ── */
+    .victory-banner {
+      background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%);
+      border: 3px solid #dc2626;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 16px rgba(220, 38, 38, 0.2);
+    }
+    .victory-banner::before, .victory-banner::after {
+      content: '✨';
+      position: absolute;
+      font-size: 2rem;
+      animation: pulse 2s infinite;
+    }
+    .victory-banner::before { top: 10px; left: 15px; }
+    .victory-banner::after { top: 10px; right: 15px; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.1); }
+    }
+    .victory-banner h2 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #7f1d1d;
+      margin: 0;
+      text-shadow: 2px 2px 0px rgba(255,255,255,0.3);
+      position: relative;
+      z-index: 1;
+    }
+    .victory-banner .subtxt {
+      font-size: 1.1rem;
+      color: #991b1b;
+      margin-top: 0.5rem;
+      font-weight: 700;
+    }
+
+    /* ── Honor board / Podium ── */
+    .honor-board {
+      background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+      border: 2px solid #fbbf24;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .honor-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1f2937;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .podium-grid {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .podium-spot {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid #e5e7eb;
+      flex: 1 1 120px;
+      min-width: 100px;
+      max-width: 180px;
+    }
+    .podium-spot.gold {
+      border-color: #fbbf24;
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+      transform: scale(1.05);
+      flex-basis: 150px;
+    }
+    .podium-spot.silver {
+      border-color: #d1d5db;
+    }
+    .podium-spot.bronze {
+      border-color: #cd7f32;
+    }
+    .medal {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .podium-rank {
+      font-weight: 800;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+    .podium-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1f2937;
+      margin-bottom: 0.3rem;
+    }
+    .podium-pts {
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #059669;
+    }
   </style>
 </head>
 <body>
@@ -81,9 +192,9 @@
       <li><a href="stats.html">Stats</a></li>
       <li><a href="live-results.html">Live Results</a></li>
       <li><a href="extra-points-r16.html">Extra Points</a></li>
+      <li><a href="r16-nonplayers-projection.html">R16 No-Shows</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
-      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -97,9 +208,9 @@
     <a href="stats.html">Stats</a>
     <a href="live-results.html">Live Results</a>
     <a href="extra-points-r16.html">Extra Points</a>
+    <a href="r16-nonplayers-projection.html">R16 No-Shows</a>
     <a href="rules.html">Rules</a>
     <a href="how-to-play.html">How to Play</a>
-    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -121,16 +232,24 @@
       <!-- Phase notice (hidden unless needed) -->
       <div id="phaseNotice"></div>
 
-      <!-- Status Disclaimer -->
-      <div class="alert alert-success" style="margin-bottom:1.5rem">
-        ✅ <strong>All groups A-L are finalized!</strong> Standings below reflect official
-        group-winner scoring (1 pt each). Knockout, champion and top-scorer points unlock as those rounds complete.
+      <!-- Victory Banner -->
+      <div class="victory-banner" id="victoryBanner" style="display:none">
+        <h2>🏆 Spain Wins FIFA World Cup 2026! 🏆</h2>
+        <div class="subtxt">Tournament Complete — Final Standings Below</div>
       </div>
 
-      <div class="alert alert-warning" id="r32Commentary" style="margin-bottom:1.5rem">
-        🏁 <strong>Round of 32 is finalized.</strong> All 16 first-knockout-round games are done.
-        🔵 <strong>Round of 16 is in progress</strong> — Norway, England, France and Morocco are already
-        through to the quarter-finals; the remaining ties are being played now.
+      <!-- Honor Board / Podium -->
+      <div class="honor-board" id="honorBoard" style="display:none">
+        <div class="honor-title">🥇 Prediction Game Champions</div>
+        <div class="podium-grid" id="podiumGrid"></div>
+      </div>
+
+      <!-- R16 No-Shows banner -->
+      <div class="alert" style="background:#f0f9ff;border-left:4px solid #0ea5e9;border-radius:8px;margin-bottom:1.5rem;font-size:.87rem">
+        🔮 <strong>Six players missed the Round of 16 bonus round.</strong>
+        We ran a projection of what they would likely have picked based on their full bracket —
+        <a href="r16-nonplayers-projection.html" style="color:#0284c7;font-weight:700">see the R16 No-Shows analysis →</a>
+        <span style="color:#64748b"> · This was purely informational and did not affect the final standings.</span>
       </div>
 
       <!-- R16 Extra Points note -->
@@ -188,11 +307,6 @@
           <div class="icon">🎯</div>
           <h3>All Predictions</h3>
           <p>See every player's picks side by side</p>
-        </a>
-        <a href="winners-chances.html" class="quick-card">
-          <div class="icon">🔮</div>
-          <h3>Who Can Win the Porra</h3>
-          <p>Title odds &amp; max reachable points from the real QF bracket</p>
         </a>
       </div>
 
@@ -257,6 +371,43 @@
     const computed = getComputedParticipants();
     const officialHasData = phase !== 'pre' && computed.some(p => p.points && p.points.total > 0);
 
+    // Victory banner & honor board (show when tournament is finished and we have computed scores)
+    if (phase === 'finished' && computed.length > 0) {
+      document.getElementById('victoryBanner').style.display = '';
+      document.getElementById('honorBoard').style.display = '';
+      
+      // Sorted descending by total
+      const sorted = computed.slice().sort((a, b) => b.points.total - a.points.total);
+      
+      // Determine rank tiers: find the score at each podium level
+      const goldScore   = sorted[0] ? sorted[0].points.total : null;
+      const silverScore = sorted.find(p => p.points.total < goldScore)?.points.total ?? null;
+      const bronzeScore = silverScore !== null
+        ? sorted.find(p => p.points.total < silverScore)?.points.total ?? null
+        : null;
+
+      const goldPlayers   = sorted.filter(p => p.points.total === goldScore);
+      const silverPlayers = silverScore !== null ? sorted.filter(p => p.points.total === silverScore) : [];
+      const bronzePlayers = bronzeScore !== null ? sorted.filter(p => p.points.total === bronzeScore) : [];
+
+      const podiumGrid = document.getElementById('podiumGrid');
+      let podium = '';
+
+      const makeSpot = (cls, medal, rankLabel, player) => `
+        <div class="podium-spot ${cls}">
+          <div class="medal">${medal}</div>
+          <div class="podium-rank">${rankLabel}</div>
+          <div class="podium-name">${escHtml(aliasLabel(player.alias))}</div>
+          <div class="podium-pts">${player.points.total} pts</div>
+        </div>`;
+
+      goldPlayers.forEach(p   => { podium += makeSpot('gold',   '🥇', '🥇 1ST', p); });
+      silverPlayers.forEach(p => { podium += makeSpot('silver', '🥈', '🥈 2ND', p); });
+      bronzePlayers.forEach(p => { podium += makeSpot('bronze', '🥉', '🥉 3RD', p); });
+
+      podiumGrid.innerHTML = podium;
+    }
+
     // ── Round of 16 Extra Points: note + fun shake-up ──
     if (typeof r16HasResults === 'function' && r16HasResults()) {
       const nonPlayers = (typeof R16_PREDICTIONS !== 'undefined')
@@ -287,11 +438,25 @@
     }
 
     if (officialHasData) {
-      const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : r;
+      const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : String(r);
       const rowClass = r => r === 1 ? 'row-gold' : r === 2 ? 'row-silver' : r === 3 ? 'row-bronze' : '';
+      // Compute standard competition ranks (ties get same rank, next rank skips)
+      const rankOf = computed.map((p, idx) => {
+        if (idx === 0) return 1;
+        return computed[idx].points.total === computed[idx - 1].points.total
+          ? null // placeholder — fill from previous
+          : idx + 1;
+      });
+      // Fill placeholder nulls from the last real rank
+      let lastRank = 1;
+      const finalRanks = rankOf.map((r, idx) => {
+        if (r !== null) { lastRank = r; return r; }
+        return lastRank;
+      });
+
       let orows = '';
       computed.forEach((p, idx) => {
-        const rank = idx + 1, pts = p.points;
+        const rank = finalRanks[idx], pts = p.points;
         orows += `
           <tr class="${rowClass(rank)}">
             <td class="td-rank">${medal(rank)}</td>

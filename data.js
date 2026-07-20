@@ -487,7 +487,7 @@ const SETTINGS = {
   //   "group"    = group stage in progress
   //   "knockout" = knockout stage
   //   "finished" = all done
-  phase: "pre",
+  phase: "finished",
 
   predictionDeadline: "2026-06-10T23:59:59Z",
 };
