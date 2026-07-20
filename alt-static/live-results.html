@@ -119,8 +119,8 @@
       <li><a href="live-results.html" class="active">Live Results</a></li>
       <li><a href="rules.html">Rules</a></li>
       <li><a href="extra-points-r16.html">Extra Points</a></li>
+      <li><a href="r16-nonplayers-projection.html">R16 No-Shows</a></li>
       <li><a href="how-to-play.html">How to Play</a></li>
-      <li><a href="winners-chances.html">Winners Chances</a></li>
     </ul>
     <button class="nav-hamburger" onclick="toggleMenu()" aria-label="Menu">
       <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -135,8 +135,8 @@
     <a href="live-results.html" class="active">Live Results</a>
     <a href="rules.html">Rules</a>
     <a href="extra-points-r16.html">Extra Points</a>
+    <a href="r16-nonplayers-projection.html">R16 No-Shows</a>
     <a href="how-to-play.html">How to Play</a>
-    <a href="winners-chances.html">Winners Chances</a>
   </div>
 </nav>
 
@@ -328,71 +328,55 @@
       </div>`;
   })();
 
-  // ── Knockout stage results (Round of 32 + Round of 16, from FIFA) ──
+  // ── Knockout stage results (Semifinals, Final, 3rd Place) ──
   (function () {
     const card = document.getElementById('knockoutCard');
     if (!card) return;
 
-    // p = penalties [home, away] when the match went to a shootout
-    const R32 = [
-      { home: 'RSA', hs: 0, away: 'CAN', as: 1 },
-      { home: 'GER', hs: 1, away: 'PAR', as: 1, p: [3, 4] },
-      { home: 'NED', hs: 1, away: 'MAR', as: 1, p: [2, 3] },
-      { home: 'BRA', hs: 2, away: 'JPN', as: 1 },
-      { home: 'FRA', hs: 3, away: 'SWE', as: 0 },
-      { home: 'CIV', hs: 1, away: 'NOR', as: 2 },
-      { home: 'MEX', hs: 2, away: 'ECU', as: 0 },
-      { home: 'ENG', hs: 2, away: 'COD', as: 1 },
-      { home: 'USA', hs: 2, away: 'BIH', as: 0 },
-      { home: 'BEL', hs: 3, away: 'SEN', as: 2 },
-      { home: 'POR', hs: 2, away: 'CRO', as: 1 },
-      { home: 'ESP', hs: 3, away: 'AUT', as: 0 },
-      { home: 'SUI', hs: 2, away: 'ALG', as: 0 },
-      { home: 'ARG', hs: 3, away: 'CPV', as: 2 },
-      { home: 'COL', hs: 1, away: 'GHA', as: 0 },
-      { home: 'AUS', hs: 1, away: 'EGY', as: 1, p: [2, 4] },
-    ];
-    const R16 = [
-      { home: 'PAR', hs: 0, away: 'FRA', as: 1 },
-      { home: 'CAN', hs: 0, away: 'MAR', as: 3 },
-      { home: 'BRA', hs: 1, away: 'NOR', as: 2 },
-      { home: 'MEX', hs: 2, away: 'ENG', as: 3 },
-      { home: 'POR', away: 'ESP', when: '07 Jul' },
-      { home: 'USA', away: 'BEL', when: '07 Jul' },
-      { home: 'ARG', away: 'EGY', when: '07 Jul' },
-      { home: 'SUI', away: 'COL', when: '07 Jul' },
-    ];
+    // Knockout matches from live-data.js (LIVE_MATCHES with round property)
+    const semiFinals = LIVE_MATCHES.filter(m => m.round === 'semi-final' && m.hs != null && m.as != null)
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const thirdPlace = LIVE_MATCHES.filter(m => m.round === '3rd-place' && m.hs != null && m.as != null)
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const finalMatch = LIVE_MATCHES.filter(m => m.round === 'final' && m.hs != null && m.as != null)
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
-    const rowHtml = m => {
-      const played = m.hs != null && m.as != null;
-      const homeWin = played && (m.hs > m.as || (m.p && m.p[0] > m.p[1]));
-      const awayWin = played && (m.as > m.hs || (m.p && m.p[1] > m.p[0]));
-      const pens = m.p ? ` <span style="font-size:.7rem;color:var(--gray-400)">(pens ${m.p[0]}–${m.p[1]})</span>` : '';
-      const score = played
-        ? `<span class="${homeWin ? 'win' : ''}">${m.hs}</span>&nbsp;–&nbsp;<span class="${awayWin ? 'win' : ''}">${m.as}</span>`
-        : `<span style="color:var(--gray-400)">vs</span>`;
+    const rowHtml = (m, showWinnerName = false) => {
+      const homeWin = m.hs > m.as;
+      const awayWin = m.as > m.hs;
       return `
         <div class="match-row">
-          <div class="mr-home"><span class="mr-name" style="${homeWin ? 'font-weight:700' : ''}">${teamName(m.home)}</span> ${flagIcon(m.home)}</div>
-          <div class="mr-score">${score}${pens}</div>
-          <div class="mr-away">${flagIcon(m.away)} <span class="mr-name" style="${awayWin ? 'font-weight:700' : ''}">${teamName(m.away)}</span></div>
-          <div class="match-date">${played ? 'Full time' : (m.when || '')}</div>
+          <div class="mr-home"><span class="mr-name" style="${homeWin ? 'font-weight:700;color:#065f46' : ''}">${teamName(m.home)}</span> ${flagIcon(m.home)}</div>
+          <div class="mr-score"><span class="${homeWin ? 'win' : ''}">${m.hs}</span>&nbsp;–&nbsp;<span class="${awayWin ? 'win' : ''}">${m.as}</span></div>
+          <div class="mr-away">${flagIcon(m.away)} <span class="mr-name" style="${awayWin ? 'font-weight:700;color:#065f46' : ''}">${teamName(m.away)}</span></div>
+          <div class="match-date">${fmtDate(m.date)}</div>
         </div>`;
     };
 
-    const r16Done = R16.filter(m => m.hs != null).length;
-    card.innerHTML = `
-      <div class="card">
-        <div class="card-title">🏆 Knockout Stage Results</div>
-        <p style="color:var(--gray-500);font-size:.83rem;margin-bottom:1rem">
-          Official FIFA results. <strong>Round of 32 is finalized</strong>;
-          <strong>Round of 16 is in progress</strong> (${r16Done}/8 played). Winners in <strong>bold</strong>.
-        </p>
-        <div style="font-size:.82rem;font-weight:700;margin:.25rem 0 .6rem;color:var(--gray-700)">🥊 Round of 32 — Full time</div>
-        ${R32.map(rowHtml).join('')}
-        <div style="font-size:.82rem;font-weight:700;margin:1.1rem 0 .6rem;color:var(--gray-700)">🎯 Round of 16</div>
-        ${R16.map(rowHtml).join('')}
-      </div>`;
+    let html = `<div class="card">
+      <div class="card-title">🏆 Knockout Stage — Tournament Finished!</div>
+      <p style="color:var(--gray-500);font-size:.83rem;margin-bottom:1rem">
+        Tournament complete as of <strong>${fmtDate(LIVE_INFO.asOf)}</strong>. Spain wins 2026 FIFA World Cup! 
+        Winners marked in <span style="color:#065f46;font-weight:700">green bold</span>.
+      </p>`;
+
+    if (semiFinals.length > 0) {
+      html += `<div style="font-size:.82rem;font-weight:700;margin:.8rem 0 .6rem;color:var(--gray-700)">⚔️ Semi-Finals</div>`;
+      html += semiFinals.map(m => rowHtml(m, true)).join('');
+    }
+
+    if (thirdPlace.length > 0) {
+      html += `<div style="font-size:.82rem;font-weight:700;margin:.8rem 0 .6rem;color:var(--gray-700)">🥉 3rd Place / Bronze Final</div>`;
+      html += thirdPlace.map(m => rowHtml(m, true)).join('');
+    }
+
+    if (finalMatch.length > 0) {
+      html += `<div style="font-size:.82rem;font-weight:700;margin:.8rem 0 .6rem;color:#065f46;background:#f0fdf4;padding:.4rem .6rem;border-radius:8px;border-left:3px solid #10b981">🥇 FINAL — Champions!</div>`;
+      html += finalMatch.map(m => rowHtml(m, true)).join('');
+    }
+
+    html += `</div>`;
+    card.innerHTML = html;
   })();
 </script>
 </body>
